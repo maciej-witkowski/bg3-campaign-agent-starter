@@ -1,6 +1,6 @@
 # ADR-0015: Versioned campaign snapshots and checkpoints
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -149,8 +149,10 @@ None blocking. Compression or row-diff snapshots may be proposed later only with
 
 ## Approval record
 
-Pending explicit user approval.
+- Approved by the repository owner in the Codex task on 2026-08-26.
+- Approval scope: the complete ADR-0015 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-26 — Initial M1 proposal.
+- 2026-08-26 — Accepted after explicit user approval.

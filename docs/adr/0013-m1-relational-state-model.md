@@ -1,6 +1,6 @@
 # ADR-0013: M1 relational campaign state model
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -162,8 +162,10 @@ None blocking. Exact broad numeric corruption bounds and the exhaustive initial 
 
 ## Approval record
 
-Pending explicit user approval.
+- Approved by the repository owner in the Codex task on 2026-08-26.
+- Approval scope: the complete ADR-0013 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-26 — Initial M1 proposal.
+- 2026-08-26 — Accepted after explicit user approval.

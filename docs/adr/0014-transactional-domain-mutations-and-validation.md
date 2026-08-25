@@ -1,6 +1,6 @@
 # ADR-0014: Transactional domain mutations, validation and audit
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -152,8 +152,10 @@ None blocking. Domain service method granularity may be refined during implement
 
 ## Approval record
 
-Pending explicit user approval.
+- Approved by the repository owner in the Codex task on 2026-08-26.
+- Approval scope: the complete ADR-0014 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-26 — Initial M1 proposal.
+- 2026-08-26 — Accepted after explicit user approval.
