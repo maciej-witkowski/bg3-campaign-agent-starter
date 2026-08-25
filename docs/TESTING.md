@@ -1,5 +1,11 @@
 # Testing Strategy
 
+## M0 quality gates
+
+The repository-level gate is `pnpm check`. It verifies formatting, lint, strict TypeScript types, the Vitest suite and a production build. CI installs only from `pnpm-lock.yaml` and runs the same checks on Node.js 22.13.
+
+M0 unit tests cover environment defaults, accepted values, blank values and safe validation failures. Later milestone test categories below become active when their corresponding implementation is added.
+
 ## Unit tests
 Pure functions, schemas, resolver scoring, effective attribute calculations, domain invariants.
 

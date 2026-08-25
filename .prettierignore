@@ -1,0 +1,11 @@
+campaign/
+coverage/
+dist/
+examples/
+knowledge/
+node_modules/
+prompts/
+schemas/
+tests/scenarios/
+**/*.md
+pnpm-lock.yaml
