@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added a mandatory end-to-end milestone delivery workflow covering scope, implementation, tests, branch and commit discipline, pull requests, CI/security checks, AI review remediation and human approval.
+- Added a mandatory pre-implementation ADR proposal and user-approval gate, plus continuous ADR maintenance and re-approval rules for changed decisions.
+- Expanded the milestone review prompt with scope, security, dependency, migration and current-head validation checks.
+
 ## 0.2.0 — M0 Repository Foundation
 
 - Added a Node.js 22+ and pnpm project with a committed dependency lockfile.

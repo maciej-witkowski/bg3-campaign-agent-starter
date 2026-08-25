@@ -18,3 +18,5 @@ Use the Node.js and pnpm versions declared in `package.json`. Install with `pnpm
 When adding an environment variable, update the Zod schema in `src/config/environment.ts`, `.env.example` and the configuration tests in the same change.
 
 Architecture decisions follow the convention in `docs/adr/README.md`.
+
+Numbered roadmap milestones follow the complete branch-to-approval process in `docs/MILESTONE_DELIVERY_WORKFLOW.md`.

@@ -10,6 +10,7 @@ Implementation is intentionally staged through `ROADMAP.md`. M0 provides the rep
 2. Read `AGENTS.md`.
 3. Follow `ROADMAP.md` milestone by milestone.
 4. Use prompts under `prompts/milestones/` when delegating implementation to Codex.
+5. Follow `docs/MILESTONE_DELIVERY_WORKFLOW.md` through PR checks, AI review and human approval.
 
 ## Canonical state
 
