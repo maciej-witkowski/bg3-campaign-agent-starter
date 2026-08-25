@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "apply_permanent_modifier",
+  "type": "object",
+  "required": ["character", "attribute", "modifier", "source_name_pl", "confirmation"],
+  "properties": {
+    "character": {"type": "string"},
+    "attribute": {"enum": ["STR","DEX","CON","INT","WIS","CHA"]},
+    "modifier": {"type": "integer"},
+    "source_name_pl": {"type": "string"},
+    "notes": {"type": "string"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

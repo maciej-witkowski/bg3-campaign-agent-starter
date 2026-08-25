@@ -1,0 +1,4 @@
+{"step":1,"role":"user","text_pl":"Lae'zel wypiła Miksturę Wiecznego Wigoru i ma teraz 22 SIŁY."}
+{"step":2,"tool":"apply_permanent_modifier","arguments":{"character":"Lae'zel","attribute":"STR","modifier":2,"source_name_pl":"Mikstura Wiecznego Wigoru","notes":"Bazowa SIŁ 20; wynikowa 22.","confirmation":{"direct_fact":true,"source_utterance":"Lae'zel wypiła Miksturę Wiecznego Wigoru i ma teraz 22 SIŁY."}},"mutation":true}
+{"step":3,"tool":"calculate_effective_attributes","arguments":{"character":"Lae'zel"},"mutation":false}
+{"step":4,"expected_effective_STR":22}

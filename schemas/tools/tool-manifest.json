@@ -1,0 +1,19 @@
+{
+  "read": [
+    "get_party","get_character","get_character_build","get_character_equipment",
+    "find_inventory_items","get_item","get_character_spells","get_illithid_state","get_recent_changes"
+  ],
+  "analysis": [
+    "compare_equipment","calculate_effective_attributes","find_equipment_candidates","validate_campaign_state"
+  ],
+  "research": ["resolve_item_identity","verify_item_effects"],
+  "proposal": ["create_proposal"],
+  "mutation": [
+    "add_owned_item","equip_item","move_item_to_chest","mark_item_sold",
+    "set_prepared_spells","add_character_ability","unlock_illithid_power",
+    "apply_permanent_modifier","create_checkpoint","revert_change"
+  ],
+  "temporary_workflows": [
+    "open_merchant_session","add_merchant_candidate","analyze_merchant_session","confirm_purchase"
+  ]
+}

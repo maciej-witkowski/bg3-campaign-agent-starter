@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "resolve_item_identity",
+  "type": "object",
+  "required": ["name_pl"],
+  "properties": {
+    "name_pl": {"type": "string"},
+    "item_type_pl": {"type": "string"},
+    "rarity_pl": {"type": "string"},
+    "effect_text_pl": {"type": "array", "items": {"type": "string"}},
+    "allow_external_research": {"type": "boolean", "default": true}
+  },
+  "additionalProperties": false
+}

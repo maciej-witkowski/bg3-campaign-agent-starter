@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "equip_item",
+  "type": "object",
+  "required": ["character", "item", "slot", "old_item_destination", "confirmation"],
+  "properties": {
+    "character": {"type": "string"},
+    "item": {"type": "string"},
+    "slot": {"type": "string"},
+    "old_item_destination": {"enum": ["CHEST","SITUATIONAL","PERSONAL_STORY"]},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

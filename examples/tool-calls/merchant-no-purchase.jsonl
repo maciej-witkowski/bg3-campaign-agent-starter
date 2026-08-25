@@ -1,0 +1,6 @@
+{"step":1,"role":"user","text_pl":"Handlarz ma Łuk Tytana i Tarczę Strażniczą. Czy warto coś kupić?"}
+{"step":2,"tool":"open_merchant_session","arguments":{"label":"bieżący handlarz"},"mutation":false}
+{"step":3,"tool":"add_merchant_candidate","arguments":{"name_pl":"Łuk Tytana"},"mutation":false,"temporary":true}
+{"step":4,"tool":"add_merchant_candidate","arguments":{"name_pl":"Tarcza Strażnicza"},"mutation":false,"temporary":true}
+{"step":5,"tool":"analyze_merchant_session","arguments":{},"mutation":false}
+{"step":6,"role":"assistant","text_pl":"Łuk jest mocnym kandydatem. Żaden przedmiot nie został dodany do skrzyni, bo nie potwierdzono zakupu."}

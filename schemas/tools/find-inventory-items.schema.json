@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "find_inventory_items",
+  "type": "object",
+  "properties": {
+    "status": {"type": "array", "items": {"enum": ["EQUIPPED","CHEST","SITUATIONAL","PERSONAL_STORY","SOLD","UNKNOWN"]}},
+    "slot": {"type": "string"},
+    "query": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "owner": {"type": "string"}
+  },
+  "additionalProperties": false
+}

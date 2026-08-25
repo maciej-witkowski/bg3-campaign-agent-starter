@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "add_owned_item",
+  "type": "object",
+  "required": ["name_pl", "status", "confirmation"],
+  "properties": {
+    "name_pl": {"type": "string"},
+    "status": {"enum": ["CHEST","SITUATIONAL","PERSONAL_STORY"]},
+    "item_type_pl": {"type": "string"},
+    "rarity_pl": {"type": "string"},
+    "effect_text_pl": {"type": "array", "items": {"type": "string"}},
+    "obtained_location": {"type": "string"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

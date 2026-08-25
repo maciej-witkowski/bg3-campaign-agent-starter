@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ItemResolutionResult",
+  "type": "object",
+  "required": ["status", "candidates", "requires_user_confirmation"],
+  "properties": {
+    "status": {"enum": ["EXACT","RESOLVED","AMBIGUOUS","NOT_FOUND","CONFLICT"]},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_definition_id", "name_pl", "confidence", "matched_by"],
+        "properties": {
+          "item_definition_id": {"type": "string"},
+          "name_pl": {"type": "string"},
+          "name_en": {"type": "string"},
+          "rarity_pl": {"type": "string"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "matched_by": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "requires_user_confirmation": {"type": "boolean"},
+    "conflict_summary_pl": {"type": "string"}
+  },
+  "additionalProperties": false
+}

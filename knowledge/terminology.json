@@ -1,0 +1,19 @@
+{
+  "canonical_language": "pl-PL",
+  "attributes": {
+    "SIŁ": "STR",
+    "ZR": "DEX",
+    "KON": "CON",
+    "INT": "INT",
+    "MĄD": "WIS",
+    "CHA": "CHA"
+  },
+  "inventory_status_pl": {
+    "EQUIPPED": "WYPOSAŻONY",
+    "CHEST": "SKRZYNIA",
+    "SITUATIONAL": "SYTUACYJNY",
+    "PERSONAL_STORY": "FABULARNY / OSOBISTY",
+    "SOLD": "SPRZEDANY",
+    "UNKNOWN": "NIEZNANY"
+  }
+}

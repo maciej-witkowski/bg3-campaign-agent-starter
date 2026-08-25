@@ -1,0 +1,4 @@
+{"step":1,"state":"two_open_proposals","proposal_ids":["P_RING","P_ROBE"]}
+{"step":2,"role":"user","text_pl":"Dobra, zróbmy tak."}
+{"step":3,"expected":"NO_MUTATION"}
+{"step":4,"role":"assistant","text_pl":"Mam dwie otwarte propozycje. Potwierdź proszę, czy chodzi o zmianę pierścienia Lae'zel, szaty Gale'a, czy obie."}

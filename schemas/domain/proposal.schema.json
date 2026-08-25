@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposal",
+  "type": "object",
+  "required": ["id", "intent_type", "human_summary_pl", "payload", "status", "created_at", "expires_at"],
+  "properties": {
+    "id": {"type": "string"},
+    "intent_type": {"type": "string"},
+    "human_summary_pl": {"type": "string"},
+    "payload": {"type": "object"},
+    "status": {"enum": ["OPEN","CONFIRMED","REJECTED","EXPIRED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

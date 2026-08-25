@@ -1,0 +1,4 @@
+{"step":1,"role":"user","text_pl":"Znalazłem Hełm Mrocznego Sędziego."}
+{"step":2,"tool":"resolve_item_identity","arguments":{"name_pl":"Hełm Mrocznego Sędziego","allow_external_research":true},"mutation":false}
+{"step":3,"result_example":{"candidates":[{"name_pl":"Hełm Mrocznego Sędziego","rarity_pl":"nietypowy","confidence":0.72},{"name_pl":"Hełm Mrocznego Sędziego","rarity_pl":"bardzo rzadki","confidence":0.72}],"requires_confirmation":true}}
+{"step":4,"expected":"ASK_FOR_RARITY_OR_EFFECTS"}

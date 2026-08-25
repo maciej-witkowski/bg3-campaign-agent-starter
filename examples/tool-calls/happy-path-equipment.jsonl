@@ -1,0 +1,11 @@
+{"step":1,"role":"user","text_pl":"Czy Ryzykowny Pierścień będzie lepszy dla Lae'zel?"}
+{"step":2,"tool":"get_character_build","arguments":{"character":"Lae'zel"},"mutation":false}
+{"step":3,"tool":"get_character_equipment","arguments":{"character":"Lae'zel"},"mutation":false}
+{"step":4,"tool":"get_item","arguments":{"item":"Ryzykowny Pierścień"},"mutation":false}
+{"step":5,"tool":"compare_equipment","arguments":{"character":"Lae'zel","candidate_item":"Ryzykowny Pierścień","include_party_synergies":true},"mutation":false}
+{"step":6,"tool":"create_proposal","arguments":{"intent_type":"EQUIP_ITEM","human_summary_pl":"Założyć Ryzykowny Pierścień Lae'zel w miejsce Żrącej Obrączki; starą obrączkę przenieść do skrzyni.","payload":{"character":"Lae'zel","item":"Ryzykowny Pierścień","slot":"Pierścień 1","old_item_destination":"CHEST"}},"mutation":false}
+{"step":7,"role":"assistant","text_pl":"Rekomenduję zmianę, ale nie aktualizuję stanu bez potwierdzenia."}
+{"step":8,"role":"user","text_pl":"Tak, zatwierdzam."}
+{"step":9,"tool":"equip_item","arguments":{"character":"Lae'zel","item":"Ryzykowny Pierścień","slot":"Pierścień 1","old_item_destination":"CHEST","confirmation":{"proposal_id":"P_EXAMPLE"}},"mutation":true}
+{"step":10,"tool":"validate_campaign_state","arguments":{},"mutation":false}
+{"step":11,"role":"assistant","text_pl":"Zaktualizowano wyposażenie i zapisano zmianę w audycie."}

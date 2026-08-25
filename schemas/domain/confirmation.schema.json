@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MutationConfirmation",
+  "type": "object",
+  "properties": {
+    "proposal_id": {"type": "string"},
+    "direct_fact": {"type": "boolean"},
+    "source_utterance": {"type": "string"}
+  },
+  "anyOf": [
+    {"required": ["proposal_id"]},
+    {"required": ["direct_fact", "source_utterance"], "properties": {"direct_fact": {"const": true}}}
+  ],
+  "additionalProperties": false
+}

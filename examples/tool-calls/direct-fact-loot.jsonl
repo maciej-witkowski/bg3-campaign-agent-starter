@@ -1,0 +1,3 @@
+{"step":1,"role":"user","text_pl":"Zdobyłem Talizman Zamykania Ran i wkładam go do skrzyni."}
+{"step":2,"tool":"add_owned_item","arguments":{"name_pl":"Talizman Zamykania Ran","status":"CHEST","confirmation":{"direct_fact":true,"source_utterance":"Zdobyłem Talizman Zamykania Ran i wkładam go do skrzyni."}},"mutation":true}
+{"step":3,"tool":"validate_campaign_state","arguments":{},"mutation":false}
