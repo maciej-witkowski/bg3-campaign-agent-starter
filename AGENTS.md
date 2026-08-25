@@ -43,7 +43,7 @@ Every request to implement a numbered milestone must follow `docs/MILESTONE_DELI
 
 The first implementation gate is mandatory: create detailed milestone ADRs with status `Proposed`, present them to the user and wait for explicit approval. Do not write implementation code, schemas, migrations or runtime dependencies before approval. Mark approved ADRs `Accepted` and keep them current throughout implementation. Any new or materially changed architectural decision requires a new proposed ADR and renewed user approval.
 
-Unless the user explicitly requests a smaller stopping point, milestone delivery includes a dedicated branch, scoped commits, a pull request, green CI/security checks, AI review, remediation of valid findings and a final request for human approval. It never includes merging the pull request without explicit user instruction.
+Unless the user explicitly requests a smaller stopping point, milestone delivery includes a dedicated branch, scoped commits, a pull request, green CI/security checks, Codex review, user-approved remediation of valid findings and a final request for human approval. Trigger `@codex review` after opening the PR, present verified findings and the proposed fixes to the user, and wait for explicit approval before editing files to address them. It never includes merging the pull request without explicit user instruction.
 
 ## Database changes
 

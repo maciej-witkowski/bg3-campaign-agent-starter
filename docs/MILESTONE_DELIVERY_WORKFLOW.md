@@ -21,8 +21,9 @@ By default, the workflow includes authorization to:
 - push the milestone branch;
 - create or update a pull request;
 - wait for CI and security checks;
-- trigger an AI review;
-- apply valid, in-scope review findings;
+- trigger Codex review after opening the pull request;
+- analyze review findings and propose in-scope remediation to the user;
+- after explicit user approval, apply only the approved review findings;
 - push follow-up commits and repeat checks;
 - ask the user for final approval.
 
@@ -37,6 +38,7 @@ It does not authorize:
 - committing secrets or private generated data;
 - implementing a later milestone;
 - accepting a review suggestion that contradicts the specification or expands scope.
+- editing files to address a review finding before the user explicitly approves the proposed remediation.
 
 Platform approval prompts still apply. If the user explicitly opts out of a stage, follow that instruction and report the omitted evidence.
 
@@ -246,13 +248,17 @@ Documentation must describe implemented behavior, not intended future behavior.
 
 ## 11. Run the local validation ladder
 
-Run formatting first, then the complete repository gate:
+Run a write-mode formatter only on explicit milestone-owned paths. Build that path list from the reviewed milestone diff; do not derive it from unrelated pre-existing changes and do not pass repository-wide globs.
 
 ```sh
-pnpm format
+pnpm exec prettier --write -- <explicit milestone paths>
 pnpm check
 git diff --check
 ```
+
+Never run `pnpm format` or another repository-wide write formatter while the worktree contains user-owned or unrelated changes. If the milestone is the only worktree change, `pnpm format` remains acceptable, but explicit paths are preferred because they make the write scope auditable.
+
+`pnpm check` is non-mutating, but its repository-wide formatting check may report a failure caused solely by preserved user-owned files. Do not rewrite those files to make the gate pass. Either validate the milestone commit in a separate clean worktree or report the unrelated blocker and run the remaining non-mutating gates plus a scoped Prettier check for the milestone paths.
 
 Also run milestone-specific integration, scenario, migration, schema, import/export or recovery commands not included in `pnpm check`.
 
@@ -304,6 +310,8 @@ Do not mix unrelated changes into the commit. Do not amend or force-push after p
 ## 14. Create the pull request
 
 Push the milestone branch and create a PR against the correct base. Reuse an existing open PR for the same branch.
+
+Immediately after opening or updating the PR, trigger Codex review as described in section 16. CI/security checks and Codex review may run concurrently, but both must refer to the current head before remediation or handoff.
 
 The PR body must include:
 
@@ -369,11 +377,11 @@ A result from an older commit is stale evidence. Never bypass a required failing
 
 ## 16. Run AI review
 
-AI review is mandatory before asking for human approval.
+Codex review is mandatory after opening the PR and before asking for human approval.
 
 Preferred order:
 
-1. trigger the connected PR-review integration, for example with `@codex review`;
+1. comment `@codex review` after opening the PR; if an automatic Codex review already started for the current head, verify it instead of creating a duplicate request;
 2. verify that it returned an actual review for the current head;
 3. if unavailable, run an independent AI review in a separate reviewer agent/task using `prompts/review-milestone.md`;
 4. if no independent reviewer is available, perform a local review with that prompt and disclose that it was not independent.
@@ -384,20 +392,30 @@ The reviewer reads the milestone contract and full PR diff, verifies that implem
 
 ## 17. Remediate review findings
 
-For every finding:
+Review feedback is advisory until the user approves a remediation plan. Receiving a finding, a bot suggestion or a requested-change review does not itself authorize edits.
+
+Before changing files:
 
 1. verify it against the specification and code;
-2. accept it, reject it with evidence, or ask for a product decision;
-3. add or adjust regression coverage;
-4. implement the smallest valid fix;
-5. update docs/changelog when behavior changes;
-6. update or propose ADRs when a finding changes an architectural decision;
-7. obtain user approval before implementing any new or materially changed decision;
-8. run affected local gates;
-9. commit and push;
-10. wait for CI/security checks on the new head;
-11. rerun AI review after material code changes;
-12. ensure no blocking conversation remains.
+2. classify it as accepted, rejected with evidence, or requiring a product decision;
+3. prepare a concise remediation report containing severity, rationale, exact planned changes, tests and any ADR impact;
+4. present the report to the user and explicitly ask for approval of the proposed fixes;
+5. stop and wait for the user's response—silence or approval of the PR/ADR is not approval of review remediation.
+
+After explicit approval:
+
+1. implement only the approved findings using the smallest valid fix;
+2. add or adjust regression coverage;
+3. update docs/changelog when behavior changes;
+4. update or propose ADRs when a finding changes an architectural decision;
+5. obtain separate ADR approval before implementing any new or materially changed architectural decision;
+6. run affected local gates;
+7. commit and push;
+8. wait for CI/security checks on the new head;
+9. rerun Codex review after material changes and repeat the remediation approval gate for any new findings;
+10. ensure no blocking conversation remains.
+
+Record rejected or deferred findings and the supporting evidence in the PR handoff. User approval to fix one report does not authorize unrelated findings from a later review pass.
 
 Do not follow feedback blindly. Decline suggestions that weaken canonical-state rules, validation or milestone scope.
 
@@ -440,6 +458,7 @@ Do not merge, squash, rebase, tag or delete the branch without explicit instruct
 - [ ] Approved ADRs marked `Accepted` before implementation.
 - [ ] Existing implementation and tests inspected.
 - [ ] User-owned changes preserved.
+- [ ] Write-mode formatting was limited to explicit milestone-owned paths, or ran in a verified clean worktree.
 - [ ] Dedicated `codex/` branch contains only in-scope work.
 - [ ] Deliverables and negative-path tests implemented.
 - [ ] Required docs and `CHANGELOG.md` updated.
@@ -454,7 +473,9 @@ Do not merge, squash, rebase, tag or delete the branch without explicit instruct
 - [ ] PR documents validation, state impact, risks and non-goals.
 - [ ] CI/security checks pass on the latest commit.
 - [ ] AI review completed for the latest material code state.
-- [ ] Valid blocking findings remediated and revalidated.
+- [ ] Review findings and proposed fixes presented to the user.
+- [ ] User explicitly approved remediation before review-driven edits.
+- [ ] Only approved valid blocking findings remediated and revalidated.
 - [ ] PR is mergeable and working tree clean.
 - [ ] User asked for approval.
 - [ ] PR not merged without explicit instruction.
