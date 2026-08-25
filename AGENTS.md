@@ -13,6 +13,7 @@ Build a reliable persistent BG3 campaign assistant. Correctness of campaign stat
 - `docs/ARCHITECTURE.md`
 - `docs/DATA_MODEL.md`
 - `docs/DOMAIN_RULES.md`
+- `docs/MILESTONE_DELIVERY_WORKFLOW.md`
 - relevant ADRs in `docs/adr/`
 
 For AI behavior changes also read:
@@ -38,22 +39,11 @@ For voice work also read `docs/VOICE.md`.
 
 ## Development workflow
 
-Before coding:
+Every request to implement a numbered milestone must follow `docs/MILESTONE_DELIVERY_WORKFLOW.md` end to end.
 
-1. Identify the exact roadmap milestone/task.
-2. Inspect existing implementation and tests.
-3. State assumptions in the task output if the specification leaves ambiguity.
+The first implementation gate is mandatory: create detailed milestone ADRs with status `Proposed`, present them to the user and wait for explicit approval. Do not write implementation code, schemas, migrations or runtime dependencies before approval. Mark approved ADRs `Accepted` and keep them current throughout implementation. Any new or materially changed architectural decision requires a new proposed ADR and renewed user approval.
 
-After coding:
-
-1. run formatting;
-2. run lint;
-3. run typecheck;
-4. run unit tests;
-5. run integration/scenario tests relevant to the change;
-6. update affected docs;
-7. update `CHANGELOG.md`;
-8. report unresolved risks.
+Unless the user explicitly requests a smaller stopping point, milestone delivery includes a dedicated branch, scoped commits, a pull request, green CI/security checks, Codex review, user-approved remediation of valid findings and a final request for human approval. Trigger `@codex review` after opening the PR, present verified findings and the proposed fixes to the user, and wait for explicit approval before editing files to address them. It never includes merging the pull request without explicit user instruction.
 
 ## Database changes
 
