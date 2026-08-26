@@ -97,7 +97,8 @@ None. The runtime correction only permits the existing native driver to load; mu
 - `package.json`, README and GitHub Actions use Node.js 22.14.0 as the exact minimum.
 - CI reports `process.versions.napi` and opens/closes an in-memory `better-sqlite3` database immediately after frozen installation.
 - The official Windows x64 Node.js 22.14.0 archive passed its published SHA-256 check and reported Node-API 10 locally.
-- Local Node.js 24 native smoke and the full 51-test quality gate pass. This Windows host lacks the native build toolchain needed when its package store does not provide the prebuild, so clean minimum-version installation remains pending on Ubuntu CI.
+- Local Node.js 24 native smoke and the full 51-test quality gate pass. This Windows host lacks the native build toolchain needed when its package store does not provide the prebuild.
+- Two clean Ubuntu CI runs on Node.js 22.14.0 completed the pinned driver installation, reported Node-API 10, passed the direct in-memory SQLite smoke test and passed all 9 files/51 tests plus the production build.
 - Dependency versions, lockfile and migrations remain unchanged.
 
 ## Consequences and trade-offs
