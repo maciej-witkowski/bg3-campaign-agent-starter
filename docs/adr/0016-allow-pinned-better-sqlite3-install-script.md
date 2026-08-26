@@ -1,6 +1,6 @@
 # ADR-0016: Allow the pinned better-sqlite3 installation script
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -25,7 +25,7 @@ ADR-0012 selected `better-sqlite3@13.0.3` and assumed its lifecycle script could
 
 ### Option A — Allow only the pinned better-sqlite3 lifecycle script
 
-Set `allowBuilds.better-sqlite3` to `true` and leave `esbuild` denied. The install script obtains a compatible prebuilt binary or uses its documented native build fallback.
+Set `allowBuilds.better-sqlite3` to `true` and leave `esbuild` denied. For the pinned package, pnpm invokes the implicit `node-gyp rebuild`, requiring Python and a platform C++ build toolchain.
 
 ### Option B — Keep scripts denied and reduce Vitest concurrency
 
@@ -63,7 +63,7 @@ Only installation policy changes. Persistence, repository, domain and adapter bo
 
 - No schema or migration changes; all migration hashes remain unchanged.
 - No campaign data is read or written during installation.
-- Clean installation may download a pinned prebuilt binary or compile it when unavailable.
+- Clean installation compiles the pinned native driver and therefore requires Python and a platform C++ build toolchain.
 
 ## Transaction, validation, audit and rollback impact
 
@@ -103,8 +103,11 @@ None blocking. A new unsupported-platform failure must be reported rather than s
 
 ## Approval record
 
-Awaiting explicit repository-owner approval.
+- Approved by the repository owner in the Codex task on 2026-08-26.
+- Approval scope: the complete ADR-0016 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-26 — Proposed after two reproducible GitHub Actions failures exposed the disproved ADR-0012 installation assumption.
+- 2026-08-26 — Accepted after explicit repository-owner approval.
+- 2026-08-26 — Recorded implementation evidence that the pinned package uses implicit `node-gyp rebuild`; documented the native toolchain prerequisite.

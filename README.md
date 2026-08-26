@@ -20,6 +20,7 @@ SQLite is the only writable source of truth. XLSX/JSON are exports, not writable
 
 - Node.js 22.13 or newer;
 - pnpm 11.19 (pinned through the `packageManager` field).
+- Python 3 and a native C++ build toolchain for clean `better-sqlite3` installation (`Desktop development with C++` on Windows; the standard compiler/make toolchain on Linux).
 
 ## Setup
 

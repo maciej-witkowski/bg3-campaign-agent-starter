@@ -29,7 +29,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Committed: `dd1d5bb` |
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
-| ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Proposed after reproducible Linux CI failures, 2026-08-26 | Awaiting explicit approval; no implementation |
+| ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Implementation and validation in progress |
 
 ## Session ledger
 
@@ -281,6 +281,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | isolated frozen install plus `pnpm check` | Passed | Clean copy without `node_modules`/`dist`; 9 files/51 tests and build |
 | 2026-08-26 | GitHub Actions CI, push and pull-request runs | Failed | Both current-head runs: 3 non-persistence files/18 tests passed; 6 SQLite worker processes exited unexpectedly |
 | 2026-08-26 | `pnpm ignored-builds` plus CI failure-pattern analysis | Blocked | Confirms `better-sqlite3` lifecycle script is explicitly denied; ADR-0016 approval required |
+| 2026-08-26 | ADR-0016 local frozen install without exposed Python | Environment blocked | `node-gyp` started as intended but could not locate Python; verified temporary copy removed |
+| 2026-08-26 | ADR-0016 local frozen install with bundled Python 3.12 | Environment blocked | `node-gyp` reached native configuration but Windows lacks Visual Studio C++ Build Tools; verified temporary copy removed |
 
 ## Commits and remote state
 
@@ -304,4 +306,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-PR #3 is open at `1cfa19f`; GitGuardian passed, but two Linux/Node 22.13 CI runs reproducibly failed because the accepted ADR-0012 policy denies the native `better-sqlite3` install script. ADR-0016 is Proposed and no installation-policy change has been made. Next obtain explicit repository-owner approval for ADR-0016. If approved, mark it Accepted, update ADR-0012 evidence, enable only the pinned `better-sqlite3` build, run the required clean-install/native-smoke/full gates, commit and push, then wait for CI and rerun Codex review on the new head. Do not implement before approval, do not start M2 and do not implement restore/undo.
+ADR-0016 was explicitly accepted and implemented locally: only the pinned `better-sqlite3` native build is allowed, while `esbuild` remains denied. Existing-node_modules native smoke, full quality gates, audit and migration hashes pass. Two isolated Windows builds confirmed `node-gyp` execution but the host lacks Visual Studio C++ Build Tools; the copies were removed and the prerequisite is documented. Next commit and push, then require the clean Ubuntu/Node 22.13 CI run to pass installation, native persistence tests and build on the new head. Rerun Codex review afterward. Do not start M2 or implement restore/undo.
