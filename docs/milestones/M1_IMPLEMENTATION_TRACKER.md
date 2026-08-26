@@ -29,6 +29,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Committed: `dd1d5bb` |
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
+| ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Proposed after reproducible Linux CI failures, 2026-08-26 | Awaiting explicit approval; no implementation |
 
 ## Session ledger
 
@@ -278,6 +279,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | final `pnpm check` | Passed | 9 files/51 tests, lint, strict typecheck and production build |
 | 2026-08-26 | `pnpm audit --audit-level high` | Passed | One moderate development-only advisory; zero high/critical findings |
 | 2026-08-26 | isolated frozen install plus `pnpm check` | Passed | Clean copy without `node_modules`/`dist`; 9 files/51 tests and build |
+| 2026-08-26 | GitHub Actions CI, push and pull-request runs | Failed | Both current-head runs: 3 non-persistence files/18 tests passed; 6 SQLite worker processes exited unexpectedly |
+| 2026-08-26 | `pnpm ignored-builds` plus CI failure-pattern analysis | Blocked | Confirms `better-sqlite3` lifecycle script is explicitly denied; ADR-0016 approval required |
 
 ## Commits and remote state
 
@@ -301,4 +304,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-All accepted M1 ADR sessions and milestone-wide local validation are complete. Next commit these final documentation updates, push `codex/m1-canonical-database`, open the PR, wait for CI/security checks on the current head and obtain Codex review. Stop for explicit user approval before applying any review remediation. Do not start M2 or implement restore/undo.
+PR #3 is open at `1cfa19f`; GitGuardian passed, but two Linux/Node 22.13 CI runs reproducibly failed because the accepted ADR-0012 policy denies the native `better-sqlite3` install script. ADR-0016 is Proposed and no installation-policy change has been made. Next obtain explicit repository-owner approval for ADR-0016. If approved, mark it Accepted, update ADR-0012 evidence, enable only the pinned `better-sqlite3` build, run the required clean-install/native-smoke/full gates, commit and push, then wait for CI and rerun Codex review on the new head. Do not implement before approval, do not start M2 and do not implement restore/undo.
