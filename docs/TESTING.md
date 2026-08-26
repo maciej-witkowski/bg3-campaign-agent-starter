@@ -16,7 +16,10 @@ SQLite CRUD and query semantics against temporary databases.
 Verify rollback on invariant failure.
 
 ## Migration tests
-Apply all migrations from empty DB and supported previous fixtures.
+Apply all migrations from an empty database and from supported committed migration
+boundaries. Upgrade fixtures use the actual immutable SQL files, seed sanitized legacy
+rows, apply only the newer migration, and assert payload/data preservation, explicit
+backfill metadata and `PRAGMA foreign_key_check` integrity.
 
 ## Tool contract tests
 Every tool validates input and stable result envelope.

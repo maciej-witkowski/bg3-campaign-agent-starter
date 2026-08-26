@@ -143,12 +143,21 @@ the audit protocol belong to ADR-0014.
 
 ### checkpoints
 
-Columns: `id` PK, `label`, `created_at`, positive `snapshot_version`, valid
-JSON `snapshot_json`, lowercase 64-character hexadecimal `snapshot_sha256`,
-`reason_pl`, and nullable `change_event_id` FK → change_events (set null).
+Columns: `id` PK, `label`, `created_at`, required non-empty `snapshot_format`,
+positive `snapshot_version`, positive `schema_version`, valid JSON `snapshot_json`,
+lowercase 64-character hexadecimal `snapshot_sha256`, `reason_pl`, and nullable
+`change_event_id` FK → change_events (set null).
 
-Creation time is indexed. Snapshot capture, canonical serialization and integrity
-verification are implemented by ADR-0015.
+Creation time is indexed. Snapshot format and schema version have no persistent SQL
+defaults: every new checkpoint write supplies the metadata captured from its validated
+snapshot. Migration `0002_wild_warpath` upgrades legacy rows using the explicit format
+literal `BG3_CAMPAIGN_SNAPSHOT` and historical `schema_version=2`, while preserving the
+payload, digest and relation to `change_events`.
+
+ADR-0015 implements deterministic `CampaignSnapshotV1` capture, strict canonical UTC
+metadata validation, SHA-256 integrity verification and atomic checkpoint creation.
+Snapshots contain current canonical campaign tables and deliberately exclude
+`change_events`, `checkpoints` and Drizzle migration history.
 
 ## Persistence boundary
 

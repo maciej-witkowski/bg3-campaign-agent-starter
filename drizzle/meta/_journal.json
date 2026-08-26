@@ -15,6 +15,13 @@
       "when": 1787706000000,
       "tag": "0001_change_events_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787740085480,
+      "tag": "0002_wild_warpath",
+      "breakpoints": true
     }
   ]
 }

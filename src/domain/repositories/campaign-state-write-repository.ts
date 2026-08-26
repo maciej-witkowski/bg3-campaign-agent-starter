@@ -5,6 +5,7 @@ import type {
   CharacterAttribute,
   CharacterIllithidPower,
   CharacterSpell,
+  Checkpoint,
   EquipmentAssignment,
   IllithidPower,
   IllithidPowerPrerequisite,
@@ -17,6 +18,7 @@ import type {
 
 /** Internal capability: instances exist only inside CampaignMutationCoordinator callbacks. */
 export interface CampaignStateWriteRepository {
+  insertCheckpoint(value: Checkpoint): void;
   insertCharacter(value: Character): void;
   setCharacterAttribute(value: CharacterAttribute): boolean;
   insertPermanentModifier(value: PermanentModifier): void;

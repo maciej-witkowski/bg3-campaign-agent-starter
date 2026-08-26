@@ -1,4 +1,4 @@
-import { mkdtempSync, renameSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -60,6 +60,81 @@ describe("SQLite migrations", () => {
 
       expect(probeCount.count).toBe(1);
       expect(migrationCount.count).toBe(1);
+    } finally {
+      connection.close();
+    }
+  });
+
+  it("upgrades a 0000+0001 database without losing legacy checkpoint or related state", () => {
+    const directory = createTemporaryDirectory();
+    const migrationsFolder = join(directory, "migrations");
+    const filename = join(directory, "campaign.sqlite");
+    const committedMigrations = [
+      {
+        tag: "0000_chief_cassandra_nova",
+        when: 1_787_702_801_605,
+        sql: readFileSync(join("drizzle", "0000_chief_cassandra_nova.sql"), "utf8"),
+      },
+      {
+        tag: "0001_change_events_append_only",
+        when: 1_787_706_000_000,
+        sql: readFileSync(join("drizzle", "0001_change_events_append_only.sql"), "utf8"),
+      },
+      {
+        tag: "0002_wild_warpath",
+        when: 1_787_740_085_480,
+        sql: readFileSync(join("drizzle", "0002_wild_warpath.sql"), "utf8"),
+      },
+    ] as const;
+
+    writeMigrationFixture(migrationsFolder, committedMigrations.slice(0, 2));
+    const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
+
+    try {
+      const client = connection.database.$client;
+      const instant = "2026-08-26T12:00:00.000Z";
+      const payload = '{"legacy":true}';
+      const digest = "a".repeat(64);
+      client
+        .prepare(
+          "insert into characters (id, canonical_name, display_name_pl, race_pl, class_pl, subclass_pl, level, role_summary, active_party, notes, created_at, updated_at) values (?, ?, ?, null, ?, null, 1, ?, 1, null, ?, ?)",
+        )
+        .run("character-1", "astarion", "Astarion", "Łotrzyk", "Wsparcie", instant, instant);
+      client
+        .prepare(
+          "insert into change_events (id, occurred_at, type, character_id, proposal_id, summary_pl, reason_pl, before_json, after_json, reverses_change_event_id) values (?, ?, ?, ?, null, ?, null, '{}', '{}', null)",
+        )
+        .run("event-1", instant, "LEGACY", "character-1", "Starsze zdarzenie");
+      client
+        .prepare(
+          "insert into checkpoints (id, label, created_at, snapshot_version, snapshot_json, snapshot_sha256, reason_pl, change_event_id) values (?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .run("checkpoint-legacy", "Przed migracją", instant, 1, payload, digest, "Test", "event-1");
+
+      writeMigrationFixture(migrationsFolder, committedMigrations);
+      migrateSqliteConnection(connection, migrationsFolder);
+
+      expect(
+        client.prepare("select canonical_name from characters where id = ?").get("character-1"),
+      ).toEqual({ canonical_name: "astarion" });
+      expect(
+        client.prepare("select summary_pl from change_events where id = ?").get("event-1"),
+      ).toEqual({ summary_pl: "Starsze zdarzenie" });
+      expect(
+        client.prepare("select * from checkpoints where id = ?").get("checkpoint-legacy"),
+      ).toEqual({
+        id: "checkpoint-legacy",
+        label: "Przed migracją",
+        created_at: instant,
+        snapshot_format: "BG3_CAMPAIGN_SNAPSHOT",
+        snapshot_version: 1,
+        schema_version: 2,
+        snapshot_json: payload,
+        snapshot_sha256: digest,
+        reason_pl: "Test",
+        change_event_id: "event-1",
+      });
+      expect(client.pragma("foreign_key_check")).toEqual([]);
     } finally {
       connection.close();
     }

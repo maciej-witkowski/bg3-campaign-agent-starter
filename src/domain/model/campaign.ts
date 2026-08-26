@@ -223,7 +223,9 @@ export interface Checkpoint {
   readonly id: string;
   readonly label: string;
   readonly createdAt: Date;
+  readonly snapshotFormat: string;
   readonly snapshotVersion: number;
+  readonly schemaVersion: number;
   readonly snapshotJson: string;
   readonly snapshotSha256: string;
   readonly reasonPl: string;

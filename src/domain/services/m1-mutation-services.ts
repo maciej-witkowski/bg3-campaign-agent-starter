@@ -5,6 +5,7 @@ import type {
   CharacterAttribute,
   CharacterIllithidPower,
   CharacterSpell,
+  Checkpoint,
   EquipmentAssignment,
   IllithidPower,
   IllithidPowerPrerequisite,
@@ -14,11 +15,17 @@ import type {
   PermanentModifier,
   Spell,
 } from "../model/campaign.js";
+import { CampaignDomainError } from "../mutations/campaign-mutation.js";
 import type {
   CampaignMutationCoordinatorPort,
   CampaignMutationMetadata,
   CampaignMutationResult,
+  IdSource,
 } from "../mutations/campaign-mutation.js";
+import {
+  calculateSnapshotSha256,
+  deserializeCampaignSnapshot,
+} from "../snapshots/campaign-snapshot.js";
 
 type Metadata = Omit<CampaignMutationMetadata, "characterId" | "reversesChangeEventId">;
 
@@ -47,6 +54,60 @@ export class CharacterMutationService {
       return true;
     });
   }
+}
+
+export interface CreateCheckpointInput {
+  readonly label: string;
+  readonly reasonPl: string;
+  readonly changeEventId?: string | null;
+}
+export interface SnapshotDigestPort {
+  calculate(payload: string): string;
+}
+export type CheckpointMutationResult =
+  | { readonly changed: false }
+  | {
+      readonly changed: true;
+      readonly changeEventId: string;
+      readonly occurredAt: Date;
+      readonly checkpointId: string;
+    };
+
+export class CheckpointMutationService {
+  public constructor(
+    private readonly coordinator: CampaignMutationCoordinatorPort,
+    private readonly ids: IdSource,
+    private readonly digest: SnapshotDigestPort = { calculate: calculateSnapshotSha256 },
+  ) {}
+  public createCheckpoint(
+    input: CreateCheckpointInput,
+    metadata: Metadata,
+  ): CheckpointMutationResult {
+    const checkpointId = this.ids.nextId();
+    const result = this.coordinator.execute(metadata, (writes, context) => {
+      const snapshotJson = context.snapshotter.capture();
+      const snapshot = deserializeCampaignSnapshot(snapshotJson);
+      const checkpoint: Checkpoint = {
+        id: checkpointId,
+        label: requiredCheckpointText(input.label, "label"),
+        createdAt: context.occurredAt,
+        snapshotFormat: snapshot.format,
+        snapshotVersion: snapshot.version,
+        schemaVersion: snapshot.schemaVersion,
+        snapshotJson,
+        snapshotSha256: this.digest.calculate(snapshotJson),
+        reasonPl: requiredCheckpointText(input.reasonPl, "reasonPl"),
+        changeEventId: input.changeEventId ?? null,
+      };
+      writes.insertCheckpoint(checkpoint);
+      return true;
+    });
+    return result.changed ? { ...result, checkpointId } : result;
+  }
+}
+function requiredCheckpointText(value: string, field: string): string {
+  if (value.trim() === "") throw new CampaignDomainError(`${field} nie może być puste.`);
+  return value;
 }
 
 export class ItemCatalogMutationService {

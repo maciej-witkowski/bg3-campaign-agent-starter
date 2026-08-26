@@ -19,13 +19,14 @@ import {
 import type { SqliteDatabase } from "./connection.js";
 import { SqliteCampaignStateWriteRepository } from "./campaign-state-write-repository.js";
 import { SqliteCampaignValidationStateReader } from "./campaign-validation-state-reader.js";
+import { createSqliteCampaignSnapshotPort } from "./campaign-snapshot.js";
 import { changeEvents } from "./schema.js";
 import type { SqliteTransaction } from "./transaction-types.js";
 
 export interface CampaignMutationCoordinatorDependencies {
   readonly clock: Clock;
   readonly ids: IdSource;
-  readonly snapshotter: (transaction: SqliteTransaction) => CampaignSnapshotPort;
+  readonly snapshotter?: (transaction: SqliteTransaction, capturedAt: Date) => CampaignSnapshotPort;
   readonly validator?: (transaction: SqliteTransaction) => CampaignValidatorPort;
   readonly auditInsert?: (
     transaction: SqliteTransaction,
@@ -49,9 +50,14 @@ export class CampaignMutationCoordinator implements CampaignMutationCoordinatorP
 
     try {
       return this.database.transaction((transaction) => {
-        const snapshotter = this.dependencies.snapshotter(transaction);
+        const snapshotter =
+          this.dependencies.snapshotter?.(transaction, occurredAt) ??
+          createSqliteCampaignSnapshotPort(transaction, occurredAt);
         const beforeJson = snapshotter.capture();
-        const changed = mutation(new SqliteCampaignStateWriteRepository(transaction));
+        const changed = mutation(new SqliteCampaignStateWriteRepository(transaction), {
+          occurredAt,
+          snapshotter,
+        });
         if (!changed) return { changed: false } as const;
 
         const validator =

@@ -7,6 +7,7 @@ import type {
   CharacterAttribute,
   CharacterIllithidPower,
   CharacterSpell,
+  Checkpoint,
   EquipmentAssignment,
   IllithidPower,
   IllithidPowerPrerequisite,
@@ -24,6 +25,7 @@ import {
   characterIllithidPowers,
   characterSpells,
   characters,
+  checkpoints,
   equipment,
   illithidPowerPrerequisites,
   illithidPowers,
@@ -41,6 +43,12 @@ const nullableInstant = (value: Date | null): string | null =>
 
 export class SqliteCampaignStateWriteRepository implements CampaignStateWriteRepository {
   public constructor(private readonly transaction: SqliteTransaction) {}
+  public insertCheckpoint(value: Checkpoint): void {
+    this.transaction
+      .insert(checkpoints)
+      .values({ ...value, createdAt: instant(value.createdAt) })
+      .run();
+  }
 
   public insertCharacter(value: Character): void {
     this.transaction

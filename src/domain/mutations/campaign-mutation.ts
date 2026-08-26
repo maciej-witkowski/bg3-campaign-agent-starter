@@ -42,7 +42,15 @@ export interface CampaignValidatorPort {
   validate(): readonly CampaignValidationViolation[];
 }
 
-export type TransactionalMutation = (writes: CampaignStateWriteRepository) => boolean;
+export interface CampaignMutationContext {
+  readonly occurredAt: Date;
+  readonly snapshotter: CampaignSnapshotPort;
+}
+
+export type TransactionalMutation = (
+  writes: CampaignStateWriteRepository,
+  context: CampaignMutationContext,
+) => boolean;
 
 export interface CampaignMutationCoordinatorPort {
   execute(

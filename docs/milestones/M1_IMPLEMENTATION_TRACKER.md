@@ -25,16 +25,16 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 
 | ADR | Decision | Approval | Implementation status |
 | --- | --- | --- | --- |
-| ADR-0012 | `better-sqlite3`, Drizzle, committed SQL migrations, explicit connection factory | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
-| ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
-| ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
-| ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Not started |
+| ADR-0012 | `better-sqlite3`, Drizzle, committed SQL migrations, explicit connection factory | Accepted by repository owner, 2026-08-26 | Committed: `892ee35` |
+| ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Committed: `dd1d5bb` |
+| ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
+| ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Implemented; pending review and commit |
 
 ## Session ledger
 
 ### Session ADR-0012 — persistence and migrations
 
-Status: Complete — implementation pending main-agent review and commit
+Status: Complete — committed as `892ee35`
 
 Implemented:
 
@@ -72,7 +72,7 @@ Handoff: Main agent reviews and commits this session. ADR-0013 starts by replaci
 
 ### Session ADR-0013 — relational state model
 
-Status: Complete — implementation pending main-agent review and commit
+Status: Complete — committed as `dd1d5bb`
 
 Implemented:
 
@@ -119,7 +119,7 @@ implement ADR-0015 snapshot/checkpoint services yet.
 
 ### Session ADR-0014 — mutations, validation and audit
 
-Status: Complete — implementation pending main-agent review and commit
+Status: Complete — committed as `ca372dd`
 
 Implemented:
 
@@ -162,7 +162,6 @@ Files modified:
 - `tests/unit/persistence/m1-schema.test.ts`;
 - `docs/adr/0014-transactional-domain-mutations-and-validation.md`;
 - `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`.
-
 Handoff: Main agent reviews and commits this focused session. ADR-0015 must replace the
 controlled snapshot port implementation used in coordinator tests with the real
 deterministic `CampaignSnapshotV1` serializer/factory and add checkpoint creation.
@@ -171,124 +170,131 @@ implement restore/undo/proposal/confirmation behavior.
 
 ### Session ADR-0015 — snapshots and checkpoints
 
-Status: Pending
+Status: Complete — implementation pending main-agent review and commit
 
-Planned scope:
+Implemented:
 
-- `CampaignSnapshotV1` format and strict validator;
-- deterministic capture/serialization/deserialization;
-- SHA-256 integrity helpers;
-- checkpoint repository/service integration;
-- deterministic, corruption and rollback tests.
+- strict persistence-independent `CampaignSnapshotV1` with explicit format/version/schema/capture metadata and all 14 canonical M1 state collections;
+- deterministic collection, row-identity and field ordering with exact Unicode, null, boolean and finite-number preservation;
+- strict deserialization rejecting malformed/extra/missing structure, unsupported format/version, duplicate identities, non-finite numbers and non-canonical `capturedAt` values;
+- exact UTF-8 SHA-256 calculation and verification after payload validation;
+- real transaction-scoped SQLite snapshot adapter, now the coordinator default for before/after audit snapshots;
+- typed atomic checkpoint service and repository insertion with explicit metadata, domain errors for blank label/reason and exactly-one audit behavior;
+- forward migration `0002_wild_warpath` adding `snapshot_format` and `schema_version` to legacy checkpoints;
+- upgrade regression from the actual `0000+0001` boundary preserving a legacy checkpoint payload, digest, related character/change event and foreign-key integrity;
+- read repository and physical/logical documentation updates; no restore, undo, backup rotation or M2 behavior.
 
-Handoff: Reuse the mutation coordinator and state reader; do not implement restore, backup rotation or undo UI.
+Migration generation incident and correction:
 
-## Change inventory
+- review found that generator-friendly defaults on `snapshot_format` and `schema_version` would become unintended permanent write defaults;
+- the persistent defaults were removed from the Drizzle schema and `meta/0002_snapshot.json`, and the `DEFAULT` clauses were removed from the new table DDL;
+- the table-recreation `INSERT ... SELECT` was manually retained/corrected to use the explicit historical literals `BG3_CAMPAIGN_SNAPSHOT` and `schema_version=2`, because current writes must provide metadata explicitly while legacy rows still require a deterministic backfill;
+- immutable migrations `0000` and `0001` were not edited; Git blob hashes remain `ca5387af1e1a8e15977538ccc107305b86fb9b6e` and `d7b512f84b74da85137a797bd8a10f3afe2eb61b`.
 
-### Created
+Files created:
 
-- `drizzle.config.ts`
-- `pnpm-workspace.yaml`
-- `src/persistence/sqlite/connection.ts`
-- `src/persistence/sqlite/migrations.ts`
-- `src/persistence/sqlite/schema.ts`
-- `tests/unit/persistence/migration-fixture.ts`
-- `tests/unit/persistence/sqlite-connection.test.ts`
-- `tests/unit/persistence/sqlite-migrations.test.ts`
-- `docs/adr/0012-sqlite-drizzle-persistence-and-migrations.md`
-- `docs/adr/0013-m1-relational-state-model.md`
-- `docs/adr/0014-transactional-domain-mutations-and-validation.md`
-- `docs/adr/0015-versioned-campaign-snapshots-and-checkpoints.md`
-- `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
+- `drizzle/0002_wild_warpath.sql`
+- `drizzle/meta/0002_snapshot.json`
+- `src/domain/snapshots/campaign-snapshot.ts`
+- `src/persistence/sqlite/campaign-snapshot.ts`
+- `tests/unit/domain/campaign-snapshot.test.ts`
+- `tests/unit/persistence/campaign-snapshot-checkpoint.test.ts`
 
+Files modified:
+
+- `drizzle/meta/_journal.json`
 - `src/domain/model/campaign.ts`
-- `src/domain/repositories/campaign-state-read-repository.ts`
-- `src/persistence/sqlite/campaign-state-read-repository.ts`
-- `drizzle/0000_chief_cassandra_nova.sql` and `drizzle/meta/*`
-- `tests/unit/persistence/m1-schema.test.ts`
-- `tests/unit/persistence/campaign-state-read-repository.test.ts`
-- `drizzle/0001_change_events_append_only.sql`
 - `src/domain/mutations/campaign-mutation.ts`
 - `src/domain/repositories/campaign-state-write-repository.ts`
 - `src/domain/services/m1-mutation-services.ts`
-- `src/domain/validation/campaign-validation.ts`
 - `src/persistence/sqlite/campaign-mutation-coordinator.ts`
 - `src/persistence/sqlite/campaign-state-write-repository.ts`
-- `src/persistence/sqlite/campaign-validation-state-reader.ts`
-- `src/persistence/sqlite/transaction-types.ts`
-- `tests/unit/domain/campaign-validation.test.ts`
-- `tests/unit/persistence/campaign-mutation-coordinator.test.ts`
-
-### Modified
-
-- `.gitignore`
-- `package.json`
-- `pnpm-lock.yaml`
-- `docs/adr/0012-sqlite-drizzle-persistence-and-migrations.md`
+- `src/persistence/sqlite/schema.ts`
+- `tests/unit/persistence/campaign-state-read-repository.test.ts`
+- `tests/unit/persistence/sqlite-migrations.test.ts`
+- `docs/DATA_MODEL.md`
+- `docs/TESTING.md`
+- `docs/adr/0015-versioned-campaign-snapshots-and-checkpoints.md`
 - `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
-- Approval metadata in the four M1 ADRs.
+
+Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm the history-aware literals remain only in migration `0002`'s `INSERT ... SELECT`, while the schema/new-table DDL/metadata have no defaults. Then begin the final milestone-wide validation and delivery workflow; do not add restore/undo or start M2.
+
+## Change inventory
+
+### Created across M1
+
+- ADRs `docs/adr/0012-...` through `0015-...` and this implementation tracker
+- `drizzle.config.ts`, `pnpm-workspace.yaml`
+- `drizzle/0000_chief_cassandra_nova.sql`
+- `drizzle/0001_change_events_append_only.sql`
+- `drizzle/0002_wild_warpath.sql`
+- `drizzle/meta/_journal.json`, `0000_snapshot.json`, `0002_snapshot.json`
+- M1 domain model, read/write repository contracts, mutation types/services, validator and snapshot primitives under `src/domain/`
+- SQLite connection, migrator, schema, read/write repositories, validator reader, mutation coordinator and snapshot adapter under `src/persistence/sqlite/`
+- M1 domain/persistence tests under `tests/unit/domain/` and `tests/unit/persistence/`
+
+### Modified in ADR-0015 worktree
+
 - `drizzle/meta/_journal.json`
-- `tests/unit/persistence/m1-schema.test.ts`
-- `docs/adr/0014-transactional-domain-mutations-and-validation.md`
+- `src/domain/model/campaign.ts`
+- `src/domain/mutations/campaign-mutation.ts`
+- `src/domain/repositories/campaign-state-write-repository.ts`
+- `src/domain/services/m1-mutation-services.ts`
+- `src/persistence/sqlite/campaign-mutation-coordinator.ts`
+- `src/persistence/sqlite/campaign-state-write-repository.ts`
+- `src/persistence/sqlite/schema.ts`
+- `tests/unit/persistence/campaign-state-read-repository.test.ts`
+- `tests/unit/persistence/sqlite-migrations.test.ts`
+- `docs/DATA_MODEL.md`
+- `docs/TESTING.md`
+- `docs/adr/0015-versioned-campaign-snapshots-and-checkpoints.md`
+- `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
+
+### Created in ADR-0015 worktree
+
+- `drizzle/0002_wild_warpath.sql`
+- `drizzle/meta/0002_snapshot.json`
+- `src/domain/snapshots/campaign-snapshot.ts`
+- `src/persistence/sqlite/campaign-snapshot.ts`
+- `tests/unit/domain/campaign-snapshot.test.ts`
+- `tests/unit/persistence/campaign-snapshot-checkpoint.test.ts`
 
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
 | --- | --- | --- | --- |
-| 2026-08-26 | `pnpm exec prettier --check -- docs/adr/0012-... docs/adr/0015-...` | Passed | Proposed ADR set before approval |
-| 2026-08-26 | `git diff --check` | Passed | Proposed ADR set before approval |
-| 2026-08-26 | `pnpm typecheck` | Passed | Strict TypeScript validation after SQLite infrastructure |
-| 2026-08-26 | `pnpm test -- tests/unit/persistence` | Passed | 3 files, 10 tests; includes connection and migration coverage |
-| 2026-08-26 | `pnpm exec prettier --check -- <ADR-0012 paths>` | Passed | Scoped formatting check; `.gitignore` excluded because Prettier has no parser |
-| 2026-08-26 | `pnpm lint` | Passed | Repository lint gate |
-| 2026-08-26 | `pnpm test` | Passed | 3 files, 10 tests |
-| 2026-08-26 | `pnpm build` | Passed | Production TypeScript build |
-| 2026-08-26 | `pnpm audit --audit-level high` | Passed | No high or critical findings; one moderate development-only esbuild advisory remains |
-| 2026-08-26 | `pnpm install --frozen-lockfile` plus `pnpm check` in an isolated clean copy | Passed | 153 packages; native SQLite 3.53.4 loaded; 10/10 tests and full M0 gate passed |
-| 2026-08-26 | `git diff --check` | Passed | Includes tracker metadata whitespace cleanup |
-| 2026-08-26 | `pnpm db:generate` (final clean generation) | Passed | 16 M1 tables; discarded earlier untracked diagnostic outputs; the third and final output is clean and includes the self-FK |
-| 2026-08-26 | `pnpm test -- tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/campaign-state-read-repository.test.ts` | Passed | 5 files, 14 tests; current script runs the full suite despite scoped arguments |
-| 2026-08-26 | `pnpm typecheck` | Passed | Strict domain, schema, mapper and repository types |
-| 2026-08-26 | `pnpm exec vitest run tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/campaign-state-read-repository.test.ts` | Passed | 2 scoped files, 4 tests against final migration |
-| 2026-08-26 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 5 files/14 tests and production build |
-| 2026-08-26 | `git diff --check` | Passed | Final ADR-0013 tracked diff; untracked generated/source files separately inventoried |
-| 2026-08-26 | placeholder and scope scans | Passed | No `in (?` DDL and no merchant/proposal/item-alias tables |
-| 2026-08-26 | `pnpm exec vitest run tests/unit/domain/campaign-validation.test.ts tests/unit/persistence/campaign-mutation-coordinator.test.ts tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/sqlite-migrations.test.ts` | Passed | 4 scoped files, 21 tests; validator, coordinator, rollback, public boundary and append-only migration coverage |
-| 2026-08-26 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 7 files/30 tests and production build after ADR-0014 |
-| 2026-08-26 | `git diff --check` | Passed | ADR-0014 tracked diff; untracked files separately inventoried |
+| 2026-08-26 | ADR scoped Prettier plus `git diff --check` | Passed | Proposed/accepted ADR set |
+| 2026-08-26 | isolated `pnpm install --frozen-lockfile` plus `pnpm check` | Passed | ADR-0012; native SQLite loaded; 10/10 tests |
+| 2026-08-26 | `pnpm db:generate` plus schema/repository scoped tests | Passed | ADR-0013; final 16-table schema and generated `0000` |
+| 2026-08-26 | `pnpm check` | Passed | ADR-0013; 5 files/14 tests and build |
+| 2026-08-26 | validator/coordinator/schema/migration scoped Vitest | Passed | ADR-0014; 4 files/21 tests |
+| 2026-08-26 | `pnpm check` | Passed | ADR-0014; 7 files/30 tests and build |
+| 2026-08-26 | snapshot/checkpoint/migration scoped Prettier and `pnpm typecheck` | Passed | ADR-0015 corrected code, JSON and docs; SQL reviewed separately |
+| 2026-08-26 | `pnpm exec vitest run tests/unit/domain/campaign-snapshot.test.ts tests/unit/persistence/campaign-snapshot-checkpoint.test.ts tests/unit/persistence/sqlite-migrations.test.ts` | Passed | ADR-0015; 3 files/23 tests including strict UTC, zero-write domain errors and real upgrade |
+| 2026-08-26 | `pnpm check` | Passed | ADR-0015; Prettier, ESLint, strict typecheck, 9 files/51 tests and production build |
+| 2026-08-26 | `git diff --check` | Passed | Complete ADR-0015 tracked diff; untracked files inventoried above |
+| 2026-08-26 | `git diff --exit-code` and `git hash-object` for `0000`/`0001` | Passed | Immutable baseline blobs `ca5387…` and `d7b512…` match source commits |
+| 2026-08-26 | ADR-0015 scope scan | Passed | No restore/undo/M2 implementation; one existing deferral comment only |
 
 ## Commits and remote state
 
 - `b5cbedf` — `docs: propose M1 architecture decisions`.
 - `9b90a7d` — `docs: accept M1 architecture and track delivery`.
-- `892ee35` — `chore: establish M1 SQLite persistence`.
-- `dd1d5bb` — `feat: define M1 relational campaign state`.
-- ADR-0014 is uncommitted; no M1 branch push or pull request yet.
+- `892ee35` — `chore: establish M1 SQLite persistence` (ADR-0012).
+- `dd1d5bb` — `feat: define M1 relational campaign state` (ADR-0013).
+- `ca372dd` — `feat: enforce transactional M1 mutations` (ADR-0014 / current HEAD).
+- ADR-0015 is implemented but uncommitted; no M1 branch push or pull request yet.
 
 ## Known risks and watch points
 
-- `better-sqlite3` is a native dependency. Windows x64 prebuild loading is verified on Node.js 24.19.0; CI must still cover the repository minimum Node.js 22.13.0 and other supported runners.
-- `drizzle-kit@0.31.10` brings one moderate development-only esbuild advisory (GHSA-67mh-4wv8-2f99); the project does not run the affected development server, and the high-severity audit gate passes.
-- Status plus equipment relations intentionally duplicate a fact; validator coverage is mandatory.
-- Full before/after snapshots favor correctness but can grow the database; measure, do not optimize speculatively.
-- The audit write path must not be bypassable through exported repositories or database handles.
-- SQLite historical tables must be excluded from recursive snapshots.
-- `CampaignSnapshotPort` is deliberately only an injected transaction-scoped port in
-  ADR-0014. ADR-0015 must supply canonical deterministic serialization excluding
-  `change_events` and `checkpoints` and then add the checkpoint service.
-- SQLite append-only triggers intentionally reject referential actions that would
-  update an existing audit row; historical immutability wins over destructive entity
-  deletion. Current typed M1 services expose no destructive character deletion.
-- The built-in filesystem patch helper failed with a Windows sandbox setup error; repository edits use explicit unified diffs through `git apply` until it recovers.
+- `better-sqlite3` native compatibility is locally verified on Windows x64 / Node.js 24.19.0; CI must still cover the repository minimum Node.js 22.13.0 and supported runners.
+- `drizzle-kit@0.31.10` brings one moderate development-only esbuild advisory; no affected development server is run, and the high-severity audit gate passes.
+- Full before/after snapshots favor correctness and inspectability but can grow the local database; compression/diff formats require a future versioned ADR.
+- Snapshot/checkpoint history is intentionally excluded from snapshots to prevent recursion; audit tables remain append-only outside the current-state payload.
+- Restore, undo, backup rotation and snapshot compatibility upgrades remain explicitly deferred; deserialization and verification are read-only in M1.
+- SQLite append-only triggers intentionally reject referential actions that would update existing audit rows; current typed M1 services expose no destructive character deletion.
+- The filesystem patch helper remains unavailable due a Windows sandbox setup error; this session used explicit unified diffs with temporary recovery copies for untracked files.
 
 ## Exact resume point
 
-ADR-0014 is implemented and locally validated on top of `dd1d5bb`. Main agent: inspect
-and commit the focused ADR-0014 diff. Confirm `0001_change_events_append_only.sql`
-contains two complete triggers and the journal entry, then resume ADR-0015 at the
-`CampaignSnapshotPort` factory in `campaign-mutation-coordinator.ts`. Implement the
-strict deterministic `CampaignSnapshotV1` serializer/deserializer/hash and wire the
-real transaction-scoped snapshotter into the coordinator; add checkpoint persistence
-through the same coordinator. Preserve exactly-one-audit/no-op ordering and exclude
-`change_events`/`checkpoints` from recursive snapshots. Do not implement restore,
-backup rotation, M6 undo, proposal or confirmation workflows.
+ADR-0015 is implemented and locally validated on HEAD `ca372dd`, with all work preserved uncommitted. Main agent: review the complete ADR-0015 diff, especially the no-default schema/metadata and explicit history-aware `INSERT ... SELECT` literals in `0002`, then create the focused ADR-0015 commit. Next run the final milestone-wide validation from a clean/frozen install, dependency audit, migration empty→latest and 0000+0001→0002 tests, invariant/rollback/audit/snapshot suites, full `pnpm check`, `git diff --check`, scope scan and immutable 0000/0001 hash comparison. After that update `CHANGELOG.md`, complete the PR/CI/security/Codex-review workflow and stop for user-approved remediation. Do not start M2 or implement restore/undo.
