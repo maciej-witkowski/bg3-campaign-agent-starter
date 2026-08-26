@@ -129,6 +129,38 @@ The before/after serializer excludes audit events and checkpoints as historical 
 - Tests prove mutation repositories/native connections are not exposed through the public adapter-facing API.
 - Deterministic clock/ID injection makes audit assertions stable.
 
+## Implementation evidence
+
+- `CampaignValidationViolation`, stable validation codes and `CampaignValidationError`
+  live in `src/domain/validation/campaign-validation.ts`. The deterministic validator
+  reads the uncommitted transaction state and covers equipment identity/slot/status,
+  owner agreement, known item-slot compatibility, positive quantity, `CHEST`/`SOLD`
+  owner prohibition, permanent modifier target/provenance/permanence and spell
+  preparation. A not-known spell is accepted only when `alwaysPrepared` explicitly
+  explains its availability.
+- Effective attributes are derived from the base value plus only active, permanent,
+  same-character/same-attribute modifiers. No effective value is persisted.
+- Transaction-scoped write capabilities cover characters/attributes, permanent
+  modifiers, item definitions/effects, inventory/equipment, spells, abilities and
+  illithid powers/prerequisites/assignments. They are passed only to the coordinator
+  callback; the package root exports no generic mutation callback, Drizzle handle or
+  native SQLite connection.
+- `CampaignMutationCoordinator` owns before snapshot, typed writes, validation, after
+  snapshot, exactly one audit insert and commit in one SQLite transaction. Clock, ID,
+  validator, audit insertion and the transaction-scoped `CampaignSnapshotPort` factory
+  are injectable. No-op operations return `{ changed: false }` and create no event.
+- Snapshot capture remains a port in this session. The deterministic canonical
+  serializer and checkpoint service are intentionally completed by ADR-0015; M1 does
+  not yet include restore, proposal/confirmation or user-facing undo orchestration.
+- Forward migration `0001_change_events_append_only.sql` adds explicit SQLite triggers
+  rejecting both `UPDATE` and `DELETE` on `change_events`. A reversal appends a new
+  referencing event and leaves the original row unchanged.
+- Unit/integration tests exercise effective modifiers, all validator relationships,
+  transaction-scoped validation, atomic equipment swaps, exactly-one audit, explicit
+  no-op, reversal, direct audit update/delete rejection, read-only zero writes and full
+  rollback for domain write, SQLite constraint/repository, validation, before/after
+  snapshot and audit-insert failures. The final full gate passed 7 files / 30 tests.
+
 ## Consequences and trade-offs
 
 - One coordinator makes the critical write sequence auditable and difficult to bypass.
@@ -159,3 +191,6 @@ None blocking. Domain service method granularity may be refined during implement
 
 - 2026-08-26 — Initial M1 proposal.
 - 2026-08-26 — Accepted after explicit user approval.
+- 2026-08-26 — Implemented transaction-scoped writes, validation, coordinator, typed
+  services and append-only audit enforcement; real snapshots/checkpoints remain with
+  ADR-0015.

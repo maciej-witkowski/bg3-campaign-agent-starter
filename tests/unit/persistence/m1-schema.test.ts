@@ -50,6 +50,13 @@ describe("M1 relational migration", () => {
     expect(rows.map(({ name }) => name)).not.toContain("merchant_sessions");
     expect(rows.map(({ name }) => name)).not.toContain("proposals");
     expect(rows.map(({ name }) => name)).not.toContain("item_aliases");
+    const triggers = connection.database.$client
+      .prepare("select name from sqlite_master where type = 'trigger' order by name")
+      .all() as { name: string }[];
+    expect(triggers.map(({ name }) => name)).toEqual([
+      "change_events_block_delete",
+      "change_events_block_update",
+    ]);
   });
 
   it("enforces local identity, enum, boolean, quantity, provenance and foreign-key facts", () => {

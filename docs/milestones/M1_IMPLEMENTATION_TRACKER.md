@@ -27,7 +27,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | --- | --- | --- | --- |
 | ADR-0012 | `better-sqlite3`, Drizzle, committed SQL migrations, explicit connection factory | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
 | ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
-| ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Not started |
+| ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Not started |
 
 ## Session ledger
@@ -119,18 +119,55 @@ implement ADR-0015 snapshot/checkpoint services yet.
 
 ### Session ADR-0014 — mutations, validation and audit
 
-Status: Pending
+Status: Complete — implementation pending main-agent review and commit
 
-Planned scope:
+Implemented:
 
-- typed campaign validation errors and `validateCampaignState()`;
-- transaction-scoped write repositories;
-- mandatory mutation coordinator;
-- typed M1 aggregate services;
-- immutable change events and reversal representation;
-- atomicity, rollback, invariant and audit tests.
+- stable typed validation codes/violations/error plus deterministic
+  `validateCampaignState()` over transaction-scoped state;
+- effective attribute derivation from base plus active permanent modifiers only;
+- equipment/inventory status, owner and known-slot validation, including null owner
+  for `CHEST`/`SOLD`;
+- spell preparation semantics allowing not-known only when `alwaysPrepared` explicitly
+  justifies availability;
+- transaction-scoped typed write capabilities and typed services for character,
+  modifier, definition/effect, inventory/equipment, spell, ability and illithid
+  aggregates, without a generic adapter-facing patch API;
+- mandatory coordinator sequence: before snapshot, typed writes, validation, after
+  snapshot, exactly one audit insert and commit;
+- deterministic clock/ID injection, explicit no-op result without audit, safe typed
+  domain/validation/persistence errors and full rollback;
+- append-only reversal representation plus forward migration guards rejecting direct
+  `UPDATE`/`DELETE` of `change_events`;
+- regression coverage for read-only zero writes and all required invariant, atomicity,
+  rollback and audit paths.
 
-Handoff: Build on the complete M1 schema and repositories. No proposal/confirmation workflow from M6.
+Files created:
+
+- `drizzle/0001_change_events_append_only.sql`;
+- `src/domain/mutations/campaign-mutation.ts`;
+- `src/domain/repositories/campaign-state-write-repository.ts`;
+- `src/domain/services/m1-mutation-services.ts`;
+- `src/domain/validation/campaign-validation.ts`;
+- `src/persistence/sqlite/campaign-mutation-coordinator.ts`;
+- `src/persistence/sqlite/campaign-state-write-repository.ts`;
+- `src/persistence/sqlite/campaign-validation-state-reader.ts`;
+- `src/persistence/sqlite/transaction-types.ts`;
+- `tests/unit/domain/campaign-validation.test.ts`;
+- `tests/unit/persistence/campaign-mutation-coordinator.test.ts`.
+
+Files modified:
+
+- `drizzle/meta/_journal.json`;
+- `tests/unit/persistence/m1-schema.test.ts`;
+- `docs/adr/0014-transactional-domain-mutations-and-validation.md`;
+- `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`.
+
+Handoff: Main agent reviews and commits this focused session. ADR-0015 must replace the
+controlled snapshot port implementation used in coordinator tests with the real
+deterministic `CampaignSnapshotV1` serializer/factory and add checkpoint creation.
+Do not alter coordinator ordering, expose its generic callback at the package root, or
+implement restore/undo/proposal/confirmation behavior.
 
 ### Session ADR-0015 — snapshots and checkpoints
 
@@ -170,6 +207,17 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 - `drizzle/0000_chief_cassandra_nova.sql` and `drizzle/meta/*`
 - `tests/unit/persistence/m1-schema.test.ts`
 - `tests/unit/persistence/campaign-state-read-repository.test.ts`
+- `drizzle/0001_change_events_append_only.sql`
+- `src/domain/mutations/campaign-mutation.ts`
+- `src/domain/repositories/campaign-state-write-repository.ts`
+- `src/domain/services/m1-mutation-services.ts`
+- `src/domain/validation/campaign-validation.ts`
+- `src/persistence/sqlite/campaign-mutation-coordinator.ts`
+- `src/persistence/sqlite/campaign-state-write-repository.ts`
+- `src/persistence/sqlite/campaign-validation-state-reader.ts`
+- `src/persistence/sqlite/transaction-types.ts`
+- `tests/unit/domain/campaign-validation.test.ts`
+- `tests/unit/persistence/campaign-mutation-coordinator.test.ts`
 
 ### Modified
 
@@ -179,6 +227,9 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 - `docs/adr/0012-sqlite-drizzle-persistence-and-migrations.md`
 - `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
 - Approval metadata in the four M1 ADRs.
+- `drizzle/meta/_journal.json`
+- `tests/unit/persistence/m1-schema.test.ts`
+- `docs/adr/0014-transactional-domain-mutations-and-validation.md`
 
 ## Validation ledger
 
@@ -202,13 +253,17 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 | 2026-08-26 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 5 files/14 tests and production build |
 | 2026-08-26 | `git diff --check` | Passed | Final ADR-0013 tracked diff; untracked generated/source files separately inventoried |
 | 2026-08-26 | placeholder and scope scans | Passed | No `in (?` DDL and no merchant/proposal/item-alias tables |
+| 2026-08-26 | `pnpm exec vitest run tests/unit/domain/campaign-validation.test.ts tests/unit/persistence/campaign-mutation-coordinator.test.ts tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/sqlite-migrations.test.ts` | Passed | 4 scoped files, 21 tests; validator, coordinator, rollback, public boundary and append-only migration coverage |
+| 2026-08-26 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 7 files/30 tests and production build after ADR-0014 |
+| 2026-08-26 | `git diff --check` | Passed | ADR-0014 tracked diff; untracked files separately inventoried |
 
 ## Commits and remote state
 
 - `b5cbedf` — `docs: propose M1 architecture decisions`.
 - `9b90a7d` — `docs: accept M1 architecture and track delivery`.
 - `892ee35` — `chore: establish M1 SQLite persistence`.
-- ADR-0013 is uncommitted; no M1 branch push or pull request yet.
+- `dd1d5bb` — `feat: define M1 relational campaign state`.
+- ADR-0014 is uncommitted; no M1 branch push or pull request yet.
 
 ## Known risks and watch points
 
@@ -218,14 +273,22 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 - Full before/after snapshots favor correctness but can grow the database; measure, do not optimize speculatively.
 - The audit write path must not be bypassable through exported repositories or database handles.
 - SQLite historical tables must be excluded from recursive snapshots.
+- `CampaignSnapshotPort` is deliberately only an injected transaction-scoped port in
+  ADR-0014. ADR-0015 must supply canonical deterministic serialization excluding
+  `change_events` and `checkpoints` and then add the checkpoint service.
+- SQLite append-only triggers intentionally reject referential actions that would
+  update an existing audit row; historical immutability wins over destructive entity
+  deletion. Current typed M1 services expose no destructive character deletion.
 - The built-in filesystem patch helper failed with a Windows sandbox setup error; repository edits use explicit unified diffs through `git apply` until it recovers.
 
 ## Exact resume point
 
-ADR-0013 is implemented and locally validated on top of `892ee35`. Main agent:
-inspect and commit the focused ADR-0013 diff. Confirm the final generated migration is
-`drizzle/0000_chief_cassandra_nova.sql`, has no parameter placeholders and creates only
-the 16 M1 tables. Resume ADR-0014 with transaction-scoped write repositories and
-typed validation diagnostics, then implement `validateCampaignState()`, the
-mandatory coordinator and append-only audit insertion. Do not start ADR-0015
-snapshot/checkpoint services until ADR-0014 is complete.
+ADR-0014 is implemented and locally validated on top of `dd1d5bb`. Main agent: inspect
+and commit the focused ADR-0014 diff. Confirm `0001_change_events_append_only.sql`
+contains two complete triggers and the journal entry, then resume ADR-0015 at the
+`CampaignSnapshotPort` factory in `campaign-mutation-coordinator.ts`. Implement the
+strict deterministic `CampaignSnapshotV1` serializer/deserializer/hash and wire the
+real transaction-scoped snapshotter into the coordinator; add checkpoint persistence
+through the same coordinator. Preserve exactly-one-audit/no-op ordering and exclude
+`change_events`/`checkpoints` from recursive snapshots. Do not implement restore,
+backup rotation, M6 undo, proposal or confirmation workflows.
