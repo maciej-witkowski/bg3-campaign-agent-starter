@@ -30,7 +30,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
 | ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Implementation and validation in progress |
-| ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Proposed after current-head CI runtime failures, 2026-08-26 | Awaiting explicit approval; no implementation |
+| ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Accepted by repository owner, 2026-08-26 | Implementation and validation in progress |
 
 ## Session ledger
 
@@ -286,6 +286,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | ADR-0016 local frozen install with bundled Python 3.12 | Environment blocked | `node-gyp` reached native configuration but Windows lacks Visual Studio C++ Build Tools; verified temporary copy removed |
 | 2026-08-26 | GitHub Actions at `6c6d844`, Node.js 22.13.0 | Failed | Driver install/prebuild detection succeeded; same six persistence workers exited because addon requires Node-API 10 |
 | 2026-08-26 | Node.js/better-sqlite3 source compatibility analysis | Blocked | Pinned addon defines `NAPI_VERSION=10`; official Node.js 22.14.0 release introduces Node-API 10; ADR-0017 approval required |
+| 2026-08-26 | local ADR-0017 gate on Node.js 24 / Node-API 10 | Passed | Native in-memory smoke, 9 files/51 tests, build, audit-high and unchanged lockfile/migration hashes |
+| 2026-08-26 | official Node.js 22.14.0 Windows archive and runtime check | Partial | Published SHA-256 matched and runtime reported Node-API 10; frozen install entered native build and host lacks Python/MSVC toolchain; temporary copy removed |
 
 ## Commits and remote state
 
@@ -309,4 +311,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-PR #3 is at `6c6d844`. ADR-0016 is accepted, implemented and pushed; GitGuardian passes. Two current-head CI runs prove the driver install step succeeds but all six persistence workers still exit on Node.js 22.13.0. Source and official release evidence show `better-sqlite3@13.0.3` uses Node-API 10, first provided by Node.js 22.14.0. ADR-0017 is Proposed; no runtime-floor or CI change has been made. Next obtain explicit repository-owner approval. If approved, update the exact minimum to 22.14.0, add direct CI native smoke evidence, run local gates, commit/push, wait for current-head CI/security and rerun Codex review. Do not implement before approval, do not start M2 and do not implement restore/undo.
+ADR-0017 was explicitly accepted and implemented locally. Node.js 22.14.0 is the package/README/CI minimum and CI has a direct Node-API/native SQLite smoke step. Local Node.js 24 gates pass; the official Node.js 22.14.0 archive reports Node-API 10, while this Windows host cannot complete fallback native compilation because it lacks Python/MSVC. Next commit/push and require the clean Ubuntu/Node 22.14 CI run to pass frozen install, smoke, all 51 tests and build. Then rerun Codex review for the current head. Do not start M2 or implement restore/undo.

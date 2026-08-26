@@ -5,7 +5,7 @@
   "description": "Persistent local-first Baldur's Gate 3 campaign assistant.",
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.14.0"
   },
   "packageManager": "pnpm@11.19.0",
   "exports": {

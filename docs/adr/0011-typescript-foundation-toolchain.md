@@ -8,7 +8,7 @@ M0 needs a reproducible repository foundation before campaign, database, AI or a
 
 ## Decision
 
-- Use a single private ESM package on Node.js 22.13 or newer, managed by the pnpm version pinned in `packageManager`.
+- Use a single private ESM package on Node.js 22.14 or newer, managed by the pnpm version pinned in `packageManager`. ADR-0017 raises the original 22.13 floor to provide Node-API 10 for the M1 native SQLite driver.
 - Compile with TypeScript in strict `NodeNext` mode and enable additional checks for unchecked indexing, unused code, optional properties and switch fallthrough.
 - Use ESLint flat configuration, Prettier and Vitest as independent quality tools.
 - Keep environment loading explicit: `loadEnvironment()` reads `.env`, while `parseEnvironment()` accepts an injected source for deterministic validation and tests.
@@ -23,4 +23,4 @@ M0 needs a reproducible repository foundation before campaign, database, AI or a
 
 ## Supersession
 
-Supersedes no earlier ADR. A future toolchain change must add a new ADR and reference this record.
+Supersedes no earlier ADR. ADR-0017 partially supersedes the original minimum Node.js version. A future toolchain change must add a new ADR and reference this record.

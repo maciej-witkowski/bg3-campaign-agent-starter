@@ -109,7 +109,7 @@ Connection pragmas are part of database initialization and must be asserted in i
 
 - Pinned runtime packages: `drizzle-orm@0.45.2` and `better-sqlite3@13.0.3`.
 - Pinned development packages: `drizzle-kit@0.31.10` and `@types/better-sqlite3@9.6.0`.
-- `better-sqlite3@13.0.3` declares Node.js `>=22` and loaded an existing Windows x64 native binding successfully on Node.js 24.19.0; clean installation evidence is required separately on the repository minimum Node.js 22.13.0.
+- `better-sqlite3@13.0.3` declares Node.js `>=22`, builds its addon with Node-API 10 and loaded an existing Windows x64 binding on Node.js 24.19.0. ADR-0017 raises the repository minimum to Node.js 22.14.0, the first Node.js 22 release with Node-API 10.
 - The connection factory applies `foreign_keys=ON` and a 5,000 ms busy timeout to every connection. File-backed connections additionally use WAL and `synchronous=FULL`; the explicit `:memory:` sentinel skips file-only pragmas.
 - The application migrator closes the connection when migration initialization fails. Integration tests demonstrate transactional rollback, closed-handle behavior and idempotent reapplication using isolated file-backed databases.
 - ADR-0016 supersedes the initial build-script evidence after two clean Linux/Node.js 22.13 CI runs proved that denying the native driver script leaves persistence workers without a loadable binding. The exactly pinned `better-sqlite3@13.0.3` lifecycle script is allowed; `esbuild` remains denied.
@@ -145,3 +145,4 @@ None blocking. Exact dependency versions will be selected from compatible stable
 - 2026-08-26 — Accepted after explicit user approval.
 - 2026-08-26 — Recorded pinned dependency versions, connection policy and validation evidence from the ADR-0012 implementation session.
 - 2026-08-26 — Corrected native installation evidence under accepted ADR-0016 after reproducible clean-Linux CI failures.
+- 2026-08-26 — Recorded the Node-API 10 compatibility floor under accepted ADR-0017.
