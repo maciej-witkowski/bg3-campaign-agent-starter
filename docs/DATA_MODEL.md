@@ -1,178 +1,165 @@
 # Data Model
 
-This document describes the intended logical schema. M1 implementation may refine column names, but must preserve semantics.
+This document records the physical M1 SQLite model implemented by migration
+`0000_chief_cassandra_nova`. SQLite is the only writable canonical store. All
+application-generated IDs are non-empty `TEXT` UUID-compatible identifiers and all
+instants are UTC ISO-8601 `TEXT` in the form `YYYY-MM-DDTHH:mm:ss.sssZ`.
 
-## characters
+Unknown optional facts are stored as `NULL`. Required human text is constrained to
+trimmed non-empty content. Polish display text is preserved exactly; normalized Polish
+text is only a matching aid.
 
-- id UUID/text primary key
-- canonical_name unique stable identifier
-- display_name_pl
-- race_pl nullable
-- class_pl
-- subclass_pl nullable
-- level integer
-- role_summary
-- active_party boolean
-- notes
-- created_at
-- updated_at
+## Shared value sets
 
-## character_attributes
+- attributes: `STR|DEX|CON|INT|WIS|CHA`;
+- verification: `UNKNOWN|UNVERIFIED|VERIFIED|CONFLICT`;
+- inventory status: `EQUIPPED|CHEST|SITUATIONAL|PERSONAL_STORY|SOLD|UNKNOWN`;
+- provenance: `GAME_UI|IMPORT|USER_CONFIRMED|SYSTEM`;
+- item slot type: `HEAD|CLOAK|BODY|HANDS|FEET|NECK|RING|MAIN_HAND|OFF_HAND|RANGED|INSTRUMENT`;
+- equipment position: `HEAD|CLOAK|BODY|HANDS|FEET|NECK|RING_1|RING_2|MAIN_HAND|OFF_HAND|RANGED_MAIN_HAND|RANGED_OFF_HAND|INSTRUMENT`;
+- spell source: `CLASS|SPELLBOOK|PACT|DOMAIN|ITEM|INVOCATION|RACE|FEAT|OTHER`;
+- ability type: `CANTRIP|FEAT|INVOCATION|MANEUVER|CLASS_FEATURE|PACT|PASSIVE`.
 
-Composite uniqueness: character_id + attribute.
+Booleans are constrained SQLite integers `0|1`. Definition slot type and occupied
+equipment position are intentionally separate: for example a ring definition has
+`RING`, while a concrete assignment occupies `RING_1` or `RING_2`.
 
-- character_id
-- attribute enum STR/DEX/CON/INT/WIS/CHA
-- base_value
+## Tables
 
-Effective value is derived from base plus active permanent modifiers. Do not persist an independently editable effective value unless treated as cache with validation.
+### characters
 
-## permanent_modifiers
+Columns: `id` PK, `canonical_name` unique, `display_name_pl`, nullable
+`race_pl`, `class_pl`, nullable `subclass_pl`, `level`, `role_summary`,
+`active_party`, nullable `notes`, `created_at`, `updated_at`.
 
-- id
-- character_id
-- target_type (`ATTRIBUTE`, future extensible)
-- target_key (e.g. `STR`)
-- modifier integer
-- source_name_pl
-- source_item_definition_id nullable
-- provenance_type (`GAME_UI`, `IMPORT`, `USER_CONFIRMED`, `SYSTEM`)
-- permanent boolean
-- notes
-- created_at
+Level is constrained to 1–20. Canonical identity is unique, while display text is not
+used as an identity key.
 
-## item_definitions
+### character_attributes
 
-Represents a game item concept, not possession.
+Columns: `character_id` FK → characters (cascade), `attribute`, `base_value`.
+Primary key: `(character_id, attribute)`. Base values use a broad corruption guard
+of 1–30.
 
-- id
-- name_pl
-- normalized_name_pl
-- name_en nullable
-- type_pl nullable
-- slot enum nullable
-- rarity_pl nullable
-- description_pl nullable
-- verification_status
-- verification_confidence nullable
-- verification_source nullable
-- notes
+There is no persisted effective value. It is derived as base value plus active
+permanent modifiers.
 
-Do not force uniqueness on `name_pl` alone because BG3 may contain same/localized names with different rarity/effects. Use fingerprinting and resolver rules.
+### permanent_modifiers
 
-## item_effects
+Columns: `id` PK, `character_id` FK → characters (cascade), `target_type`
+(currently only `ATTRIBUTE`), `target_key`, signed `modifier`,
+`source_name_pl`, nullable `source_item_definition_id` FK → item_definitions
+(restrict), `provenance_type`, `permanent`, `active`, nullable `notes`,
+`created_at`.
 
-- id
-- item_definition_id
-- effect_type
-- numeric_value nullable
-- dice_expression nullable
-- damage_type nullable
-- trigger nullable
-- condition_text_pl nullable
-- duration_text_pl nullable
-- description_pl
-- verification_status
+Modifier values use a broad −30…30 corruption guard. Source name and provenance are
+mandatory and non-empty. The character lookup is indexed.
 
-Structured fields are optional enrichment. The original Polish effect text should be retained.
+### item_definitions
 
-## inventory_items
+Columns: `id` PK, `name_pl`, `normalized_name_pl`, nullable `name_en`,
+`type_pl`, `slot`, `rarity_pl`, `description_pl`, `verification_status`,
+`verification_confidence`, `verification_source`, `fingerprint`, `notes`.
 
-Represents possession.
+`name_pl` is deliberately not unique. Normalized name is indexed. A non-null
+fingerprint is unique, but M1 does not define or populate fingerprinting policy.
+Confidence is nullable and otherwise constrained to 0–1.
 
-- id
-- item_definition_id
-- status enum `EQUIPPED|CHEST|SITUATIONAL|PERSONAL_STORY|SOLD|UNKNOWN`
-- owner_character_id nullable
-- equipped_slot nullable
-- quantity integer default 1
-- obtained_at nullable
-- obtained_location nullable
-- notes
+### item_effects
 
-For unique-item tracking, quantity may stay 1. If duplicates are intentionally collapsed, document that policy explicitly.
+Columns: `id` PK, `item_definition_id` FK → item_definitions (cascade),
+`effect_type`, nullable `numeric_value`, `dice_expression`, `damage_type`,
+`trigger`, `condition_text_pl`, `duration_text_pl`, required
+`description_pl`, and `verification_status`.
 
-## spells / character_spells
+The definition lookup is indexed. Structured fields enrich but never replace original
+Polish effect text.
 
-`spells`: canonical definition.
+### inventory_items
 
-`character_spells`:
-- character_id
-- spell_id
-- source (`CLASS`, `SPELLBOOK`, `PACT`, `DOMAIN`, `ITEM`, `INVOCATION`, etc.)
-- known boolean
-- prepared boolean
-- always_prepared boolean
-- notes
+Columns: `id` PK, `item_definition_id` FK → item_definitions (restrict),
+`status`, nullable `owner_character_id` FK → characters (restrict), positive
+`quantity` defaulting to 1, nullable `obtained_at`, `obtained_location`, and
+`notes`.
 
-## abilities / character_abilities
+Definition, owner and status are indexed. Equipment slot is not stored here.
 
-Ability types:
-- CANTRIP
-- FEAT
-- INVOCATION
-- MANEUVER
-- CLASS_FEATURE
-- PACT
-- PASSIVE
+### equipment
 
-Track level acquired and source.
+Columns: `inventory_item_id` PK/FK → inventory_items (cascade), `character_id`
+FK → characters (cascade), and `slot`.
 
-## illithid_powers / character_illithid_powers
+The inventory-item primary key ensures one instance can occupy only one position.
+Unique `(character_id, slot)` ensures one item per character position. Agreement
+with inventory status/owner and definition slot type is a cross-table semantic rule
+owned by `validateCampaignState()` in ADR-0014.
 
-`illithid_powers` contains optional prerequisite relationships.
+### spells and character_spells
 
-`character_illithid_powers` records unlocked state and acquisition metadata.
+`spells` columns: `id` PK, `name_pl`, `normalized_name_pl`, nullable
+`name_en`, level 0–9, nullable `school_pl`, `description_pl`,
+`verification_status`, and `notes`. Normalized name is indexed and not unique.
 
-## merchant_sessions / merchant_candidates
+`character_spells` columns: `character_id` FK → characters, `spell_id` FK →
+spells, `source`, `known`, `prepared`, `always_prepared`, nullable `notes`.
+Primary key: `(character_id, spell_id, source)`. Semantic flag combinations are
+validated in ADR-0014 rather than guessed by the database.
 
-Temporary non-owned state.
+### abilities and character_abilities
 
-A merchant candidate cannot appear in inventory until a purchase mutation is confirmed.
+`abilities` columns: `id` PK, `name_pl`, `normalized_name_pl`, nullable
+`name_en`, `type`, nullable `description_pl`, `verification_status`, and
+`notes`. Normalized name is indexed and not unique.
 
-## proposals
+`character_abilities` columns: `character_id` FK → characters, `ability_id` FK
+→ abilities, required free-text `source`, nullable `level_acquired` (1–20), and
+nullable `notes`. Primary key: `(character_id, ability_id, source)`.
 
-Short-lived proposal state:
-- id
-- intent_type
-- structured_payload
-- human_summary_pl
-- created_at
-- expires_at
-- status `OPEN|CONFIRMED|REJECTED|EXPIRED`
+### illithid_powers and assignments
 
-## change_events
+`illithid_powers` columns: `id` PK, `name_pl`, `normalized_name_pl`,
+nullable `name_en`, `tier` (nullable, otherwise 1–10), nullable
+`description_pl`, `verification_status`, and `notes`.
 
-Append-only logical audit record:
-- id
-- timestamp
-- type
-- character_id nullable
-- proposal_id nullable
-- summary_pl
-- reason_pl nullable
-- before_json
-- after_json
-- status `CONFIRMED|REVERTED`
+`illithid_power_prerequisites` is a many-to-many self-relation with primary key
+`(power_id, prerequisite_power_id)`, cascading FKs, and a no-self-prerequisite
+check.
 
-## checkpoints
+`character_illithid_powers` has primary key `(character_id, power_id)`, cascading
+FKs, nullable `acquired_at`, `acquisition_source_pl`, and `notes`. Missing
+acquisition metadata remains unknown; prerequisites are not inferred.
 
-- id
-- label
-- timestamp
-- snapshot_path or compressed snapshot payload
-- reason
-- change_event_id nullable
+### change_events
 
-## item_aliases
+Columns: `id` PK, `occurred_at`, required `type`, nullable `character_id` FK
+→ characters (set null), nullable external `proposal_id`, `summary_pl`, nullable
+`reason_pl`, valid JSON `before_json` and `after_json`, and nullable
+`reverses_change_event_id`.
 
-- id
-- item_definition_id
-- alias_text
-- language
-- alias_type
-- confidence
-- verified_by_user boolean
-- source nullable
+Occurrence time and character are indexed. A unique non-null reversal reference
+allows at most one direct reversal event and cannot reference the same ID. Existing
+audit rows are never updated to represent reversal. Append-only write enforcement and
+the audit protocol belong to ADR-0014.
 
-Never automatically convert a low-confidence alias to verified.
+### checkpoints
+
+Columns: `id` PK, `label`, `created_at`, positive `snapshot_version`, valid
+JSON `snapshot_json`, lowercase 64-character hexadecimal `snapshot_sha256`,
+`reason_pl`, and nullable `change_event_id` FK → change_events (set null).
+
+Creation time is indexed. Snapshot capture, canonical serialization and integrity
+verification are implemented by ADR-0015.
+
+## Persistence boundary
+
+Domain entities in `src/domain/model/campaign.ts` do not depend on Drizzle. The M1
+SQLite read repository maps persisted ISO strings to `Date` and preserves nullable
+values unchanged. Transaction-scoped write repositories, mutation coordination,
+campaign validation and audit insertion are introduced only by ADR-0014.
+
+## Deferred schema
+
+M1 intentionally has no merchant session/candidate, proposal, item alias, import,
+research or other M2+ workflow tables. The real campaign spreadsheet is not read or
+modified by this migration. Future physical changes require forward migrations and
+corresponding updates to this document.

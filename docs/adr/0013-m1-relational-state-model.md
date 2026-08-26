@@ -139,6 +139,30 @@ Audit and checkpoint column semantics are completed by ADR-0014 and ADR-0015. In
 - Join-table tests reject unintended duplicate assignments.
 - Scope review proves no M2+ workflow table or real campaign data was added.
 
+## Implementation evidence
+
+- The final clean Drizzle Kit output is `drizzle/0000_chief_cassandra_nova.sql` plus its
+  journal and snapshot metadata. It creates exactly the 16 approved M1 tables and no
+  campaign rows or M2+ workflow tables.
+- An initial generator attempt exposed parameter placeholders in enum `CHECK` DDL.
+  That untracked output was discarded in full. The schema now emits escaped literal
+  lists through `sql.raw`, and the final migration was regenerated cleanly rather
+  than hand-edited.
+- Domain entities and literal value sets live in `src/domain/model/campaign.ts`
+  without importing Drizzle. The domain read contract is also persistence-agnostic.
+- `SqliteCampaignStateReadRepository` maps persisted instants to `Date`, preserves
+  nulls and exact Polish text, and covers every M1 relation. Transaction-scoped write
+  repositories remain explicitly deferred to ADR-0014.
+- Empty-to-latest tests assert the exact table set, foreign-key integrity and absence
+  of merchant/proposal/alias tables. Constraint tests cover identity, enum, boolean,
+  quantity, provenance, foreign-key, equipment uniqueness and join uniqueness.
+- Repository round-trip coverage populates all M1 relations with sanitized fixtures
+  and proves Polish diacritics, apostrophes, nullable unknowns and instants survive.
+- Cross-table inventory/equipment agreement, effective attribute computation and
+  spell flag semantics remain validation rules for ADR-0014; this session adds no
+  mutation coordinator, campaign validator or audit-writing service.
+
+
 ## Consequences and trade-offs
 
 - Explicit relations provide strong queryability and precise diagnostics at the cost of more tables and joins.
@@ -169,3 +193,4 @@ None blocking. Exact broad numeric corruption bounds and the exhaustive initial 
 
 - 2026-08-26 — Initial M1 proposal.
 - 2026-08-26 — Accepted after explicit user approval.
+- 2026-08-26 — Recorded the implemented schema, clean generated migration, domain/read repository boundary and validation evidence.

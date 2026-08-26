@@ -26,7 +26,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR | Decision | Approval | Implementation status |
 | --- | --- | --- | --- |
 | ADR-0012 | `better-sqlite3`, Drizzle, committed SQL migrations, explicit connection factory | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
-| ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Not started |
+| ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Implemented and locally validated |
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Not started |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Not started |
 
@@ -63,23 +63,59 @@ Files modified:
 - `package.json`
 - `pnpm-lock.yaml`
 - `docs/adr/0012-sqlite-drizzle-persistence-and-migrations.md`
+- `src/persistence/sqlite/schema.ts`
+- `docs/DATA_MODEL.md`
+- `docs/adr/0013-m1-relational-state-model.md`
 - `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
 
 Handoff: Main agent reviews and commits this session. ADR-0013 starts by replacing the empty `schema.ts` integration point with the complete approved M1 schema, then runs `pnpm db:generate` exactly once to create the initial committed migration. Do not use `drizzle-kit push` and do not hand-write the initial migration.
 
 ### Session ADR-0013 — relational state model
 
-Status: Pending
+Status: Complete — implementation pending main-agent review and commit
 
-Planned scope:
+Implemented:
 
-- M1 Drizzle schema and initial migration;
-- domain types and persistence mappings;
-- repository interfaces and implementations;
-- structural, migration and repository tests;
-- exact `docs/DATA_MODEL.md` update.
+- independent domain entities and literal value sets for every M1 relation;
+- 16-table Drizzle schema with explicit equipment and local FK/PK/UNIQUE/CHECK facts;
+- final clean generated migration `0000_chief_cassandra_nova.sql` and Drizzle metadata;
+- persistence-independent read contract and SQLite mapping of ISO instants to `Date`;
+- empty-to-latest, exact scope, constraints and all-relation round-trip tests;
+- exact physical `docs/DATA_MODEL.md` documentation.
 
-Handoff: Build on ADR-0012's connection/migration primitives. The initial migration is generated only after the schema is complete.
+Generation incident:
+
+- the first untracked output exposed `?` parameters in enum `CHECK` DDL;
+- the verified untracked `drizzle/` directory was deleted in full;
+- enum checks now use escaped `sql.raw` literals; a final clean regeneration also
+  included the reviewed self-reversal FK;
+- the third and final output is generated entirely from the schema and is the only
+  migration artifact that remains.
+
+Explicitly deferred: transaction-scoped writes, `validateCampaignState()`, effective
+attributes, cross-table equipment/spell validation and audit coordination (ADR-0014);
+snapshot/checkpoint serialization and capture (ADR-0015).
+
+Files created:
+
+- `src/domain/model/campaign.ts`
+- `src/domain/repositories/campaign-state-read-repository.ts`
+- `src/persistence/sqlite/campaign-state-read-repository.ts`
+- `drizzle/0000_chief_cassandra_nova.sql` and `drizzle/meta/*`
+- `tests/unit/persistence/m1-schema.test.ts`
+- `tests/unit/persistence/campaign-state-read-repository.test.ts`
+
+Files modified:
+
+- `src/persistence/sqlite/schema.ts`
+- `docs/DATA_MODEL.md`
+- `docs/adr/0013-m1-relational-state-model.md`
+- `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
+
+Handoff: Main agent reviews and commits this session. ADR-0014 starts with
+transaction-scoped write repositories, `validateCampaignState()`, the mandatory
+coordinator and append-only audit insertion. Do not alter the initial migration or
+implement ADR-0015 snapshot/checkpoint services yet.
 
 ### Session ADR-0014 — mutations, validation and audit
 
@@ -128,6 +164,13 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 - `docs/adr/0015-versioned-campaign-snapshots-and-checkpoints.md`
 - `docs/milestones/M1_IMPLEMENTATION_TRACKER.md`
 
+- `src/domain/model/campaign.ts`
+- `src/domain/repositories/campaign-state-read-repository.ts`
+- `src/persistence/sqlite/campaign-state-read-repository.ts`
+- `drizzle/0000_chief_cassandra_nova.sql` and `drizzle/meta/*`
+- `tests/unit/persistence/m1-schema.test.ts`
+- `tests/unit/persistence/campaign-state-read-repository.test.ts`
+
 ### Modified
 
 - `.gitignore`
@@ -152,11 +195,20 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 | 2026-08-26 | `pnpm audit --audit-level high` | Passed | No high or critical findings; one moderate development-only esbuild advisory remains |
 | 2026-08-26 | `pnpm install --frozen-lockfile` plus `pnpm check` in an isolated clean copy | Passed | 153 packages; native SQLite 3.53.4 loaded; 10/10 tests and full M0 gate passed |
 | 2026-08-26 | `git diff --check` | Passed | Includes tracker metadata whitespace cleanup |
+| 2026-08-26 | `pnpm db:generate` (final clean generation) | Passed | 16 M1 tables; discarded earlier untracked diagnostic outputs; the third and final output is clean and includes the self-FK |
+| 2026-08-26 | `pnpm test -- tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/campaign-state-read-repository.test.ts` | Passed | 5 files, 14 tests; current script runs the full suite despite scoped arguments |
+| 2026-08-26 | `pnpm typecheck` | Passed | Strict domain, schema, mapper and repository types |
+| 2026-08-26 | `pnpm exec vitest run tests/unit/persistence/m1-schema.test.ts tests/unit/persistence/campaign-state-read-repository.test.ts` | Passed | 2 scoped files, 4 tests against final migration |
+| 2026-08-26 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 5 files/14 tests and production build |
+| 2026-08-26 | `git diff --check` | Passed | Final ADR-0013 tracked diff; untracked generated/source files separately inventoried |
+| 2026-08-26 | placeholder and scope scans | Passed | No `in (?` DDL and no merchant/proposal/item-alias tables |
 
 ## Commits and remote state
 
 - `b5cbedf` — `docs: propose M1 architecture decisions`.
-- No M1 branch push or pull request yet.
+- `9b90a7d` — `docs: accept M1 architecture and track delivery`.
+- `892ee35` — `chore: establish M1 SQLite persistence`.
+- ADR-0013 is uncommitted; no M1 branch push or pull request yet.
 
 ## Known risks and watch points
 
@@ -170,4 +222,10 @@ Handoff: Reuse the mutation coordinator and state reader; do not implement resto
 
 ## Exact resume point
 
-ADR-0012 is implemented and locally validated. Main agent: review the ADR-0012 diff, verify no M1 tables or initial migration were added, then create the focused ADR-0012 commit. Resume ADR-0013 at `src/persistence/sqlite/schema.ts`: implement the complete approved relational schema, generate the first migration with `pnpm db:generate`, and add schema/repository tests plus the exact `docs/DATA_MODEL.md` update.
+ADR-0013 is implemented and locally validated on top of `892ee35`. Main agent:
+inspect and commit the focused ADR-0013 diff. Confirm the final generated migration is
+`drizzle/0000_chief_cassandra_nova.sql`, has no parameter placeholders and creates only
+the 16 M1 tables. Resume ADR-0014 with transaction-scoped write repositories and
+typed validation diagnostics, then implement `validateCampaignState()`, the
+mandatory coordinator and append-only audit insertion. Do not start ADR-0015
+snapshot/checkpoint services until ADR-0014 is complete.
