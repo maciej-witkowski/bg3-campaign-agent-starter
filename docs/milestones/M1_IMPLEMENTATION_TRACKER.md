@@ -30,6 +30,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
 | ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Implementation and validation in progress |
+| ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Proposed after current-head CI runtime failures, 2026-08-26 | Awaiting explicit approval; no implementation |
 
 ## Session ledger
 
@@ -283,6 +284,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | `pnpm ignored-builds` plus CI failure-pattern analysis | Blocked | Confirms `better-sqlite3` lifecycle script is explicitly denied; ADR-0016 approval required |
 | 2026-08-26 | ADR-0016 local frozen install without exposed Python | Environment blocked | `node-gyp` started as intended but could not locate Python; verified temporary copy removed |
 | 2026-08-26 | ADR-0016 local frozen install with bundled Python 3.12 | Environment blocked | `node-gyp` reached native configuration but Windows lacks Visual Studio C++ Build Tools; verified temporary copy removed |
+| 2026-08-26 | GitHub Actions at `6c6d844`, Node.js 22.13.0 | Failed | Driver install/prebuild detection succeeded; same six persistence workers exited because addon requires Node-API 10 |
+| 2026-08-26 | Node.js/better-sqlite3 source compatibility analysis | Blocked | Pinned addon defines `NAPI_VERSION=10`; official Node.js 22.14.0 release introduces Node-API 10; ADR-0017 approval required |
 
 ## Commits and remote state
 
@@ -306,4 +309,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-ADR-0016 was explicitly accepted and implemented locally: only the pinned `better-sqlite3` native build is allowed, while `esbuild` remains denied. Existing-node_modules native smoke, full quality gates, audit and migration hashes pass. Two isolated Windows builds confirmed `node-gyp` execution but the host lacks Visual Studio C++ Build Tools; the copies were removed and the prerequisite is documented. Next commit and push, then require the clean Ubuntu/Node 22.13 CI run to pass installation, native persistence tests and build on the new head. Rerun Codex review afterward. Do not start M2 or implement restore/undo.
+PR #3 is at `6c6d844`. ADR-0016 is accepted, implemented and pushed; GitGuardian passes. Two current-head CI runs prove the driver install step succeeds but all six persistence workers still exit on Node.js 22.13.0. Source and official release evidence show `better-sqlite3@13.0.3` uses Node-API 10, first provided by Node.js 22.14.0. ADR-0017 is Proposed; no runtime-floor or CI change has been made. Next obtain explicit repository-owner approval. If approved, update the exact minimum to 22.14.0, add direct CI native smoke evidence, run local gates, commit/push, wait for current-head CI/security and rerun Codex review. Do not implement before approval, do not start M2 and do not implement restore/undo.
