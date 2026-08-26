@@ -2,7 +2,7 @@
 
 Persistent local-first Baldur's Gate 3 campaign manager with AI-assisted build, equipment, spell and item analysis.
 
-Implementation is intentionally staged through `ROADMAP.md`. M0 provides the repository toolchain and validated environment foundation; campaign logic begins in later milestones.
+Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical SQLite persistence and typed campaign-state domain foundation; later milestones add imports, read-only tools and agent-facing behavior.
 
 ## Start here
 
@@ -14,7 +14,7 @@ Implementation is intentionally staged through `ROADMAP.md`. M0 provides the rep
 
 ## Canonical state
 
-The final application will use SQLite as the only writable source of truth. XLSX/JSON are exports, not writable authorities.
+SQLite is the only writable source of truth. XLSX/JSON are exports, not writable authorities. M1 mutations use typed domain services, transaction-scoped repositories, pre-commit validation and append-only audit events.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ cp .env.example .env
 pnpm check
 ```
 
-Copying `.env.example` is optional for M0 because all current settings have safe development defaults. Never commit `.env`.
+Copying `.env.example` is optional because all current settings have safe development defaults. Never commit `.env`.
 
 ## Package scripts
 
@@ -37,6 +37,7 @@ Copying `.env.example` is optional for M0 because all current settings have safe
 | --- | --- |
 | `pnpm build` | Compile production ESM output into `dist/`. |
 | `pnpm check` | Run formatting check, lint, typecheck, tests and build. |
+| `pnpm db:generate` | Generate a committed Drizzle SQL migration after an approved schema change. |
 | `pnpm format` | Apply Prettier to maintained source/configuration files. |
 | `pnpm format:check` | Verify formatting without modifying files. |
 | `pnpm lint` | Run ESLint with warnings treated as failures. |
@@ -46,4 +47,4 @@ Copying `.env.example` is optional for M0 because all current settings have safe
 
 ## Current repository contents
 
-The repository contains the M0 TypeScript foundation, product/architecture documentation, ADRs, JSON schemas, example tool-call JSONL, regression scenarios and milestone prompts. M0 intentionally contains no database schema, OpenAI integration, voice or UI implementation.
+The repository contains the M1 canonical SQLite schema and migrations, typed read/write boundaries, campaign validation, append-only mutation audit, deterministic snapshots and checkpoints, plus the M0 TypeScript foundation and product documentation. M1 intentionally does not include campaign import, restore/undo, OpenAI integration, voice or UI implementation.

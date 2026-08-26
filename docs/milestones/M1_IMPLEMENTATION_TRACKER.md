@@ -28,7 +28,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0012 | `better-sqlite3`, Drizzle, committed SQL migrations, explicit connection factory | Accepted by repository owner, 2026-08-26 | Committed: `892ee35` |
 | ADR-0013 | Normalized M1 relational model with explicit equipment relation | Accepted by repository owner, 2026-08-26 | Committed: `dd1d5bb` |
 | ADR-0014 | Mandatory transaction coordinator, in-transaction validation and append-only audit | Accepted by repository owner, 2026-08-26 | Committed: `ca372dd` |
-| ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Implemented; pending review and commit |
+| ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
 
 ## Session ledger
 
@@ -170,7 +170,7 @@ implement restore/undo/proposal/confirmation behavior.
 
 ### Session ADR-0015 — snapshots and checkpoints
 
-Status: Complete — implementation pending main-agent review and commit
+Status: Complete — committed as `d89aee8`
 
 Implemented:
 
@@ -275,6 +275,9 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | `git diff --check` | Passed | Complete ADR-0015 tracked diff; untracked files inventoried above |
 | 2026-08-26 | `git diff --exit-code` and `git hash-object` for `0000`/`0001` | Passed | Immutable baseline blobs `ca5387…` and `d7b512…` match source commits |
 | 2026-08-26 | ADR-0015 scope scan | Passed | No restore/undo/M2 implementation; one existing deferral comment only |
+| 2026-08-26 | final `pnpm check` | Passed | 9 files/51 tests, lint, strict typecheck and production build |
+| 2026-08-26 | `pnpm audit --audit-level high` | Passed | One moderate development-only advisory; zero high/critical findings |
+| 2026-08-26 | isolated frozen install plus `pnpm check` | Passed | Clean copy without `node_modules`/`dist`; 9 files/51 tests and build |
 
 ## Commits and remote state
 
@@ -282,8 +285,9 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `9b90a7d` — `docs: accept M1 architecture and track delivery`.
 - `892ee35` — `chore: establish M1 SQLite persistence` (ADR-0012).
 - `dd1d5bb` — `feat: define M1 relational campaign state` (ADR-0013).
-- `ca372dd` — `feat: enforce transactional M1 mutations` (ADR-0014 / current HEAD).
-- ADR-0015 is implemented but uncommitted; no M1 branch push or pull request yet.
+- `ca372dd` — `feat: enforce transactional M1 mutations` (ADR-0014).
+- `d89aee8` — `feat: add M1 campaign snapshots and checkpoints` (ADR-0015 / current HEAD).
+- No M1 branch push or pull request yet.
 
 ## Known risks and watch points
 
@@ -297,4 +301,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-ADR-0015 is implemented and locally validated on HEAD `ca372dd`, with all work preserved uncommitted. Main agent: review the complete ADR-0015 diff, especially the no-default schema/metadata and explicit history-aware `INSERT ... SELECT` literals in `0002`, then create the focused ADR-0015 commit. Next run the final milestone-wide validation from a clean/frozen install, dependency audit, migration empty→latest and 0000+0001→0002 tests, invariant/rollback/audit/snapshot suites, full `pnpm check`, `git diff --check`, scope scan and immutable 0000/0001 hash comparison. After that update `CHANGELOG.md`, complete the PR/CI/security/Codex-review workflow and stop for user-approved remediation. Do not start M2 or implement restore/undo.
+All accepted M1 ADR sessions and milestone-wide local validation are complete. Next commit these final documentation updates, push `codex/m1-canonical-database`, open the PR, wait for CI/security checks on the current head and obtain Codex review. Stop for explicit user approval before applying any review remediation. Do not start M2 or implement restore/undo.

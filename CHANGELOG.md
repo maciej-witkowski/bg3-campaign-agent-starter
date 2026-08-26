@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Implemented the M1 canonical SQLite database with committed Drizzle migrations and hardened connection settings.
+- Added the normalized campaign model for characters, attributes, modifiers, items, inventory, equipment, spells, abilities and illithid powers.
+- Added typed transactional mutation services with pre-commit campaign validation and append-only audit events containing deterministic before/after snapshots.
+- Added versioned deterministic campaign snapshots and atomic checkpoints with SHA-256 integrity metadata.
+- Added empty-database and upgrade migration coverage, domain invariant and rollback tests, Polish-name/null round trips, and checkpoint integrity tests.
+- Recorded the approved M1 architecture in ADRs 0012–0015 and documented the implemented data model and test strategy.
 - Added a mandatory end-to-end milestone delivery workflow covering scope, implementation, tests, branch and commit discipline, pull requests, CI/security checks, AI review remediation and human approval.
 - Added a mandatory pre-implementation ADR proposal and user-approval gate, plus continuous ADR maintenance and re-approval rules for changed decisions.
 - Expanded the milestone review prompt with scope, security, dependency, migration and current-head validation checks.
