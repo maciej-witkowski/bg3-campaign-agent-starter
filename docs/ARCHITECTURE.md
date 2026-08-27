@@ -17,6 +17,8 @@ Own campaign invariants and mutation semantics. Equipment swaps, spell preparati
 ### 5. Persistence
 SQLite repositories and migrations. This layer does not decide whether a recommendation is appropriate; it persists valid domain state.
 
+M1 implements this boundary with `better-sqlite3` and Drizzle. The connection factory enables foreign keys, a bounded busy timeout, WAL for file-backed databases and full synchronous durability. Committed SQL migrations are the only schema evolution mechanism.
+
 ### 6. Research
 External verification behind a provider interface. Research is advisory and cannot mutate campaign state directly.
 
@@ -49,3 +51,11 @@ Define interfaces for reasoning and realtime providers. Domain code must not dep
 ## Failure philosophy
 
 Prefer explicit failure over silent repair. If inventory state is contradictory, return a typed conflict and require reconciliation.
+
+## Implemented M1 write path
+
+All M1 writes enter through typed domain services and execute inside one SQLite transaction. The coordinator captures a deterministic before snapshot, invokes the transaction-scoped repository, validates the resulting campaign state, captures the after snapshot and appends one audit event before commit. A no-op creates neither state changes nor an audit event; domain, validation, persistence or audit failures roll the entire transaction back.
+
+Checkpoint creation follows the same path. Its versioned JSON payload and SHA-256 digest are stored atomically with the checkpoint and audit event. Snapshots intentionally exclude audit events, checkpoints and migration metadata, and M1 does not implement restore or undo.
+
+The UI, model and future tool adapters must receive typed services only. The raw SQLite connection, unrestricted SQL and transaction-scoped write repository are persistence internals.

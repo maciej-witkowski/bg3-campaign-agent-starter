@@ -311,7 +311,9 @@ Do not mix unrelated changes into the commit. Do not amend or force-push after p
 
 Push the milestone branch and create a PR against the correct base. Reuse an existing open PR for the same branch.
 
-Immediately after opening or updating the PR, trigger Codex review as described in section 16. CI/security checks and Codex review may run concurrently, but both must refer to the current head before remediation or handoff.
+After opening the PR, trigger Codex review as described in section 16. For later updates, batch coherent material changes and run the required stabilization sweep before requesting another review; do not trigger a full review after every microcommit or documentation-only approval commit. CI/security checks and the final Codex review may run concurrently, but both must refer to the latest material code head before remediation or handoff.
+
+For milestones with multiple independently reviewable ADRs, prefer ADR-scoped commits and, when repository hosting supports them, stacked ADR pull requests feeding a small milestone integration PR. Each stacked PR must preserve dependency order and the integration PR remains the milestone delivery boundary.
 
 The PR body must include:
 
@@ -379,6 +381,8 @@ A result from an older commit is stale evidence. Never bypass a required failing
 
 Codex review is mandatory after opening the PR and before asking for human approval.
 
+Before requesting review of a large or materially remediated milestone PR, perform and record a milestone-wide stabilization sweep using `prompts/review-milestone.md`. The sweep must examine the complete cumulative base-to-head diff rather than only the latest commit, with explicit matrices for migrations and upgrade cut points, mutation input shapes and no-op behavior, transaction rollback/audit provenance, public API boundaries, security and milestone scope. Resolve or present all discovered blocking issues as one batch before triggering the external review.
+
 Preferred order:
 
 1. comment `@codex review` after opening the PR; if an automatic Codex review already started for the current head, verify it instead of creating a duplicate request;
@@ -412,7 +416,7 @@ After explicit approval:
 6. run affected local gates;
 7. commit and push;
 8. wait for CI/security checks on the new head;
-9. rerun Codex review after material changes and repeat the remediation approval gate for any new findings;
+9. batch coherent approved remediations, complete a milestone-wide stabilization sweep, then rerun Codex review once for that material batch rather than after each microcommit; repeat the remediation approval gate for any new findings;
 10. ensure no blocking conversation remains.
 
 Record rejected or deferred findings and the supporting evidence in the PR handoff. User approval to fix one report does not authorize unrelated findings from a later review pass.

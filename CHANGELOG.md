@@ -2,10 +2,25 @@
 
 ## Unreleased
 
+- Implemented the M1 canonical SQLite database with committed Drizzle migrations and hardened connection settings.
+- Added the normalized campaign model for characters, attributes, modifiers, items, inventory, equipment, spells, abilities and illithid powers.
+- Added typed transactional mutation services with pre-commit campaign validation and append-only audit events containing deterministic before/after snapshots.
+- Added versioned deterministic campaign snapshots and atomic checkpoints with SHA-256 integrity metadata.
+- Made snapshot identity ordering locale-independent and total for canonically equivalent Unicode strings.
+- Added forward legacy-checkpoint classification and structured checkpoint-to-audit provenance.
+- Hardened review-discovered boundaries: equipment swaps update placement only, default migrations are module-relative, and nullable integer fields reject fractional values transactionally.
+- Rejected missing equipment references and blank optional facts transactionally so stale commands cannot masquerade as no-ops and unknown values remain `NULL`.
+- Rejected non-finite optional numeric facts and conflicting duplicate equipment commands before persistence.
+- Made assignment-only equipment swaps atomic and added preflight rejection for incomplete or conflicting slot commands.
+- Derived equipment audit character provenance from both current and requested assignments, including removals and cross-character moves.
+- Rejected ambiguous equipped stacks transactionally: an equipped inventory row now represents exactly one physical item.
+- Added empty-database and upgrade migration coverage, domain invariant and rollback tests, Polish-name/null round trips, and checkpoint integrity tests.
+- Recorded the approved M1 architecture in ADRs 0012–0019 and documented the implemented data model and test strategy.
 - Added a mandatory end-to-end milestone delivery workflow covering scope, implementation, tests, branch and commit discipline, pull requests, CI/security checks, AI review remediation and human approval.
 - Added a mandatory pre-implementation ADR proposal and user-approval gate, plus continuous ADR maintenance and re-approval rules for changed decisions.
 - Expanded the milestone review prompt with scope, security, dependency, migration and current-head validation checks.
 - Required Codex review immediately after PR creation and explicit user approval of the remediation plan before review-driven edits.
+- Added ADR-scoped review batching, stacked-PR guidance and a milestone-wide stabilization sweep before repeated AI review.
 - Limited write-mode formatting to explicit milestone-owned paths when unrelated user changes are present.
 
 ## 0.2.0 — M0 Repository Foundation

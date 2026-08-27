@@ -2,7 +2,7 @@
 
 ## M0 quality gates
 
-The repository-level gate is `pnpm check`. It verifies formatting, lint, strict TypeScript types, the Vitest suite and a production build. CI installs only from `pnpm-lock.yaml` and runs the same checks on Node.js 22.13.
+The repository-level gate is `pnpm check`. It verifies formatting, lint, strict TypeScript types, the Vitest suite and a production build. CI installs only from `pnpm-lock.yaml` and runs the same checks on Node.js 22.14.0.
 
 M0 unit tests cover environment defaults, accepted values, blank values and safe validation failures. Later milestone test categories below become active when their corresponding implementation is added.
 
@@ -16,7 +16,13 @@ SQLite CRUD and query semantics against temporary databases.
 Verify rollback on invariant failure.
 
 ## Migration tests
-Apply all migrations from empty DB and supported previous fixtures.
+Apply all migrations from an empty database and from supported committed migration
+boundaries. Upgrade fixtures use the actual immutable SQL files, seed sanitized legacy
+rows, apply only the newer migration, and assert payload/data preservation, explicit
+backfill metadata and `PRAGMA foreign_key_check` integrity. Checkpoint compatibility
+coverage includes upgrades stopped before metadata introduction and databases that
+already applied the incorrect legacy classification, while proving valid V1 rows are
+not reclassified.
 
 ## Tool contract tests
 Every tool validates input and stable result envelope.
