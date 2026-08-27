@@ -83,13 +83,16 @@ export class CampaignMutationCoordinator implements CampaignMutationCoordinatorP
           id: changeEventId,
           occurredAt: occurredAt.toISOString(),
           type: requiredText(metadata.type, "type"),
-          characterId: metadata.characterId ?? null,
-          proposalId: metadata.proposalId ?? null,
+          characterId: nullableText(metadata.characterId, "characterId"),
+          proposalId: nullableText(metadata.proposalId, "proposalId"),
           summaryPl: requiredText(metadata.summaryPl, "summaryPl"),
-          reasonPl: metadata.reasonPl ?? null,
+          reasonPl: nullableText(metadata.reasonPl, "reasonPl"),
           beforeJson,
           afterJson,
-          reversesChangeEventId: metadata.reversesChangeEventId ?? null,
+          reversesChangeEventId: nullableText(
+            metadata.reversesChangeEventId,
+            "reversesChangeEventId",
+          ),
         };
         const auditInsert =
           this.dependencies.auditInsert ??
@@ -121,6 +124,12 @@ class DefaultCampaignValidator implements CampaignValidatorPort {
 }
 
 function requiredText(value: string, field: string): string {
+  if (value.trim() === "") throw new CampaignDomainError(`${field} nie może być puste.`);
+  return value;
+}
+
+function nullableText(value: string | null | undefined, field: string): string | null {
+  if (value === undefined || value === null) return null;
   if (value.trim() === "") throw new CampaignDomainError(`${field} nie może być puste.`);
   return value;
 }

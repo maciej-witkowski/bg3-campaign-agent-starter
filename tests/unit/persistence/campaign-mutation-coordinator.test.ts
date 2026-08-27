@@ -18,6 +18,7 @@ import {
   CharacterCapabilityMutationService,
   CharacterMutationService,
   InventoryMutationService,
+  ItemCatalogMutationService,
 } from "../../../src/domain/services/m1-mutation-services.js";
 import { CampaignValidationError } from "../../../src/domain/validation/campaign-validation.js";
 import { SqliteCampaignStateReadRepository } from "../../../src/persistence/sqlite/campaign-state-read-repository.js";
@@ -183,6 +184,81 @@ describe("CampaignMutationCoordinator", () => {
       { inventoryItemId: "item-b", characterId: "hero", slot: "RING_2" },
     ]);
   });
+
+  it.each(["placement", "assignment"] as const)(
+    "rejects a missing %s inventory item without state or audit writes",
+    (inputKind) => {
+      const before = snapshot(connection.database as never).capture();
+
+      expect(() =>
+        new InventoryMutationService(createCoordinator()).setEquipment(
+          {
+            items:
+              inputKind === "placement"
+                ? [{ id: "missing", status: "CHEST", ownerCharacterId: null }]
+                : [],
+            assignments:
+              inputKind === "assignment"
+                ? [{ inventoryItemId: "missing", characterId: "hero", slot: "RING_1" }]
+                : [],
+          },
+          { type: "EQUIPMENT_SET", summaryPl: "Brakujący element" },
+        ),
+      ).toThrow(CampaignDomainError);
+      expect(snapshot(connection.database as never).capture()).toBe(before);
+      expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    },
+  );
+
+  it.each([
+    "nameEn",
+    "typePl",
+    "rarityPl",
+    "descriptionPl",
+    "verificationSource",
+    "fingerprint",
+    "notes",
+  ] as const)("rejects blank optional item fact %s transactionally", (field) => {
+    expect(() =>
+      new ItemCatalogMutationService(createCoordinator()).createDefinition(
+        { ...itemDefinition(), [field]: "   " },
+        { type: "ITEM_DEFINITION_CREATE", summaryPl: "Nowa definicja" },
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(connection.database.select().from(itemDefinitions).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
+  it("preserves null for unknown optional item facts", () => {
+    new ItemCatalogMutationService(createCoordinator()).createDefinition(itemDefinition(), {
+      type: "ITEM_DEFINITION_CREATE",
+      summaryPl: "Nowa definicja",
+    });
+
+    expect(connection.database.select().from(itemDefinitions).get()).toMatchObject({
+      nameEn: null,
+      typePl: null,
+      rarityPl: null,
+      descriptionPl: null,
+      verificationSource: null,
+      fingerprint: null,
+      notes: null,
+    });
+  });
+
+  it.each(["reasonPl", "proposalId"] as const)(
+    "rejects blank optional audit metadata %s and rolls back state",
+    (field) => {
+      expect(() =>
+        new CharacterMutationService(createCoordinator()).createCharacter(hero(), {
+          ...metadata,
+          [field]: "   ",
+        }),
+      ).toThrow(CampaignDomainError);
+      expect(connection.database.select().from(characters).all()).toEqual([]);
+      expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    },
+  );
 
   it("rolls back equipment placement and audit when a stacked row is equipped", () => {
     connection.database.insert(characters).values(characterRow()).run();

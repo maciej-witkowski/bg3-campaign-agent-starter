@@ -303,6 +303,9 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | ADR-0018 validator/transaction regressions plus `pnpm typecheck` | Passed | 2 files/21 tests; equipped stacks reject and roll back with zero audit; non-equipped stacks remain valid |
 | 2026-08-27 | ADR-0018 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/62 tests and production build |
 | 2026-08-27 | ADR-0018 audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
+| 2026-08-27 | ADR-0014 review regressions plus `pnpm typecheck` | Passed | 1 file/29 tests; missing placement/assignment IDs and blank optional facts roll back with zero audit; `NULL` round-trip preserved |
+| 2026-08-27 | approved ADR-0014 review remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/74 tests and production build |
+| 2026-08-27 | remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
 
 ## Commits and remote state
 
@@ -323,6 +326,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `bbe223f` — `fix: validate checkpoint event provenance` (ADR-0015 review remediation; local head before ADR-0018 proposal commit).
 - `d166b20` — `docs: propose equipped stack invariant` (ADR-0018 proposed; current remote head).
 - `7d95e8b` — `docs: accept equipped stack invariant` (ADR-0018 accepted; local head before implementation commit).
+- `e540a97` — `fix: reject equipped inventory stacks` (ADR-0018 implemented; current remote head before approved review remediation).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -337,4 +341,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-ADR-0018 is accepted and its implementation is complete locally: stable validation code, equipped-single-item invariant, domain and transaction regressions, scenario 009 and documentation. The full gate passes 9 files/62 tests plus build; audit-high passes and all migration hashes are unchanged. No schema, migration, dependency, auto-split or M2 behavior changed. Next commit and push the implementation, then wait for current-head CI/security and Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo or merge the PR.
+The owner approved remediation of two verified ADR-0014 review findings at remote head `e540a97`. The local worktree rejects missing equipment placement/assignment IDs with `CampaignDomainError`, rejects blank optional facts and audit metadata while preserving `NULL`, and includes rollback regressions. The full gate passes 9 files/74 tests plus build; audit-high passes and all migration hashes are unchanged. Next commit and push this focused remediation, wait for current-head CI/security and trigger Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo, start M2 or merge the PR.

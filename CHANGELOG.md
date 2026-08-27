@@ -7,6 +7,7 @@
 - Added typed transactional mutation services with pre-commit campaign validation and append-only audit events containing deterministic before/after snapshots.
 - Added versioned deterministic campaign snapshots and atomic checkpoints with SHA-256 integrity metadata.
 - Hardened review-discovered boundaries: equipment swaps update placement only, default migrations are module-relative, and nullable integer fields reject fractional values transactionally.
+- Rejected missing equipment references and blank optional facts transactionally so stale commands cannot masquerade as no-ops and unknown values remain `NULL`.
 - Rejected ambiguous equipped stacks transactionally: an equipped inventory row now represents exactly one physical item.
 - Added empty-database and upgrade migration coverage, domain invariant and rollback tests, Polish-name/null round trips, and checkpoint integrity tests.
 - Recorded the approved M1 architecture in ADRs 0012–0015 and documented the implemented data model and test strategy.
