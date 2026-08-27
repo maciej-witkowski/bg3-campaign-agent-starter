@@ -357,6 +357,9 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 | 2026-08-27 | fourth ADR-0014 remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/93 tests and production build |
 | 2026-08-27 | fourth remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
 | 2026-08-27 | post-remediation milestone-wide stabilization sweep | Passed locally | Rechecked cumulative scope and current batch across mutation input/no-op shapes, transaction rollback and audit provenance, migrations, public API, secrets and M2 exclusions; no remaining local finding |
+| 2026-08-27 | final Codex connector request at `3d9f332` | Unavailable | A single `@codex review` request received no reaction or current-head review after waiting beyond the prior completion window; no duplicate request was sent |
+| 2026-08-27 | independent milestone-wide review at `3d9f332` | Passed with documentation finding | Separate read-only reviewer used `prompts/review-milestone.md`; no code/schema/test/ADR finding, one verified P2 stale PR-description finding |
+| 2026-08-27 | approved PR-description remediation | Passed | PR #3 now records ADRs `0012`–`0019`, 9 files/93 tests, migrations `0000`–`0003`, historical upgrade cut points and current review focus |
 
 ## Commits and remote state
 
@@ -400,4 +403,4 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 
 ## Exact resume point
 
-Approved review remediation is committed as `b3967fa`. Focused/full tests (9 files/93 tests plus build), audit-high, immutable migration hashes and the cumulative milestone stabilization sweep pass locally. Next: commit this tracker update, push both commits, wait for current-head CI/security, and trigger one final Codex review. Any new finding requires verification and renewed owner approval before editing. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge PR #3.
+Approved code remediation is committed as `b3967fa`; the final docs-only review record is committed in the current local HEAD and PR #3 has the corrected description. The final Codex connector request remained unavailable, so the documented independent-review fallback completed the full milestone prompt: no code findings and one stale PR-description P2, explicitly approved by the owner and corrected. Delivery is ready for human approval once the remote includes this docs-only HEAD and its CI/security checks are green. No further AI review is required because the material code head and reviewed cumulative diff are unchanged. Do not merge, rewrite migrations `0000`–`0002`, implement restore/undo or start M2.
