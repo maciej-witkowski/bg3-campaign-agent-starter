@@ -26,6 +26,8 @@ export interface CampaignStateWriteRepository {
   insertItemDefinition(value: ItemDefinition): void;
   insertItemEffect(value: ItemEffect): void;
   insertInventoryItem(value: InventoryItem): void;
+  findInventoryPlacement(id: string): InventoryPlacement | null;
+  findEquipmentAssignment(inventoryItemId: string): EquipmentAssignment | null;
   setInventoryPlacement(value: InventoryPlacement): boolean;
   setEquipment(value: EquipmentAssignment): boolean;
   removeEquipment(inventoryItemId: string): boolean;

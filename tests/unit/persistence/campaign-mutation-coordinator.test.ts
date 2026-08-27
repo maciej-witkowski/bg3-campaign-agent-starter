@@ -160,6 +160,30 @@ describe("CampaignMutationCoordinator", () => {
     expect(connection.database.select().from(changeEvents).all()).toHaveLength(1);
   });
 
+  it("returns unchanged and writes no audit for an identical equipment aggregate", () => {
+    seedEquipment();
+
+    const result = new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [inventory("item-a"), inventory("item-b")],
+        assignments: [
+          { inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" },
+          { inventoryItemId: "item-b", characterId: "hero", slot: "RING_2" },
+        ],
+      },
+      { type: "EQUIPMENT_SET", summaryPl: "Identyczne wyposażenie" },
+    );
+
+    expect(result).toEqual({ changed: false });
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    expect(
+      connection.database.select().from(equipment).orderBy(asc(equipment.inventoryItemId)).all(),
+    ).toEqual([
+      { inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" },
+      { inventoryItemId: "item-b", characterId: "hero", slot: "RING_2" },
+    ]);
+  });
+
   it("changes only inventory placement when equipment input contains stale item data", () => {
     seedEquipment();
     connection.database

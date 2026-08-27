@@ -152,6 +152,22 @@ export class InventoryMutationService {
     const characterId =
       characterIds.size === 1 ? (characterIds.values().next().value ?? null) : null;
     return this.coordinator.execute({ ...metadata, characterId }, (writes) => {
+      const placements = new Map(change.items.map((item) => [item.id, item]));
+      const assignments = new Map(
+        change.assignments.map((assignment) => [assignment.inventoryItemId, assignment]),
+      );
+      const equipmentItemIds = new Set([...placements.keys(), ...assignments.keys()]);
+      const placementUnchanged = [...placements.values()].every((placement) =>
+        inventoryPlacementEquals(writes.findInventoryPlacement(placement.id), placement),
+      );
+      const equipmentUnchanged = [...equipmentItemIds].every((inventoryItemId) =>
+        equipmentAssignmentEquals(
+          writes.findEquipmentAssignment(inventoryItemId),
+          assignments.get(inventoryItemId) ?? null,
+        ),
+      );
+      if (placementUnchanged && equipmentUnchanged) return false;
+
       let changed = false;
       for (const item of change.items) changed = writes.removeEquipment(item.id) || changed;
       for (const item of change.items) changed = writes.setInventoryPlacement(item) || changed;
@@ -161,6 +177,29 @@ export class InventoryMutationService {
       return changed;
     });
   }
+}
+
+function inventoryPlacementEquals(
+  current: InventoryPlacement | null,
+  expected: InventoryPlacement,
+): boolean {
+  return (
+    current?.id === expected.id &&
+    current.status === expected.status &&
+    current.ownerCharacterId === expected.ownerCharacterId
+  );
+}
+
+function equipmentAssignmentEquals(
+  current: EquipmentAssignment | null,
+  expected: EquipmentAssignment | null,
+): boolean {
+  if (current === null || expected === null) return current === expected;
+  return (
+    current.inventoryItemId === expected.inventoryItemId &&
+    current.characterId === expected.characterId &&
+    current.slot === expected.slot
+  );
 }
 
 export class CharacterCapabilityMutationService {

@@ -294,6 +294,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | remediation `pnpm typecheck` and `git diff --check` | Passed | Narrow placement DTO and all review-driven source/test changes |
 | 2026-08-27 | remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/56 tests and production build |
 | 2026-08-27 | `pnpm audit --audit-level high` plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
+| 2026-08-27 | ADR-0014 no-op equipment regression plus `pnpm typecheck` | Passed | 1 file/16 tests; identical aggregate returns unchanged with zero audit |
 
 ## Commits and remote state
 
@@ -309,6 +310,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `a2f92d2` — `docs: propose Node-API 10 runtime floor` (ADR-0017 proposed).
 - `00b2773` — `fix: require Node-API 10 runtime` (ADR-0017 accepted/implemented).
 - `9513ad2` — `docs: record M1 compatibility validation` (current remote head before approved review remediation).
+- `645762e` — `fix: address M1 review findings` (current remote head; both CI runs and GitGuardian pass).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -323,4 +325,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-The repository owner approved all three verified Codex findings for head `9513ad2`: stale equipment DTOs overwriting canonical item data, migrations depending on process `cwd`, and fractional values accepted for nullable integer fields. The fixes and regressions are implemented locally; scoped tests pass (32/32), the full gate passes (9 files/56 tests and build), the high-severity audit passes, migration blobs are unchanged and the diff is clean. Next review and commit the remediation, push it to PR #3, wait for current-head CI/security, and trigger a new `@codex review`. Any new findings require a fresh user-approved remediation plan. Do not start M2, implement restore/undo or merge the PR.
+Codex review `5040869921` for head `645762e` produced three verified P2 findings. The repository owner approved remediation under ADR-0014 and ADR-0015 plus preparation of a new Proposed ADR-0018; ADR-0018 implementation still requires a separate approval. ADR-0014 no-op equipment remediation is implemented locally and its 16-test suite plus typecheck pass. Next review and commit the ADR-0014 session, then implement the approved ADR-0015 checkpoint-reference validation in a separate session. Finally prepare ADR-0018 Proposed and stop for owner approval before its implementation. Do not start M2, implement restore/undo or merge the PR.

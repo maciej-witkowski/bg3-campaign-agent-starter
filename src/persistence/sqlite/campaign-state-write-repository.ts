@@ -113,6 +113,30 @@ export class SqliteCampaignStateWriteRepository implements CampaignStateWriteRep
       .run();
   }
 
+  public findInventoryPlacement(id: string): InventoryPlacement | null {
+    return (
+      this.transaction
+        .select({
+          id: inventoryItems.id,
+          status: inventoryItems.status,
+          ownerCharacterId: inventoryItems.ownerCharacterId,
+        })
+        .from(inventoryItems)
+        .where(eq(inventoryItems.id, id))
+        .get() ?? null
+    );
+  }
+
+  public findEquipmentAssignment(inventoryItemId: string): EquipmentAssignment | null {
+    return (
+      this.transaction
+        .select()
+        .from(equipment)
+        .where(eq(equipment.inventoryItemId, inventoryItemId))
+        .get() ?? null
+    );
+  }
+
   public setInventoryPlacement(value: InventoryPlacement): boolean {
     const current = this.transaction
       .select()

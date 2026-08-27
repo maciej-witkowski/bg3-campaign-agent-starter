@@ -194,3 +194,6 @@ None blocking. Domain service method granularity may be refined during implement
 - 2026-08-26 — Implemented transaction-scoped writes, validation, coordinator, typed
   services and append-only audit enforcement; real snapshots/checkpoints remain with
   ADR-0015.
+- 2026-08-27 — Review remediation compares the requested final equipment aggregate
+  inside the transaction before destructive replacement, preserving explicit no-op
+  semantics and suppressing identical-state audit events.
