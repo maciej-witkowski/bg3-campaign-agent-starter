@@ -1,6 +1,6 @@
 # ADR-0019: Legacy checkpoint compatibility and audit provenance
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -83,8 +83,10 @@ This ADR corrects M1 checkpoint compatibility and audit provenance only. It does
 ## Approval record
 
 - Preparation authorized by the repository owner in the Codex task on 2026-08-27.
-- Decision approval pending.
+- Accepted by the repository owner in the Codex task on 2026-08-27.
+- Approval scope: the complete ADR-0019 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-27 — Initial proposal after Codex review `5045547966` of commit `3c4ccaa`.
+- 2026-08-27 — Accepted after explicit repository-owner approval.

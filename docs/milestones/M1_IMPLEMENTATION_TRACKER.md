@@ -32,12 +32,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Committed: `6c6d844` |
 | ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Accepted by repository owner, 2026-08-26 | Committed: `00b2773` |
 | ADR-0018 | Equipped inventory rows represent exactly one physical item | Accepted by repository owner, 2026-08-27 | Committed: `e540a97` |
-
-## Proposed decisions awaiting approval
-
-| ADR | Decision | Status |
-| --- | --- | --- |
-| ADR-0019 | Forward legacy-checkpoint classification and structured checkpoint audit provenance | Proposed after review `5045547966`; owner decision pending |
+| ADR-0019 | Forward legacy-checkpoint classification and structured checkpoint audit provenance | Accepted by repository owner, 2026-08-27 | Implementation pending |
 
 ## Session ledger
 
