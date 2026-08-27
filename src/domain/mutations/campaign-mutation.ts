@@ -21,6 +21,7 @@ export interface CampaignMutationMetadata {
   readonly type: string;
   readonly summaryPl: string;
   readonly characterId?: string | null;
+  readonly checkpointId?: string | null;
   readonly reasonPl?: string | null;
   readonly proposalId?: string | null;
   readonly reversesChangeEventId?: string | null;

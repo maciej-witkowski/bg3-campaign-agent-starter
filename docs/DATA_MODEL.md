@@ -1,7 +1,7 @@
 # Data Model
 
-This document records the physical M1 SQLite model implemented by migration
-`0000_chief_cassandra_nova`. SQLite is the only writable canonical store. All
+This document records the physical M1 SQLite model implemented by committed
+migrations `0000` through `0003`. SQLite is the only writable canonical store. All
 application-generated IDs are non-empty `TEXT` UUID-compatible identifiers and all
 instants are UTC ISO-8601 `TEXT` in the form `YYYY-MM-DDTHH:mm:ss.sssZ`.
 
@@ -136,11 +136,11 @@ acquisition metadata remains unknown; prerequisites are not inferred.
 ### change_events
 
 Columns: `id` PK, `occurred_at`, required `type`, nullable `character_id` FK
-→ characters (set null), nullable external `proposal_id`, `summary_pl`, nullable
-`reason_pl`, valid JSON `before_json` and `after_json`, and nullable
-`reverses_change_event_id`.
+→ characters (set null), nullable `checkpoint_id` FK → checkpoints (restrict),
+nullable external `proposal_id`, `summary_pl`, nullable `reason_pl`, valid JSON
+`before_json` and `after_json`, and nullable `reverses_change_event_id`.
 
-Occurrence time and character are indexed. A unique non-null reversal reference
+Occurrence time, character and checkpoint are indexed. A unique non-null reversal reference
 allows at most one direct reversal event and cannot reference the same ID. Existing
 audit rows are never updated to represent reversal. Append-only write enforcement and
 the audit protocol belong to ADR-0014.
@@ -154,12 +154,16 @@ lowercase 64-character hexadecimal `snapshot_sha256`, `reason_pl`, and nullable
 
 Creation time is indexed. Snapshot format and schema version have no persistent SQL
 defaults: every new checkpoint write supplies the metadata captured from its validated
-snapshot. Migration `0002_wild_warpath` upgrades legacy rows using the explicit format
-literal `BG3_CAMPAIGN_SNAPSHOT` and historical `schema_version=2`, while preserving the
-payload, digest and relation to `change_events`.
+snapshot. Migration `0002_wild_warpath` preserved legacy rows with historical
+`schema_version=2`. Forward migration `0003_natural_dazzler` uses that marker to
+classify them as `BG3_LEGACY_CHECKPOINT` without changing payload, digest or
+relations. New runtime-created rows use `BG3_CAMPAIGN_SNAPSHOT` and schema version 4
+or later.
 
 ADR-0015 implements deterministic `CampaignSnapshotV1` capture, strict canonical UTC
 metadata validation, SHA-256 integrity verification and atomic checkpoint creation.
+ADR-0019 adds explicit legacy-format rejection and structured checkpoint audit
+provenance through `change_events.checkpoint_id`.
 Snapshots contain current canonical campaign tables and deliberately exclude
 `change_events`, `checkpoints` and Drizzle migration history.
 

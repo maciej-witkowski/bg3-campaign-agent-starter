@@ -84,6 +84,7 @@ export class CampaignMutationCoordinator implements CampaignMutationCoordinatorP
           occurredAt: occurredAt.toISOString(),
           type: requiredText(metadata.type, "type"),
           characterId: nullableText(metadata.characterId, "characterId"),
+          checkpointId: nullableText(metadata.checkpointId, "checkpointId"),
           proposalId: nullableText(metadata.proposalId, "proposalId"),
           summaryPl: requiredText(metadata.summaryPl, "summaryPl"),
           reasonPl: nullableText(metadata.reasonPl, "reasonPl"),

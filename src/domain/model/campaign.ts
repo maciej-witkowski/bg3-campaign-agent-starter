@@ -217,6 +217,7 @@ export interface ChangeEvent {
   readonly occurredAt: Date;
   readonly type: string;
   readonly characterId: string | null;
+  readonly checkpointId: string | null;
   readonly proposalId: string | null;
   readonly summaryPl: string;
   readonly reasonPl: string | null;

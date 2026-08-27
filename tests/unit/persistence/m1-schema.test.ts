@@ -57,6 +57,25 @@ describe("M1 relational migration", () => {
       "change_events_block_delete",
       "change_events_block_update",
     ]);
+
+    const changeEventColumns = connection.database.$client
+      .prepare("pragma table_info(change_events)")
+      .all() as { name: string }[];
+    expect(changeEventColumns.map(({ name }) => name)).toContain("checkpoint_id");
+    const changeEventForeignKeys = connection.database.$client
+      .prepare("pragma foreign_key_list(change_events)")
+      .all() as { from: string; table: string; on_delete: string }[];
+    expect(changeEventForeignKeys).toContainEqual(
+      expect.objectContaining({
+        from: "checkpoint_id",
+        table: "checkpoints",
+        on_delete: "RESTRICT",
+      }),
+    );
+    const changeEventIndexes = connection.database.$client
+      .prepare("pragma index_list(change_events)")
+      .all() as { name: string }[];
+    expect(changeEventIndexes.map(({ name }) => name)).toContain("change_events_checkpoint_idx");
   });
 
   it("enforces local identity, enum, boolean, quantity, provenance and foreign-key facts", () => {

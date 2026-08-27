@@ -9,6 +9,7 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 import {
@@ -407,6 +408,9 @@ export const changeEvents = sqliteTable(
     occurredAt: text("occurred_at").notNull(),
     type: text("type").notNull(),
     characterId: text("character_id").references(() => characters.id, { onDelete: "set null" }),
+    checkpointId: text("checkpoint_id").references((): AnySQLiteColumn => checkpoints.id, {
+      onDelete: "restrict",
+    }),
     proposalId: text("proposal_id"),
     summaryPl: text("summary_pl").notNull(),
     reasonPl: text("reason_pl"),
@@ -417,6 +421,7 @@ export const changeEvents = sqliteTable(
   (t) => [
     index("change_events_occurred_at_idx").on(t.occurredAt),
     index("change_events_character_idx").on(t.characterId),
+    index("change_events_checkpoint_idx").on(t.checkpointId),
     uniqueIndex("change_events_reverses_unique").on(t.reversesChangeEventId),
     foreignKey({
       columns: [t.reversesChangeEventId],
@@ -451,7 +456,7 @@ export const checkpoints = sqliteTable(
     snapshotJson: text("snapshot_json").notNull(),
     snapshotSha256: text("snapshot_sha256").notNull(),
     reasonPl: text("reason_pl").notNull(),
-    changeEventId: text("change_event_id").references(() => changeEvents.id, {
+    changeEventId: text("change_event_id").references((): AnySQLiteColumn => changeEvents.id, {
       onDelete: "set null",
     }),
   },

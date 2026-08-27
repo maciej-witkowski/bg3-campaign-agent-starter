@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   CAMPAIGN_SNAPSHOT_FORMAT,
   CAMPAIGN_SNAPSHOT_VERSION,
+  LEGACY_CHECKPOINT_FORMAT,
   SNAPSHOT_COLLECTIONS,
   calculateSnapshotSha256,
   deserializeCampaignSnapshot,
   serializeCampaignSnapshot,
+  verifyCheckpointSnapshot,
   verifySnapshotSha256,
 } from "../../../src/domain/snapshots/campaign-snapshot.js";
 import type {
@@ -57,6 +59,17 @@ describe("CampaignSnapshotV1", () => {
 
   it.each([
     ["MALFORMED_JSON", () => deserializeCampaignSnapshot("{")],
+    [
+      "UNSUPPORTED_FORMAT",
+      () =>
+        verifyCheckpointSnapshot({
+          snapshotFormat: LEGACY_CHECKPOINT_FORMAT,
+          snapshotVersion: 1,
+          schemaVersion: 2,
+          snapshotJson: '{"legacy":true}',
+          snapshotSha256: "0".repeat(64),
+        }),
+    ],
     ["UNSUPPORTED_VERSION", () => serializeCampaignSnapshot({ ...emptySnapshot(), version: 2 })],
     [
       "DUPLICATE_IDENTITY",
@@ -139,6 +152,19 @@ describe("CampaignSnapshotV1", () => {
     expect(verifySnapshotSha256(json, calculateSnapshotSha256(json))).toEqual(
       deserializeCampaignSnapshot(json),
     );
+  });
+
+  it("rejects persisted schema metadata that disagrees with the payload", () => {
+    const json = serializeCampaignSnapshot(emptySnapshot());
+    expect(() =>
+      verifyCheckpointSnapshot({
+        snapshotFormat: CAMPAIGN_SNAPSHOT_FORMAT,
+        snapshotVersion: CAMPAIGN_SNAPSHOT_VERSION,
+        schemaVersion: 999,
+        snapshotJson: json,
+        snapshotSha256: calculateSnapshotSha256(json),
+      }),
+    ).toThrowError(expect.objectContaining({ code: "METADATA_MISMATCH" }));
   });
 });
 

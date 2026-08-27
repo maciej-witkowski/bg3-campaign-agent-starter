@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 export const CAMPAIGN_SNAPSHOT_FORMAT = "BG3_CAMPAIGN_SNAPSHOT" as const;
+export const LEGACY_CHECKPOINT_FORMAT = "BG3_LEGACY_CHECKPOINT" as const;
 export const CAMPAIGN_SNAPSHOT_VERSION = 1 as const;
 export const SNAPSHOT_COLLECTIONS = [
   "characters",
@@ -33,6 +34,8 @@ export interface CampaignSnapshotV1 {
 export type CampaignSnapshotErrorCode =
   | "MALFORMED_JSON"
   | "INVALID_STRUCTURE"
+  | "METADATA_MISMATCH"
+  | "UNSUPPORTED_FORMAT"
   | "UNSUPPORTED_VERSION"
   | "DUPLICATE_IDENTITY"
   | "NON_FINITE_NUMBER"
@@ -284,6 +287,33 @@ export function verifySnapshotSha256(payload: string, expectedDigest: string): C
     throw new CampaignSnapshotError("DIGEST_MISMATCH", "Suma kontrolna snapshotu jest niezgodna.");
   return snapshot;
 }
+export interface StoredCheckpointSnapshot {
+  readonly snapshotFormat: string;
+  readonly snapshotVersion: number;
+  readonly schemaVersion: number;
+  readonly snapshotJson: string;
+  readonly snapshotSha256: string;
+}
+export function verifyCheckpointSnapshot(value: StoredCheckpointSnapshot): CampaignSnapshotV1 {
+  if (value.snapshotFormat !== CAMPAIGN_SNAPSHOT_FORMAT)
+    throw new CampaignSnapshotError(
+      "UNSUPPORTED_FORMAT",
+      `Nieobsługiwany format checkpointu: ${value.snapshotFormat}.`,
+    );
+  if (value.snapshotVersion !== CAMPAIGN_SNAPSHOT_VERSION)
+    throw new CampaignSnapshotError(
+      "UNSUPPORTED_VERSION",
+      `Nieobsługiwana wersja checkpointu: ${value.snapshotVersion}.`,
+    );
+  const snapshot = verifySnapshotSha256(value.snapshotJson, value.snapshotSha256);
+  if (value.schemaVersion !== snapshot.schemaVersion)
+    throw new CampaignSnapshotError(
+      "METADATA_MISMATCH",
+      "Wersja schematu checkpointu nie zgadza się z payloadem.",
+    );
+  return snapshot;
+}
+
 function isCanonicalUtcInstant(value: unknown): value is string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) {
     return false;

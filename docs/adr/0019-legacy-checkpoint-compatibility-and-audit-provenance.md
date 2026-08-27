@@ -68,6 +68,25 @@ The checkpoint label and reason remain canonical on the checkpoint row. The audi
 - Injected checkpoint and audit failures leave zero partial rows.
 - Append-only audit protections remain effective with the new foreign key.
 
+## Implementation evidence
+
+- Generated migration `0003_natural_dazzler` adds nullable indexed
+  `change_events.checkpoint_id` and forward-classifies only V1-labelled checkpoint
+  rows carrying the historical `schema_version=2` marker.
+- Migrations `0000`–`0002` remain byte-identical; payloads, digests and relations
+  are not rewritten.
+- Checkpoint mutation metadata carries the generated checkpoint ID internally, and
+  the coordinator persists the foreign key in the same transaction after inserting
+  the checkpoint.
+- `verifyCheckpointSnapshot()` checks persisted format/version metadata before
+  digest and V1 structure validation, returns explicit `UNSUPPORTED_FORMAT` for
+  legacy rows, and rejects schema-version metadata that differs from the payload.
+- The generated foreign key is materialized as explicit `ON DELETE RESTRICT`, and
+  fresh-schema introspection verifies the column, index and physical action.
+- Upgrade regressions cover databases stopped at both `0001` and `0002`, preserve
+  valid schema-version-3 V1 rows, verify foreign keys, and exercise fresh schema,
+  provenance, rollback and read-only paths.
+
 ## Rejected alternatives
 
 - Rewriting `0002` is rejected because shared migrations are append-only history.
@@ -90,3 +109,5 @@ This ADR corrects M1 checkpoint compatibility and audit provenance only. It does
 
 - 2026-08-27 — Initial proposal after Codex review `5045547966` of commit `3c4ccaa`.
 - 2026-08-27 — Accepted after explicit repository-owner approval.
+- 2026-08-27 — Implemented forward migration, typed audit provenance and explicit
+  legacy verification with upgrade/fresh-install regression evidence.

@@ -28,7 +28,10 @@ import {
   deserializeCampaignSnapshot,
 } from "../snapshots/campaign-snapshot.js";
 
-type Metadata = Omit<CampaignMutationMetadata, "characterId" | "reversesChangeEventId">;
+type Metadata = Omit<
+  CampaignMutationMetadata,
+  "characterId" | "checkpointId" | "reversesChangeEventId"
+>;
 
 export class CharacterMutationService {
   public constructor(private readonly coordinator: CampaignMutationCoordinatorPort) {}
@@ -94,7 +97,7 @@ export class CheckpointMutationService {
     metadata: Metadata,
   ): CheckpointMutationResult {
     const checkpointId = this.ids.nextId();
-    const result = this.coordinator.execute(metadata, (writes, context) => {
+    const result = this.coordinator.execute({ ...metadata, checkpointId }, (writes, context) => {
       const snapshotJson = context.snapshotter.capture();
       const snapshot = deserializeCampaignSnapshot(snapshotJson);
       rejectBlankNullableText({ changeEventId: input.changeEventId ?? null });

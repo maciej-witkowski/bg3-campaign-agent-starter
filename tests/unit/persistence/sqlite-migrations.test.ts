@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import {
+  calculateSnapshotSha256,
+  serializeCampaignSnapshot,
+  verifyCheckpointSnapshot,
+} from "../../../src/domain/snapshots/campaign-snapshot.js";
 import { openSqliteConnection } from "../../../src/persistence/sqlite/connection.js";
 import {
   migrateSqliteConnection,
@@ -12,6 +17,28 @@ import {
 import { writeMigrationFixture } from "./migration-fixture.js";
 
 const temporaryDirectories: string[] = [];
+const committedMigrations = [
+  {
+    tag: "0000_chief_cassandra_nova",
+    when: 1_787_702_801_605,
+    sql: readFileSync(join("drizzle", "0000_chief_cassandra_nova.sql"), "utf8"),
+  },
+  {
+    tag: "0001_change_events_append_only",
+    when: 1_787_706_000_000,
+    sql: readFileSync(join("drizzle", "0001_change_events_append_only.sql"), "utf8"),
+  },
+  {
+    tag: "0002_wild_warpath",
+    when: 1_787_740_085_480,
+    sql: readFileSync(join("drizzle", "0002_wild_warpath.sql"), "utf8"),
+  },
+  {
+    tag: "0003_natural_dazzler",
+    when: 1_787_864_619_677,
+    sql: readFileSync(join("drizzle", "0003_natural_dazzler.sql"), "utf8"),
+  },
+] as const;
 
 function createTemporaryDirectory(): string {
   const directory = mkdtempSync(join(tmpdir(), "bg3-sqlite-migrations-"));
@@ -85,27 +112,36 @@ describe("SQLite migrations", () => {
     }
   });
 
+  it.each([1, 2, 3])(
+    "upgrades cleanly from committed migration cut point %s",
+    (appliedMigrationCount) => {
+      const directory = createTemporaryDirectory();
+      const migrationsFolder = join(directory, "migrations");
+      const filename = join(directory, "campaign.sqlite");
+      writeMigrationFixture(migrationsFolder, committedMigrations.slice(0, appliedMigrationCount));
+      const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
+
+      try {
+        writeMigrationFixture(migrationsFolder, committedMigrations);
+        migrateSqliteConnection(connection, migrationsFolder);
+        const migrationCount = connection.database.$client
+          .prepare("select count(*) as count from __drizzle_migrations")
+          .get() as { count: number };
+        expect(migrationCount.count).toBe(committedMigrations.length);
+        expect(connection.database.$client.pragma("integrity_check")).toEqual([
+          { integrity_check: "ok" },
+        ]);
+        expect(connection.database.$client.pragma("foreign_key_check")).toEqual([]);
+      } finally {
+        connection.close();
+      }
+    },
+  );
+
   it("upgrades a 0000+0001 database without losing legacy checkpoint or related state", () => {
     const directory = createTemporaryDirectory();
     const migrationsFolder = join(directory, "migrations");
     const filename = join(directory, "campaign.sqlite");
-    const committedMigrations = [
-      {
-        tag: "0000_chief_cassandra_nova",
-        when: 1_787_702_801_605,
-        sql: readFileSync(join("drizzle", "0000_chief_cassandra_nova.sql"), "utf8"),
-      },
-      {
-        tag: "0001_change_events_append_only",
-        when: 1_787_706_000_000,
-        sql: readFileSync(join("drizzle", "0001_change_events_append_only.sql"), "utf8"),
-      },
-      {
-        tag: "0002_wild_warpath",
-        when: 1_787_740_085_480,
-        sql: readFileSync(join("drizzle", "0002_wild_warpath.sql"), "utf8"),
-      },
-    ] as const;
 
     writeMigrationFixture(migrationsFolder, committedMigrations.slice(0, 2));
     const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
@@ -146,7 +182,7 @@ describe("SQLite migrations", () => {
         id: "checkpoint-legacy",
         label: "Przed migracją",
         created_at: instant,
-        snapshot_format: "BG3_CAMPAIGN_SNAPSHOT",
+        snapshot_format: "BG3_LEGACY_CHECKPOINT",
         snapshot_version: 1,
         schema_version: 2,
         snapshot_json: payload,
@@ -154,6 +190,79 @@ describe("SQLite migrations", () => {
         reason_pl: "Test",
         change_event_id: "event-1",
       });
+      const legacy = client
+        .prepare("select * from checkpoints where id = ?")
+        .get("checkpoint-legacy") as Record<string, unknown>;
+      expect(() =>
+        verifyCheckpointSnapshot({
+          snapshotFormat: String(legacy.snapshot_format),
+          snapshotVersion: Number(legacy.snapshot_version),
+          schemaVersion: Number(legacy.schema_version),
+          snapshotJson: String(legacy.snapshot_json),
+          snapshotSha256: String(legacy.snapshot_sha256),
+        }),
+      ).toThrowError(expect.objectContaining({ code: "UNSUPPORTED_FORMAT" }));
+      expect(client.pragma("foreign_key_check")).toEqual([]);
+    } finally {
+      connection.close();
+    }
+  });
+
+  it("repairs an already-applied 0002 database without reclassifying valid V1 rows", () => {
+    const directory = createTemporaryDirectory();
+    const migrationsFolder = join(directory, "migrations");
+    const filename = join(directory, "campaign.sqlite");
+    writeMigrationFixture(migrationsFolder, committedMigrations.slice(0, 3));
+    const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
+
+    try {
+      const client = connection.database.$client;
+      const instant = "2026-08-26T12:00:00.000Z";
+      const legacyPayload = '{"legacy":true}';
+      const validPayload = serializeCampaignSnapshot(emptySnapshot(3, instant));
+      const insert = client.prepare(
+        "insert into checkpoints (id, label, created_at, snapshot_format, snapshot_version, schema_version, snapshot_json, snapshot_sha256, reason_pl, change_event_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, null)",
+      );
+      insert.run(
+        "legacy",
+        "Legacy",
+        instant,
+        "BG3_CAMPAIGN_SNAPSHOT",
+        1,
+        2,
+        legacyPayload,
+        calculateSnapshotSha256(legacyPayload),
+        "Test",
+      );
+      insert.run(
+        "valid-v1",
+        "V1",
+        instant,
+        "BG3_CAMPAIGN_SNAPSHOT",
+        1,
+        3,
+        validPayload,
+        calculateSnapshotSha256(validPayload),
+        "Test",
+      );
+
+      writeMigrationFixture(migrationsFolder, committedMigrations);
+      migrateSqliteConnection(connection, migrationsFolder);
+
+      expect(
+        client
+          .prepare(
+            "select snapshot_format, snapshot_json, snapshot_sha256 from checkpoints where id = 'legacy'",
+          )
+          .get(),
+      ).toEqual({
+        snapshot_format: "BG3_LEGACY_CHECKPOINT",
+        snapshot_json: legacyPayload,
+        snapshot_sha256: calculateSnapshotSha256(legacyPayload),
+      });
+      expect(
+        client.prepare("select snapshot_format from checkpoints where id = 'valid-v1'").get(),
+      ).toEqual({ snapshot_format: "BG3_CAMPAIGN_SNAPSHOT" });
       expect(client.pragma("foreign_key_check")).toEqual([]);
     } finally {
       connection.close();
@@ -198,3 +307,28 @@ describe("SQLite migrations", () => {
     }
   });
 });
+
+function emptySnapshot(schemaVersion: number, capturedAt: string) {
+  return {
+    format: "BG3_CAMPAIGN_SNAPSHOT",
+    version: 1,
+    schemaVersion,
+    capturedAt,
+    state: {
+      characters: [],
+      characterAttributes: [],
+      permanentModifiers: [],
+      itemDefinitions: [],
+      itemEffects: [],
+      inventoryItems: [],
+      equipment: [],
+      spells: [],
+      characterSpells: [],
+      abilities: [],
+      characterAbilities: [],
+      illithidPowers: [],
+      illithidPowerPrerequisites: [],
+      characterIllithidPowers: [],
+    },
+  } as const;
+}

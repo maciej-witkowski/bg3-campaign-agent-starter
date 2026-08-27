@@ -1,0 +1,1596 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "4ef48a0e-c95e-4a80-be3f-8b24661815e3",
+  "prevId": "5c1e6a51-233e-4a7f-b4f7-5bd47adb286d",
+  "tables": {
+    "abilities": {
+      "name": "abilities",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_pl": {
+          "name": "name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name_pl": {
+          "name": "normalized_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description_pl": {
+          "name": "description_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "abilities_normalized_name_idx": {
+          "name": "abilities_normalized_name_idx",
+          "columns": ["normalized_name_pl"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "abilities_required_text": {
+          "name": "abilities_required_text",
+          "value": "length(trim(\"abilities\".\"id\")) > 0 and length(trim(\"abilities\".\"name_pl\")) > 0 and length(trim(\"abilities\".\"normalized_name_pl\")) > 0"
+        },
+        "abilities_type_valid": {
+          "name": "abilities_type_valid",
+          "value": "\"abilities\".\"type\" in ('CANTRIP', 'FEAT', 'INVOCATION', 'MANEUVER', 'CLASS_FEATURE', 'PACT', 'PASSIVE')"
+        },
+        "abilities_status_valid": {
+          "name": "abilities_status_valid",
+          "value": "\"abilities\".\"verification_status\" in ('UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'CONFLICT')"
+        }
+      }
+    },
+    "change_events": {
+      "name": "change_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "checkpoint_id": {
+          "name": "checkpoint_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "proposal_id": {
+          "name": "proposal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "summary_pl": {
+          "name": "summary_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason_pl": {
+          "name": "reason_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "before_json": {
+          "name": "before_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "after_json": {
+          "name": "after_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reverses_change_event_id": {
+          "name": "reverses_change_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "change_events_occurred_at_idx": {
+          "name": "change_events_occurred_at_idx",
+          "columns": ["occurred_at"],
+          "isUnique": false
+        },
+        "change_events_character_idx": {
+          "name": "change_events_character_idx",
+          "columns": ["character_id"],
+          "isUnique": false
+        },
+        "change_events_checkpoint_idx": {
+          "name": "change_events_checkpoint_idx",
+          "columns": ["checkpoint_id"],
+          "isUnique": false
+        },
+        "change_events_reverses_unique": {
+          "name": "change_events_reverses_unique",
+          "columns": ["reverses_change_event_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "change_events_character_id_characters_id_fk": {
+          "name": "change_events_character_id_characters_id_fk",
+          "tableFrom": "change_events",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "change_events_checkpoint_id_checkpoints_id_fk": {
+          "name": "change_events_checkpoint_id_checkpoints_id_fk",
+          "tableFrom": "change_events",
+          "tableTo": "checkpoints",
+          "columnsFrom": ["checkpoint_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "change_events_reverses_fk": {
+          "name": "change_events_reverses_fk",
+          "tableFrom": "change_events",
+          "tableTo": "change_events",
+          "columnsFrom": ["reverses_change_event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "change_events_required_text": {
+          "name": "change_events_required_text",
+          "value": "length(trim(\"change_events\".\"id\")) > 0 and length(trim(\"change_events\".\"type\")) > 0 and length(trim(\"change_events\".\"summary_pl\")) > 0"
+        },
+        "change_events_occurred_at_valid": {
+          "name": "change_events_occurred_at_valid",
+          "value": "length(\"change_events\".\"occurred_at\") = 24 and \"change_events\".\"occurred_at\" glob '????-??-??T??:??:??.???Z'"
+        },
+        "change_events_json_valid": {
+          "name": "change_events_json_valid",
+          "value": "json_valid(\"change_events\".\"before_json\") and json_valid(\"change_events\".\"after_json\")"
+        },
+        "change_events_reversal_valid": {
+          "name": "change_events_reversal_valid",
+          "value": "\"change_events\".\"reverses_change_event_id\" is null or \"change_events\".\"reverses_change_event_id\" <> \"change_events\".\"id\""
+        }
+      }
+    },
+    "character_abilities": {
+      "name": "character_abilities",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ability_id": {
+          "name": "ability_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "level_acquired": {
+          "name": "level_acquired",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_abilities_character_id_characters_id_fk": {
+          "name": "character_abilities_character_id_characters_id_fk",
+          "tableFrom": "character_abilities",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "character_abilities_ability_id_abilities_id_fk": {
+          "name": "character_abilities_ability_id_abilities_id_fk",
+          "tableFrom": "character_abilities",
+          "tableTo": "abilities",
+          "columnsFrom": ["ability_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "character_abilities_character_id_ability_id_source_pk": {
+          "columns": ["character_id", "ability_id", "source"],
+          "name": "character_abilities_character_id_ability_id_source_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "character_abilities_source_valid": {
+          "name": "character_abilities_source_valid",
+          "value": "length(trim(\"character_abilities\".\"source\")) > 0"
+        },
+        "character_abilities_level_valid": {
+          "name": "character_abilities_level_valid",
+          "value": "\"character_abilities\".\"level_acquired\" is null or \"character_abilities\".\"level_acquired\" between 1 and 20"
+        }
+      }
+    },
+    "character_attributes": {
+      "name": "character_attributes",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attribute": {
+          "name": "attribute",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "base_value": {
+          "name": "base_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_attributes_character_id_characters_id_fk": {
+          "name": "character_attributes_character_id_characters_id_fk",
+          "tableFrom": "character_attributes",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "character_attributes_character_id_attribute_pk": {
+          "columns": ["character_id", "attribute"],
+          "name": "character_attributes_character_id_attribute_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "character_attributes_attribute_valid": {
+          "name": "character_attributes_attribute_valid",
+          "value": "\"character_attributes\".\"attribute\" in ('STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA')"
+        },
+        "character_attributes_base_value_valid": {
+          "name": "character_attributes_base_value_valid",
+          "value": "\"character_attributes\".\"base_value\" between 1 and 30"
+        }
+      }
+    },
+    "character_illithid_powers": {
+      "name": "character_illithid_powers",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "power_id": {
+          "name": "power_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "acquired_at": {
+          "name": "acquired_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "acquisition_source_pl": {
+          "name": "acquisition_source_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_illithid_powers_character_id_characters_id_fk": {
+          "name": "character_illithid_powers_character_id_characters_id_fk",
+          "tableFrom": "character_illithid_powers",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "character_illithid_powers_power_id_illithid_powers_id_fk": {
+          "name": "character_illithid_powers_power_id_illithid_powers_id_fk",
+          "tableFrom": "character_illithid_powers",
+          "tableTo": "illithid_powers",
+          "columnsFrom": ["power_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "character_illithid_powers_character_id_power_id_pk": {
+          "columns": ["character_id", "power_id"],
+          "name": "character_illithid_powers_character_id_power_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "character_illithid_powers_acquired_at_valid": {
+          "name": "character_illithid_powers_acquired_at_valid",
+          "value": "\"character_illithid_powers\".\"acquired_at\" is null or length(\"character_illithid_powers\".\"acquired_at\") = 24 and \"character_illithid_powers\".\"acquired_at\" glob '????-??-??T??:??:??.???Z'"
+        }
+      }
+    },
+    "character_spells": {
+      "name": "character_spells",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "spell_id": {
+          "name": "spell_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "known": {
+          "name": "known",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prepared": {
+          "name": "prepared",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "always_prepared": {
+          "name": "always_prepared",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_spells_character_id_characters_id_fk": {
+          "name": "character_spells_character_id_characters_id_fk",
+          "tableFrom": "character_spells",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "character_spells_spell_id_spells_id_fk": {
+          "name": "character_spells_spell_id_spells_id_fk",
+          "tableFrom": "character_spells",
+          "tableTo": "spells",
+          "columnsFrom": ["spell_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "character_spells_character_id_spell_id_source_pk": {
+          "columns": ["character_id", "spell_id", "source"],
+          "name": "character_spells_character_id_spell_id_source_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "character_spells_source_valid": {
+          "name": "character_spells_source_valid",
+          "value": "\"character_spells\".\"source\" in ('CLASS', 'SPELLBOOK', 'PACT', 'DOMAIN', 'ITEM', 'INVOCATION', 'RACE', 'FEAT', 'OTHER')"
+        },
+        "character_spells_booleans_valid": {
+          "name": "character_spells_booleans_valid",
+          "value": "\"character_spells\".\"known\" in (0, 1) and \"character_spells\".\"prepared\" in (0, 1) and \"character_spells\".\"always_prepared\" in (0, 1)"
+        }
+      }
+    },
+    "characters": {
+      "name": "characters",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "canonical_name": {
+          "name": "canonical_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name_pl": {
+          "name": "display_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "race_pl": {
+          "name": "race_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "class_pl": {
+          "name": "class_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subclass_pl": {
+          "name": "subclass_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "level": {
+          "name": "level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role_summary": {
+          "name": "role_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active_party": {
+          "name": "active_party",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "characters_canonical_name_unique": {
+          "name": "characters_canonical_name_unique",
+          "columns": ["canonical_name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "characters_required_text": {
+          "name": "characters_required_text",
+          "value": "length(trim(\"characters\".\"id\")) > 0 and length(trim(\"characters\".\"canonical_name\")) > 0 and length(trim(\"characters\".\"display_name_pl\")) > 0 and length(trim(\"characters\".\"class_pl\")) > 0 and length(trim(\"characters\".\"role_summary\")) > 0"
+        },
+        "characters_level_valid": {
+          "name": "characters_level_valid",
+          "value": "\"characters\".\"level\" between 1 and 20"
+        },
+        "characters_active_party_boolean": {
+          "name": "characters_active_party_boolean",
+          "value": "\"characters\".\"active_party\" in (0, 1)"
+        },
+        "characters_instants_valid": {
+          "name": "characters_instants_valid",
+          "value": "length(\"characters\".\"created_at\") = 24 and \"characters\".\"created_at\" glob '????-??-??T??:??:??.???Z' and length(\"characters\".\"updated_at\") = 24 and \"characters\".\"updated_at\" glob '????-??-??T??:??:??.???Z'"
+        }
+      }
+    },
+    "checkpoints": {
+      "name": "checkpoints",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_format": {
+          "name": "snapshot_format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_version": {
+          "name": "snapshot_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_json": {
+          "name": "snapshot_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_sha256": {
+          "name": "snapshot_sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason_pl": {
+          "name": "reason_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "change_event_id": {
+          "name": "change_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "checkpoints_created_at_idx": {
+          "name": "checkpoints_created_at_idx",
+          "columns": ["created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "checkpoints_change_event_id_change_events_id_fk": {
+          "name": "checkpoints_change_event_id_change_events_id_fk",
+          "tableFrom": "checkpoints",
+          "tableTo": "change_events",
+          "columnsFrom": ["change_event_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "checkpoints_required_text": {
+          "name": "checkpoints_required_text",
+          "value": "length(trim(\"checkpoints\".\"id\")) > 0 and length(trim(\"checkpoints\".\"label\")) > 0 and length(trim(\"checkpoints\".\"reason_pl\")) > 0"
+        },
+        "checkpoints_created_at_valid": {
+          "name": "checkpoints_created_at_valid",
+          "value": "length(\"checkpoints\".\"created_at\") = 24 and \"checkpoints\".\"created_at\" glob '????-??-??T??:??:??.???Z'"
+        },
+        "checkpoints_snapshot_format_valid": {
+          "name": "checkpoints_snapshot_format_valid",
+          "value": "length(trim(\"checkpoints\".\"snapshot_format\")) > 0"
+        },
+        "checkpoints_snapshot_version_valid": {
+          "name": "checkpoints_snapshot_version_valid",
+          "value": "\"checkpoints\".\"snapshot_version\" > 0"
+        },
+        "checkpoints_schema_version_valid": {
+          "name": "checkpoints_schema_version_valid",
+          "value": "\"checkpoints\".\"schema_version\" > 0"
+        },
+        "checkpoints_snapshot_json_valid": {
+          "name": "checkpoints_snapshot_json_valid",
+          "value": "json_valid(\"checkpoints\".\"snapshot_json\")"
+        },
+        "checkpoints_sha256_valid": {
+          "name": "checkpoints_sha256_valid",
+          "value": "length(\"checkpoints\".\"snapshot_sha256\") = 64 and \"checkpoints\".\"snapshot_sha256\" not glob '*[^0-9a-f]*'"
+        }
+      }
+    },
+    "equipment": {
+      "name": "equipment",
+      "columns": {
+        "inventory_item_id": {
+          "name": "inventory_item_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slot": {
+          "name": "slot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "equipment_character_slot_unique": {
+          "name": "equipment_character_slot_unique",
+          "columns": ["character_id", "slot"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "equipment_inventory_item_id_inventory_items_id_fk": {
+          "name": "equipment_inventory_item_id_inventory_items_id_fk",
+          "tableFrom": "equipment",
+          "tableTo": "inventory_items",
+          "columnsFrom": ["inventory_item_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "equipment_character_id_characters_id_fk": {
+          "name": "equipment_character_id_characters_id_fk",
+          "tableFrom": "equipment",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "equipment_slot_valid": {
+          "name": "equipment_slot_valid",
+          "value": "\"equipment\".\"slot\" in ('HEAD', 'CLOAK', 'BODY', 'HANDS', 'FEET', 'NECK', 'RING_1', 'RING_2', 'MAIN_HAND', 'OFF_HAND', 'RANGED_MAIN_HAND', 'RANGED_OFF_HAND', 'INSTRUMENT')"
+        }
+      }
+    },
+    "illithid_power_prerequisites": {
+      "name": "illithid_power_prerequisites",
+      "columns": {
+        "power_id": {
+          "name": "power_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prerequisite_power_id": {
+          "name": "prerequisite_power_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "illithid_power_prerequisites_power_id_illithid_powers_id_fk": {
+          "name": "illithid_power_prerequisites_power_id_illithid_powers_id_fk",
+          "tableFrom": "illithid_power_prerequisites",
+          "tableTo": "illithid_powers",
+          "columnsFrom": ["power_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "illithid_power_prerequisites_prerequisite_power_id_illithid_powers_id_fk": {
+          "name": "illithid_power_prerequisites_prerequisite_power_id_illithid_powers_id_fk",
+          "tableFrom": "illithid_power_prerequisites",
+          "tableTo": "illithid_powers",
+          "columnsFrom": ["prerequisite_power_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "illithid_power_prerequisites_power_id_prerequisite_power_id_pk": {
+          "columns": ["power_id", "prerequisite_power_id"],
+          "name": "illithid_power_prerequisites_power_id_prerequisite_power_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "illithid_power_prerequisites_not_self": {
+          "name": "illithid_power_prerequisites_not_self",
+          "value": "\"illithid_power_prerequisites\".\"power_id\" <> \"illithid_power_prerequisites\".\"prerequisite_power_id\""
+        }
+      }
+    },
+    "illithid_powers": {
+      "name": "illithid_powers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_pl": {
+          "name": "name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name_pl": {
+          "name": "normalized_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description_pl": {
+          "name": "description_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "illithid_powers_normalized_name_idx": {
+          "name": "illithid_powers_normalized_name_idx",
+          "columns": ["normalized_name_pl"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "illithid_powers_required_text": {
+          "name": "illithid_powers_required_text",
+          "value": "length(trim(\"illithid_powers\".\"id\")) > 0 and length(trim(\"illithid_powers\".\"name_pl\")) > 0 and length(trim(\"illithid_powers\".\"normalized_name_pl\")) > 0"
+        },
+        "illithid_powers_tier_valid": {
+          "name": "illithid_powers_tier_valid",
+          "value": "\"illithid_powers\".\"tier\" is null or \"illithid_powers\".\"tier\" between 1 and 10"
+        },
+        "illithid_powers_status_valid": {
+          "name": "illithid_powers_status_valid",
+          "value": "\"illithid_powers\".\"verification_status\" in ('UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'CONFLICT')"
+        }
+      }
+    },
+    "inventory_items": {
+      "name": "inventory_items",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "item_definition_id": {
+          "name": "item_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_character_id": {
+          "name": "owner_character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "obtained_at": {
+          "name": "obtained_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "obtained_location": {
+          "name": "obtained_location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "inventory_items_definition_idx": {
+          "name": "inventory_items_definition_idx",
+          "columns": ["item_definition_id"],
+          "isUnique": false
+        },
+        "inventory_items_owner_idx": {
+          "name": "inventory_items_owner_idx",
+          "columns": ["owner_character_id"],
+          "isUnique": false
+        },
+        "inventory_items_status_idx": {
+          "name": "inventory_items_status_idx",
+          "columns": ["status"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "inventory_items_item_definition_id_item_definitions_id_fk": {
+          "name": "inventory_items_item_definition_id_item_definitions_id_fk",
+          "tableFrom": "inventory_items",
+          "tableTo": "item_definitions",
+          "columnsFrom": ["item_definition_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "inventory_items_owner_character_id_characters_id_fk": {
+          "name": "inventory_items_owner_character_id_characters_id_fk",
+          "tableFrom": "inventory_items",
+          "tableTo": "characters",
+          "columnsFrom": ["owner_character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "inventory_items_id_valid": {
+          "name": "inventory_items_id_valid",
+          "value": "length(trim(\"inventory_items\".\"id\")) > 0"
+        },
+        "inventory_items_status_valid": {
+          "name": "inventory_items_status_valid",
+          "value": "\"inventory_items\".\"status\" in ('EQUIPPED', 'CHEST', 'SITUATIONAL', 'PERSONAL_STORY', 'SOLD', 'UNKNOWN')"
+        },
+        "inventory_items_quantity_positive": {
+          "name": "inventory_items_quantity_positive",
+          "value": "\"inventory_items\".\"quantity\" > 0"
+        },
+        "inventory_items_obtained_at_valid": {
+          "name": "inventory_items_obtained_at_valid",
+          "value": "\"inventory_items\".\"obtained_at\" is null or length(\"inventory_items\".\"obtained_at\") = 24 and \"inventory_items\".\"obtained_at\" glob '????-??-??T??:??:??.???Z'"
+        }
+      }
+    },
+    "item_definitions": {
+      "name": "item_definitions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_pl": {
+          "name": "name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name_pl": {
+          "name": "normalized_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type_pl": {
+          "name": "type_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "slot": {
+          "name": "slot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rarity_pl": {
+          "name": "rarity_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description_pl": {
+          "name": "description_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verification_confidence": {
+          "name": "verification_confidence",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_source": {
+          "name": "verification_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fingerprint": {
+          "name": "fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "item_definitions_normalized_name_idx": {
+          "name": "item_definitions_normalized_name_idx",
+          "columns": ["normalized_name_pl"],
+          "isUnique": false
+        },
+        "item_definitions_fingerprint_unique": {
+          "name": "item_definitions_fingerprint_unique",
+          "columns": ["fingerprint"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "item_definitions_required_text": {
+          "name": "item_definitions_required_text",
+          "value": "length(trim(\"item_definitions\".\"id\")) > 0 and length(trim(\"item_definitions\".\"name_pl\")) > 0 and length(trim(\"item_definitions\".\"normalized_name_pl\")) > 0"
+        },
+        "item_definitions_slot_valid": {
+          "name": "item_definitions_slot_valid",
+          "value": "\"item_definitions\".\"slot\" is null or \"item_definitions\".\"slot\" in ('HEAD', 'CLOAK', 'BODY', 'HANDS', 'FEET', 'NECK', 'RING', 'MAIN_HAND', 'OFF_HAND', 'RANGED', 'INSTRUMENT')"
+        },
+        "item_definitions_status_valid": {
+          "name": "item_definitions_status_valid",
+          "value": "\"item_definitions\".\"verification_status\" in ('UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'CONFLICT')"
+        },
+        "item_definitions_confidence_valid": {
+          "name": "item_definitions_confidence_valid",
+          "value": "\"item_definitions\".\"verification_confidence\" is null or \"item_definitions\".\"verification_confidence\" between 0 and 1"
+        },
+        "item_definitions_fingerprint_valid": {
+          "name": "item_definitions_fingerprint_valid",
+          "value": "\"item_definitions\".\"fingerprint\" is null or length(trim(\"item_definitions\".\"fingerprint\")) > 0"
+        }
+      }
+    },
+    "item_effects": {
+      "name": "item_effects",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "item_definition_id": {
+          "name": "item_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "effect_type": {
+          "name": "effect_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "numeric_value": {
+          "name": "numeric_value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dice_expression": {
+          "name": "dice_expression",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "damage_type": {
+          "name": "damage_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "trigger": {
+          "name": "trigger",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "condition_text_pl": {
+          "name": "condition_text_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "duration_text_pl": {
+          "name": "duration_text_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description_pl": {
+          "name": "description_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "item_effects_definition_idx": {
+          "name": "item_effects_definition_idx",
+          "columns": ["item_definition_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "item_effects_item_definition_id_item_definitions_id_fk": {
+          "name": "item_effects_item_definition_id_item_definitions_id_fk",
+          "tableFrom": "item_effects",
+          "tableTo": "item_definitions",
+          "columnsFrom": ["item_definition_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "item_effects_required_text": {
+          "name": "item_effects_required_text",
+          "value": "length(trim(\"item_effects\".\"id\")) > 0 and length(trim(\"item_effects\".\"effect_type\")) > 0 and length(trim(\"item_effects\".\"description_pl\")) > 0"
+        },
+        "item_effects_status_valid": {
+          "name": "item_effects_status_valid",
+          "value": "\"item_effects\".\"verification_status\" in ('UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'CONFLICT')"
+        }
+      }
+    },
+    "permanent_modifiers": {
+      "name": "permanent_modifiers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "character_id": {
+          "name": "character_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_key": {
+          "name": "target_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "modifier": {
+          "name": "modifier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_name_pl": {
+          "name": "source_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_item_definition_id": {
+          "name": "source_item_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "provenance_type": {
+          "name": "provenance_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "permanent": {
+          "name": "permanent",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "permanent_modifiers_character_idx": {
+          "name": "permanent_modifiers_character_idx",
+          "columns": ["character_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "permanent_modifiers_character_id_characters_id_fk": {
+          "name": "permanent_modifiers_character_id_characters_id_fk",
+          "tableFrom": "permanent_modifiers",
+          "tableTo": "characters",
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "permanent_modifiers_source_item_definition_id_item_definitions_id_fk": {
+          "name": "permanent_modifiers_source_item_definition_id_item_definitions_id_fk",
+          "tableFrom": "permanent_modifiers",
+          "tableTo": "item_definitions",
+          "columnsFrom": ["source_item_definition_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "permanent_modifiers_required_text": {
+          "name": "permanent_modifiers_required_text",
+          "value": "length(trim(\"permanent_modifiers\".\"id\")) > 0 and length(trim(\"permanent_modifiers\".\"source_name_pl\")) > 0"
+        },
+        "permanent_modifiers_target_valid": {
+          "name": "permanent_modifiers_target_valid",
+          "value": "\"permanent_modifiers\".\"target_type\" = 'ATTRIBUTE' and \"permanent_modifiers\".\"target_key\" in ('STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA')"
+        },
+        "permanent_modifiers_value_valid": {
+          "name": "permanent_modifiers_value_valid",
+          "value": "\"permanent_modifiers\".\"modifier\" between -30 and 30"
+        },
+        "permanent_modifiers_provenance_valid": {
+          "name": "permanent_modifiers_provenance_valid",
+          "value": "\"permanent_modifiers\".\"provenance_type\" in ('GAME_UI', 'IMPORT', 'USER_CONFIRMED', 'SYSTEM')"
+        },
+        "permanent_modifiers_booleans_valid": {
+          "name": "permanent_modifiers_booleans_valid",
+          "value": "\"permanent_modifiers\".\"permanent\" in (0, 1) and \"permanent_modifiers\".\"active\" in (0, 1)"
+        },
+        "permanent_modifiers_created_at_valid": {
+          "name": "permanent_modifiers_created_at_valid",
+          "value": "length(\"permanent_modifiers\".\"created_at\") = 24 and \"permanent_modifiers\".\"created_at\" glob '????-??-??T??:??:??.???Z'"
+        }
+      }
+    },
+    "spells": {
+      "name": "spells",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_pl": {
+          "name": "name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name_pl": {
+          "name": "normalized_name_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_en": {
+          "name": "name_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "level": {
+          "name": "level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "school_pl": {
+          "name": "school_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description_pl": {
+          "name": "description_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "spells_normalized_name_idx": {
+          "name": "spells_normalized_name_idx",
+          "columns": ["normalized_name_pl"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "spells_required_text": {
+          "name": "spells_required_text",
+          "value": "length(trim(\"spells\".\"id\")) > 0 and length(trim(\"spells\".\"name_pl\")) > 0 and length(trim(\"spells\".\"normalized_name_pl\")) > 0"
+        },
+        "spells_level_valid": {
+          "name": "spells_level_valid",
+          "value": "\"spells\".\"level\" between 0 and 9"
+        },
+        "spells_status_valid": {
+          "name": "spells_status_valid",
+          "value": "\"spells\".\"verification_status\" in ('UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'CONFLICT')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

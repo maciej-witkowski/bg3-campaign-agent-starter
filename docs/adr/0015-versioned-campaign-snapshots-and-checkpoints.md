@@ -132,9 +132,11 @@ M1 does not restore a snapshot over current campaign state, schedule checkpoints
 - `CampaignSnapshotV1` serializes the 14 canonical M1 state collections in fixed collection, row-identity and field order; audit, checkpoint and migration history are excluded.
 - The strict validator rejects malformed structure, unsupported versions, duplicate identities, non-finite numbers and any `capturedAt` value other than an exact canonical 24-character UTC ISO instant.
 - SHA-256 is calculated over the exact UTF-8 JSON payload and verified only after strict deserialization.
-- The transaction-scoped SQLite snapshot adapter reads schema version 3 and is now the coordinator default for real before/after audit payloads.
+- The transaction-scoped SQLite snapshot adapter reads the applied migration count as
+  schema version (4 at the current head) and is the coordinator default for real
+  before/after audit payloads.
 - Typed checkpoint creation captures and validates a snapshot, stores explicit format/version/schema metadata and digest, then relies on the ADR-0014 coordinator for validation, exactly-one audit insertion and rollback.
-- Migration `0002_wild_warpath` adds format and schema metadata without persistent defaults. Its explicit `INSERT ... SELECT` backfills legacy rows with `BG3_CAMPAIGN_SNAPSHOT` and historical `schema_version=2`; the upgrade regression preserves payloads, digests, related rows and foreign-key integrity.
+- Migration `0002_wild_warpath` adds format and schema metadata without persistent defaults. Its explicit `INSERT ... SELECT` preserved legacy payloads with historical `schema_version=2`; ADR-0019 and forward migration `0003_natural_dazzler` correct their format classification without rewriting payload or digest bytes.
 - Tests cover byte determinism, Unicode/null/boolean/signed-number round trips, canonical-time rejection, digest mismatch, transaction-state audit snapshots, checkpoint atomicity, four injected failure points, blank input domain errors with zero writes, read-only verification and legacy upgrade.
 
 ## Consequences and trade-offs
@@ -170,3 +172,5 @@ None blocking. Compression or row-diff snapshots may be proposed later only with
 - 2026-08-27 — Review remediation validates an optional checkpoint event reference
   against the referenced event's canonical after-state inside the same transaction,
   ignoring capture time while rejecting missing, incompatible or stale provenance.
+- 2026-08-27 — ADR-0019 corrects legacy format classification and adds structured
+  checkpoint-to-audit provenance through a forward migration.

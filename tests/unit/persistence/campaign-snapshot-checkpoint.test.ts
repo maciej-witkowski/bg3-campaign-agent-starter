@@ -12,6 +12,7 @@ import {
 import {
   calculateSnapshotSha256,
   deserializeCampaignSnapshot,
+  verifyCheckpointSnapshot,
   verifySnapshotSha256,
 } from "../../../src/domain/snapshots/campaign-snapshot.js";
 import { CampaignMutationCoordinator } from "../../../src/persistence/sqlite/campaign-mutation-coordinator.js";
@@ -50,6 +51,7 @@ describe("real snapshots and checkpoint mutation", () => {
     expect(Object.keys(after.state)).not.toContain("changeEvents");
     expect(Object.keys(after.state)).not.toContain("checkpoints");
     expect(after.capturedAt).toBe(now.toISOString());
+    expect(event?.checkpointId).toBeNull();
   });
 
   it("persists checkpoint payload, digest and exactly one audit atomically", () => {
@@ -62,16 +64,23 @@ describe("real snapshots and checkpoint mutation", () => {
     const events = connection.database.select().from(changeEvents).all();
     expect(rows).toHaveLength(1);
     expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ checkpointId: "checkpoint-1" });
     expect(events[0]?.beforeJson).toBe(events[0]?.afterJson);
     const row = rows[0]!;
     expect(row).toMatchObject({
       snapshotFormat: "BG3_CAMPAIGN_SNAPSHOT",
       snapshotVersion: 1,
-      schemaVersion: 3,
+      schemaVersion: 4,
       createdAt: now.toISOString(),
     });
+    expect(row).toMatchObject({
+      id: "checkpoint-1",
+      label: "Przed finałem",
+      reasonPl: "Bezpieczny punkt",
+    });
     expect(row.snapshotSha256).toBe(calculateSnapshotSha256(row.snapshotJson));
-    expect(verifySnapshotSha256(row.snapshotJson, row.snapshotSha256).state.characters).toEqual([]);
+    expect(verifyCheckpointSnapshot(row).state.characters).toEqual([]);
+    expect(() => connection.database.delete(checkpoints).run()).toThrow();
   });
 
   it("links a checkpoint when it captures the referenced event post-state", () => {
@@ -186,6 +195,7 @@ describe("real snapshots and checkpoint mutation", () => {
     const checkpointsBefore = connection.database.select().from(checkpoints).all();
     deserializeCampaignSnapshot(row.snapshotJson);
     verifySnapshotSha256(row.snapshotJson, row.snapshotSha256);
+    verifyCheckpointSnapshot(row);
     expect(connection.database.select().from(changeEvents).all()).toEqual(eventsBefore);
     expect(connection.database.select().from(checkpoints).all()).toEqual(checkpointsBefore);
   });
