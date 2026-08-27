@@ -296,6 +296,9 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | `pnpm audit --audit-level high` plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
 | 2026-08-27 | ADR-0014 no-op equipment regression plus `pnpm typecheck` | Passed | 1 file/16 tests; identical aggregate returns unchanged with zero audit |
 | 2026-08-27 | ADR-0015 checkpoint-reference regressions plus `pnpm typecheck` | Passed | 2 files/28 tests; matching state accepted across capture times; missing/stale references roll back with zero writes |
+| 2026-08-27 | ADR-0018 proposal scope review | Passed | Proposed only; no validator, schema, migration or runtime behavior changed before approval |
+| 2026-08-27 | post-review remediation `pnpm check` | Passed | ADR-0014/0015 combined state: Prettier, ESLint, strict typecheck, 9 files/60 tests and production build |
+| 2026-08-27 | post-review audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
 
 ## Commits and remote state
 
@@ -313,6 +316,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `9513ad2` — `docs: record M1 compatibility validation` (current remote head before approved review remediation).
 - `645762e` — `fix: address M1 review findings` (current remote head; both CI runs and GitGuardian pass).
 - `794bf89` — `fix: preserve equipment no-op semantics` (ADR-0014 review remediation; local head before ADR-0015 commit).
+- `bbe223f` — `fix: validate checkpoint event provenance` (ADR-0015 review remediation; local head before ADR-0018 proposal commit).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -327,4 +331,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-Codex review `5040869921` for head `645762e` produced three verified P2 findings. The repository owner approved remediation under ADR-0014 and ADR-0015 plus preparation of a new Proposed ADR-0018; ADR-0018 implementation still requires a separate approval. ADR-0014 is committed as `794bf89`. ADR-0015 checkpoint-reference validation is implemented locally; 28 scoped tests and typecheck pass. Next review and commit the ADR-0015 session, then prepare ADR-0018 Proposed with the equipped-stack invariant and stop for owner approval before implementation. Do not start M2, implement restore/undo or merge the PR.
+Codex review `5040869921` for head `645762e` produced three verified P2 findings. Approved ADR-0014 and ADR-0015 remediations are committed separately as `794bf89` and `bbe223f`; combined full gates pass with 60 tests, audit-high passes and migration blobs are unchanged. ADR-0018 is Proposed and selects explicit rejection of `EQUIPPED` rows whose quantity is not one, without automatic splitting or a schema migration. No ADR-0018 behavior has been implemented. Next commit and push the proposal documentation, then stop for explicit owner approval before changing validator, mutation behavior, tests or scenarios. Do not start M2, implement restore/undo or merge the PR.
