@@ -32,7 +32,7 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Committed: `6c6d844` |
 | ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Accepted by repository owner, 2026-08-26 | Committed: `00b2773` |
 | ADR-0018 | Equipped inventory rows represent exactly one physical item | Accepted by repository owner, 2026-08-27 | Committed: `e540a97` |
-| ADR-0019 | Forward legacy-checkpoint classification and structured checkpoint audit provenance | Accepted by repository owner, 2026-08-27 | Implementation pending |
+| ADR-0019 | Forward legacy-checkpoint classification and structured checkpoint audit provenance | Accepted by repository owner, 2026-08-27 | Committed: `2e005d2` |
 
 ## Session ledger
 
@@ -223,6 +223,35 @@ Files modified:
 
 Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm the history-aware literals remain only in migration `0002`'s `INSERT ... SELECT`, while the schema/new-table DDL/metadata have no defaults. Then begin the final milestone-wide validation and delivery workflow; do not add restore/undo or start M2.
 
+### Session ADR-0019 — legacy compatibility and checkpoint audit provenance
+
+Status: Complete — committed as `2e005d2`
+
+Implemented:
+
+- forward migration `0003_natural_dazzler` classifies rows backfilled by migration
+  `0002` (`schema_version=2`) as `BG3_LEGACY_CHECKPOINT` without rewriting their
+  payloads or digests;
+- nullable, indexed `change_events.checkpoint_id` with an explicit restrictive
+  foreign key records the checkpoint created by checkpoint mutations while all
+  other mutation events retain `NULL`;
+- checkpoint verification rejects legacy formats deterministically and detects a
+  mismatch between persisted and payload schema metadata;
+- clean-install and historical-cut-point upgrades cover migrations `0000`, `0001`
+  and `0002`, foreign-key integrity, legacy byte preservation and current V1 rows;
+- checkpoint provenance, deletion restriction, read-only verification and rollback
+  behavior have focused regression coverage.
+
+Stabilization findings corrected before external review:
+
+- persisted checkpoint `schema_version` is now checked against the verified payload;
+- migration DDL spells out `ON DELETE RESTRICT` and its physical behavior is tested.
+
+Handoff: Commit and push this ADR-0019 batch, wait for current-head CI and security,
+then request one milestone-wide Codex review of the cumulative base-to-head diff.
+Any valid new finding requires a consolidated remediation proposal and explicit owner
+approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
+
 ## Change inventory
 
 ### Created across M1
@@ -318,6 +347,11 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | third remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
 | 2026-08-27 | CI, GitGuardian and Codex review at `3c4ccaa` | Passed with findings | Both quality gates and security passed; review `5045547966` reported two verified ADR-0015 compatibility/provenance findings |
 | 2026-08-27 | ADR-0019 proposal scope review | Passed | Proposed documentation only; no schema, migration or runtime behavior changed before decision approval |
+| 2026-08-27 | ADR-0019 focused migration/snapshot/checkpoint matrix plus `pnpm typecheck` | Passed | 4 files/38 tests; historical cut points, legacy classification, metadata mismatch, audit provenance, FK restriction and rollback |
+| 2026-08-27 | `pnpm db:generate` plus immutable migration hashes | Passed | No further schema changes; `0000`–`0002` blobs remain `ca5387…`, `d7b512…`, `b8865d…` |
+| 2026-08-27 | ADR-0019 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/90 tests and production build |
+| 2026-08-27 | ADR-0019 audit-high plus `git diff --check` | Passed | Existing one moderate development-only advisory; zero high/critical; diff clean |
+| 2026-08-27 | milestone-wide stabilization sweep | Passed locally | Reviewed cumulative `main...HEAD` across migration cut points, mutation boundaries, audit/rollback, public API, scope and documentation; two self-review findings above corrected; no remaining local finding |
 
 ## Commits and remote state
 
@@ -341,6 +375,10 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `e540a97` — `fix: reject equipped inventory stacks` (ADR-0018 implemented; current remote head before approved review remediation).
 - `0cd6581` — `fix: reject stale and blank mutation inputs` (ADR-0014 review remediation; current remote head with green CI/security).
 - `09fc70d` — `fix: validate numeric and equipment command inputs` (ADR-0014 review remediation; current remote head with green CI/security).
+- `3c4ccaa` — `fix: make equipment assignment swaps atomic` (ADR-0014 review remediation; green CI/security; Codex review produced ADR-0019 findings).
+- `0583d84` — `docs: propose checkpoint compatibility correction` (ADR-0019 proposed).
+- `1c9d480` — `docs: accept checkpoint compatibility correction` (ADR-0019 accepted; milestone workflow updated for batched remediation and a full stabilization sweep).
+- `2e005d2` — `fix: preserve checkpoint compatibility provenance` (ADR-0019 implemented; local quality and security gates pass).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -355,4 +393,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-Commit `3c4ccaa` contains the completed ADR-0014 assignment-swap remediation and has green CI/security. Codex review `5045547966` reported two verified ADR-0015 findings. ADR-0019 is now Proposed only: forward classification of `schema_version=2` checkpoint rows as legacy and a typed `change_events.checkpoint_id` association. No schema, migration or runtime code may be changed until the owner explicitly accepts ADR-0019. After acceptance, implement it as a separate ADR session with upgrade/fresh-install, compatibility, audit-provenance and rollback coverage. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge the PR.
+ADR-0019 is committed as `2e005d2`. The focused matrix, full `pnpm check` (9 files/90 tests), production build, audit-high, immutable migration hashes and milestone-wide stabilization sweep pass locally. Next: commit this tracker update, push both commits, wait for current-head CI/security, and trigger one final milestone-wide Codex review. If that review reports findings, verify and present one consolidated remediation plan for explicit owner approval before editing. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge PR #3.
