@@ -87,6 +87,20 @@ Adding a SQLite check would rebuild a referenced table and requires a migration 
 - Add a scenario regression documenting that a stacked item must be explicitly split before equipping.
 - Full `pnpm check`, high-severity audit, migration-hash verification, CI/security and current-head Codex review pass.
 
+## Implementation evidence
+
+- `EQUIPPED_QUANTITY_INVALID` is a stable campaign validation code and applies only
+  when an `EQUIPPED` inventory row has quantity other than one.
+- Domain tests prove an equipped stack is rejected while an otherwise identical
+  non-equipped stack remains valid.
+- The SQLite transaction regression proves placement and assignment writes roll back,
+  the complete original stack remains unchanged and no audit event is inserted.
+- Scenario 009 records the explicit-split requirement; no split operation, schema
+  migration or automatic quantity rewrite was added.
+- The full local gate passes 9 files/62 tests plus production build; audit-high passes
+  with the existing moderate development-only advisory and all migration hashes remain
+  unchanged.
+
 ## Consequences and trade-offs
 
 - Canonical equipped state becomes unambiguous.
@@ -115,3 +129,5 @@ None blocking for this decision. The identity, metadata and user-confirmation po
 
 - 2026-08-27 — Proposed after Codex review `5040869921` identified that one equipment assignment could incorrectly represent a stacked inventory row.
 - 2026-08-27 — Accepted after explicit repository-owner approval.
+- 2026-08-27 — Implemented the validator invariant, transactional rollback regression,
+  domain/data documentation and scenario 009 without changing the schema or migrations.

@@ -8,6 +8,7 @@ The canonical database describes what is true now. `change_events` describe how 
 
 - One inventory item has exactly one current status.
 - An equipped item has an owner and slot.
+- An equipped inventory row represents exactly one physical item and has quantity 1.
 - A chest item has no equipped slot.
 - A sold item cannot be equipped.
 - A personal/story item must not be proposed for sale or redistribution unless the user explicitly allows it.

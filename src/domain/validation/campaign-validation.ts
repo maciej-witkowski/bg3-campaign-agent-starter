@@ -16,6 +16,7 @@ export const CAMPAIGN_VALIDATION_CODES = [
   "EQUIPMENT_OWNER_MISMATCH",
   "EQUIPMENT_DEFINITION_MISSING",
   "EQUIPMENT_SLOT_MISMATCH",
+  "EQUIPPED_QUANTITY_INVALID",
   "INVENTORY_QUANTITY_INVALID",
   "INVENTORY_EQUIPMENT_MISSING",
   "INVENTORY_OWNER_INVALID",
@@ -139,6 +140,9 @@ export function validateCampaignState(
   }
   for (const item of inventory) {
     if (item.quantity <= 0) violations.push(violation("INVENTORY_QUANTITY_INVALID", [item.id]));
+    if (item.status === "EQUIPPED" && item.quantity !== 1) {
+      violations.push(violation("EQUIPPED_QUANTITY_INVALID", [item.id]));
+    }
     if ((item.status === "CHEST" || item.status === "SOLD") && item.ownerCharacterId !== null) {
       violations.push(violation("INVENTORY_OWNER_INVALID", [item.id, item.ownerCharacterId]));
     }
@@ -199,6 +203,7 @@ const validationMessages: Readonly<Record<CampaignValidationCode, string>> = {
   EQUIPMENT_OWNER_MISMATCH: "Właściciel instancji nie zgadza się z postacią ekwipunku.",
   EQUIPMENT_DEFINITION_MISSING: "Instancja ekwipunku nie ma definicji przedmiotu.",
   EQUIPMENT_SLOT_MISMATCH: "Znany typ przedmiotu nie pasuje do pozycji ekwipunku.",
+  EQUIPPED_QUANTITY_INVALID: "Założona instancja przedmiotu musi mieć ilość równą jeden.",
   INVENTORY_QUANTITY_INVALID: "Ilość instancji przedmiotu musi być dodatnia.",
   INVENTORY_EQUIPMENT_MISSING: "Instancja oznaczona jako założona nie ma przypisania.",
   MODIFIER_TARGET_INVALID: "Modyfikator trwały ma nieobsługiwany cel.",

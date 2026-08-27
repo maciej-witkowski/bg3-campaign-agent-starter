@@ -300,6 +300,9 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | post-review remediation `pnpm check` | Passed | ADR-0014/0015 combined state: Prettier, ESLint, strict typecheck, 9 files/60 tests and production build |
 | 2026-08-27 | post-review audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
 | 2026-08-27 | CI and GitGuardian at `d166b20` | Passed | Both quality-gate runs and security check pass for the Proposed ADR-0018 head |
+| 2026-08-27 | ADR-0018 validator/transaction regressions plus `pnpm typecheck` | Passed | 2 files/21 tests; equipped stacks reject and roll back with zero audit; non-equipped stacks remain valid |
+| 2026-08-27 | ADR-0018 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/62 tests and production build |
+| 2026-08-27 | ADR-0018 audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
 
 ## Commits and remote state
 
@@ -319,6 +322,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `794bf89` — `fix: preserve equipment no-op semantics` (ADR-0014 review remediation; local head before ADR-0015 commit).
 - `bbe223f` — `fix: validate checkpoint event provenance` (ADR-0015 review remediation; local head before ADR-0018 proposal commit).
 - `d166b20` — `docs: propose equipped stack invariant` (ADR-0018 proposed; current remote head).
+- `7d95e8b` — `docs: accept equipped stack invariant` (ADR-0018 accepted; local head before implementation commit).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -333,4 +337,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-The repository owner explicitly accepted ADR-0018 on 2026-08-27 without changes. The accepted decision rejects `EQUIPPED` rows whose quantity is not one, without automatic splitting or a schema migration. No ADR-0018 runtime behavior has been implemented yet. Next commit the acceptance record, then add the stable validation code, validator invariant, transactional rollback regression and scenario regression in the ADR-0018 implementation session. Do not start M2, implement restore/undo or merge the PR.
+ADR-0018 is accepted and its implementation is complete locally: stable validation code, equipped-single-item invariant, domain and transaction regressions, scenario 009 and documentation. The full gate passes 9 files/62 tests plus build; audit-high passes and all migration hashes are unchanged. No schema, migration, dependency, auto-split or M2 behavior changed. Next commit and push the implementation, then wait for current-head CI/security and Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo or merge the PR.

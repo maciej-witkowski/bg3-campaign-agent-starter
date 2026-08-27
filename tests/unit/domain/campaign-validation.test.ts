@@ -156,6 +156,52 @@ describe("campaign validation", () => {
 
     expect(validateCampaignState(reader)).toEqual([]);
   });
+
+  it("rejects an equipped stack while allowing a non-equipped stack", () => {
+    const stackedItem: InventoryItem = {
+      id: "stack",
+      itemDefinitionId: "ring",
+      status: "EQUIPPED",
+      ownerCharacterId: "hero",
+      quantity: 2,
+      obtainedAt: null,
+      obtainedLocation: null,
+      notes: null,
+    };
+    const definition = {
+      id: "ring",
+      namePl: "Pierścień",
+      normalizedNamePl: "pierscien",
+      nameEn: null,
+      typePl: null,
+      slot: "RING",
+      rarityPl: null,
+      descriptionPl: null,
+      verificationStatus: "UNKNOWN",
+      verificationConfidence: null,
+      verificationSource: null,
+      fingerprint: null,
+      notes: null,
+    } satisfies ItemDefinition;
+
+    expect(
+      validateCampaignState(
+        state({
+          equipment: [{ inventoryItemId: "stack", characterId: "hero", slot: "RING_1" }],
+          inventory: [stackedItem],
+          definitions: [definition],
+        }),
+      ).map((violation) => violation.code),
+    ).toEqual(["EQUIPPED_QUANTITY_INVALID"]);
+    expect(
+      validateCampaignState(
+        state({
+          inventory: [{ ...stackedItem, status: "CHEST", ownerCharacterId: null }],
+          definitions: [definition],
+        }),
+      ),
+    ).toEqual([]);
+  });
 });
 
 function state(values: {

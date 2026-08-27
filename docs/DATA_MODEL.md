@@ -82,6 +82,10 @@ Columns: `id` PK, `item_definition_id` FK → item_definitions (restrict),
 `quantity` defaulting to 1, nullable `obtained_at`, `obtained_location`, and
 `notes`.
 
+Quantity must be positive for every row. An `EQUIPPED` row additionally has quantity
+exactly 1; stacked rows must remain non-equipped until an explicit future operation
+splits them without losing identity or provenance.
+
 Definition, owner and status are indexed. Equipment slot is not stored here.
 
 ### equipment

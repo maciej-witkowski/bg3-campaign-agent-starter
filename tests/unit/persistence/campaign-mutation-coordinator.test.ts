@@ -184,6 +184,35 @@ describe("CampaignMutationCoordinator", () => {
     ]);
   });
 
+  it("rolls back equipment placement and audit when a stacked row is equipped", () => {
+    connection.database.insert(characters).values(characterRow()).run();
+    connection.database.insert(itemDefinitions).values(itemDefinition()).run();
+    connection.database
+      .insert(inventoryItems)
+      .values({
+        ...inventoryRow("item-a"),
+        status: "CHEST",
+        ownerCharacterId: null,
+        quantity: 2,
+        obtainedLocation: "Skrzynia obozowa",
+      })
+      .run();
+    const before = connection.database.select().from(inventoryItems).get();
+
+    expect(() =>
+      new InventoryMutationService(createCoordinator()).setEquipment(
+        {
+          items: [{ id: "item-a", status: "EQUIPPED", ownerCharacterId: "hero" }],
+          assignments: [{ inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" }],
+        },
+        { type: "EQUIPMENT_SET", summaryPl: "Próba założenia stosu" },
+      ),
+    ).toThrow(CampaignValidationError);
+    expect(connection.database.select().from(inventoryItems).get()).toEqual(before);
+    expect(connection.database.select().from(equipment).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
   it("changes only inventory placement when equipment input contains stale item data", () => {
     seedEquipment();
     connection.database
@@ -200,7 +229,7 @@ describe("CampaignMutationCoordinator", () => {
       .update(inventoryItems)
       .set({
         ownerCharacterId: null,
-        quantity: 3,
+        quantity: 1,
         obtainedAt,
         obtainedLocation: "Gaj druidów",
         notes: "Dane kanoniczne",
@@ -237,7 +266,7 @@ describe("CampaignMutationCoordinator", () => {
       itemDefinitionId: "ring",
       status: "EQUIPPED",
       ownerCharacterId: "hero",
-      quantity: 3,
+      quantity: 1,
       obtainedAt,
       obtainedLocation: "Gaj druidów",
       notes: "Dane kanoniczne",
