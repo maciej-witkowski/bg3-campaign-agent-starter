@@ -1,6 +1,6 @@
 # ADR-0018: Equipped inventory rows represent one physical item
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M1 — Canonical Campaign Database
 
@@ -108,8 +108,10 @@ None blocking for this decision. The identity, metadata and user-confirmation po
 
 ## Approval record
 
-Pending explicit repository-owner approval.
+- Approved by the repository owner in the Codex task on 2026-08-27.
+- Approval scope: the complete ADR-0018 proposal without requested changes.
 
 ## Change log
 
 - 2026-08-27 — Proposed after Codex review `5040869921` identified that one equipment assignment could incorrectly represent a stacked inventory row.
+- 2026-08-27 — Accepted after explicit repository-owner approval.
