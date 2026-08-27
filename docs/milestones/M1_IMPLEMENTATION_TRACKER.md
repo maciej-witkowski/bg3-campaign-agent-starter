@@ -352,6 +352,11 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 | 2026-08-27 | ADR-0019 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/90 tests and production build |
 | 2026-08-27 | ADR-0019 audit-high plus `git diff --check` | Passed | Existing one moderate development-only advisory; zero high/critical; diff clean |
 | 2026-08-27 | milestone-wide stabilization sweep | Passed locally | Reviewed cumulative `main...HEAD` across migration cut points, mutation boundaries, audit/rollback, public API, scope and documentation; two self-review findings above corrected; no remaining local finding |
+| 2026-08-27 | CI, GitGuardian and Codex review at `3fcb73e` | Passed with finding | Both quality gates and security passed; review `5045834392` reported one verified P2 equipment audit-provenance finding, remediation approved by owner |
+| 2026-08-27 | fourth ADR-0014 equipment audit matrix plus `pnpm typecheck` | Passed | 1 file/42 tests; removal, single-character swap, cross-character move and failed incomplete move provenance covered transactionally |
+| 2026-08-27 | fourth ADR-0014 remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/93 tests and production build |
+| 2026-08-27 | fourth remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
+| 2026-08-27 | post-remediation milestone-wide stabilization sweep | Passed locally | Rechecked cumulative scope and current batch across mutation input/no-op shapes, transaction rollback and audit provenance, migrations, public API, secrets and M2 exclusions; no remaining local finding |
 
 ## Commits and remote state
 
@@ -379,6 +384,8 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 - `0583d84` — `docs: propose checkpoint compatibility correction` (ADR-0019 proposed).
 - `1c9d480` — `docs: accept checkpoint compatibility correction` (ADR-0019 accepted; milestone workflow updated for batched remediation and a full stabilization sweep).
 - `2e005d2` — `fix: preserve checkpoint compatibility provenance` (ADR-0019 implemented; local quality and security gates pass).
+- `3fcb73e` — `docs: record ADR-0019 delivery` (remote head with green CI/security; Codex review produced one approved ADR-0014 finding).
+- `b3967fa` — `fix: preserve equipment audit provenance` (approved ADR-0014 review remediation; local gates and stabilization sweep pass).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -393,4 +400,4 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 
 ## Exact resume point
 
-ADR-0019 is committed as `2e005d2`. The focused matrix, full `pnpm check` (9 files/90 tests), production build, audit-high, immutable migration hashes and milestone-wide stabilization sweep pass locally. Next: commit this tracker update, push both commits, wait for current-head CI/security, and trigger one final milestone-wide Codex review. If that review reports findings, verify and present one consolidated remediation plan for explicit owner approval before editing. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge PR #3.
+Approved review remediation is committed as `b3967fa`. Focused/full tests (9 files/93 tests plus build), audit-high, immutable migration hashes and the cumulative milestone stabilization sweep pass locally. Next: commit this tracker update, push both commits, wait for current-head CI/security, and trigger one final Codex review. Any new finding requires verification and renewed owner approval before editing. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge PR #3.
