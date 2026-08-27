@@ -144,6 +144,11 @@ export interface InventoryItem {
   readonly obtainedLocation: string | null;
   readonly notes: string | null;
 }
+export interface InventoryPlacement {
+  readonly id: string;
+  readonly status: InventoryStatus;
+  readonly ownerCharacterId: string | null;
+}
 export interface EquipmentAssignment {
   readonly inventoryItemId: string;
   readonly characterId: string;

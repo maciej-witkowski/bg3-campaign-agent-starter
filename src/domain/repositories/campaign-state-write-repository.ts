@@ -10,6 +10,7 @@ import type {
   IllithidPower,
   IllithidPowerPrerequisite,
   InventoryItem,
+  InventoryPlacement,
   ItemDefinition,
   ItemEffect,
   PermanentModifier,
@@ -25,7 +26,7 @@ export interface CampaignStateWriteRepository {
   insertItemDefinition(value: ItemDefinition): void;
   insertItemEffect(value: ItemEffect): void;
   insertInventoryItem(value: InventoryItem): void;
-  setInventoryPlacement(value: InventoryItem): boolean;
+  setInventoryPlacement(value: InventoryPlacement): boolean;
   setEquipment(value: EquipmentAssignment): boolean;
   removeEquipment(inventoryItemId: string): boolean;
   insertSpell(value: Spell): void;

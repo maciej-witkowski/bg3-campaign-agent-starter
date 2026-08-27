@@ -10,6 +10,7 @@ import type {
   IllithidPower,
   IllithidPowerPrerequisite,
   InventoryItem,
+  InventoryPlacement,
   ItemDefinition,
   ItemEffect,
   PermanentModifier,
@@ -129,7 +130,7 @@ export class ItemCatalogMutationService {
 }
 
 export interface InventoryEquipmentChange {
-  readonly items: readonly InventoryItem[];
+  readonly items: readonly InventoryPlacement[];
   readonly assignments: readonly EquipmentAssignment[];
 }
 
@@ -186,13 +187,15 @@ export class CharacterCapabilityMutationService {
   }
 
   public setAbility(value: CharacterAbility, metadata: Metadata): CampaignMutationResult {
-    return this.coordinator.execute({ ...metadata, characterId: value.characterId }, (writes) =>
-      writes.setCharacterAbility(value),
-    );
+    return this.coordinator.execute({ ...metadata, characterId: value.characterId }, (writes) => {
+      requiredNullableIntegerInRange(value.levelAcquired, 1, 20, "levelAcquired");
+      return writes.setCharacterAbility(value);
+    });
   }
 
   public createIllithidPower(value: IllithidPower, metadata: Metadata): CampaignMutationResult {
     return this.coordinator.execute(metadata, (writes) => {
+      requiredNullableIntegerInRange(value.tier, 1, 10, "tier");
       writes.insertIllithidPower(value);
       return true;
     });
@@ -213,6 +216,18 @@ export class CharacterCapabilityMutationService {
       writes.setCharacterIllithidPower(value),
     );
   }
+}
+
+function requiredNullableIntegerInRange(
+  value: number | null,
+  minimum: number,
+  maximum: number,
+  field: string,
+): void {
+  if (value !== null && (!Number.isInteger(value) || value < minimum || value > maximum))
+    throw new CampaignDomainError(
+      `${field} musi być liczbą całkowitą od ${minimum} do ${maximum}.`,
+    );
 }
 
 export class AuditReversalMutationService {

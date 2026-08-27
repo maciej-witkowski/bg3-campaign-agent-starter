@@ -290,6 +290,10 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-26 | official Node.js 22.14.0 Windows archive and runtime check | Partial | Published SHA-256 matched and runtime reported Node-API 10; frozen install entered native build and host lacks Python/MSVC toolchain; temporary copy removed |
 | 2026-08-26 | GitHub Actions at `00b2773`, Node.js 22.14.0 | Passed | Two clean runs: driver install, Node-API 10, native SQLite smoke, formatting, lint, typecheck, 9 files/51 tests and build |
 | 2026-08-26 | GitGuardian at `00b2773` | Passed | No secret finding on the current implementation head |
+| 2026-08-27 | approved review-remediation scoped tests | Passed | 3 files/32 tests: placement-only equipment updates, module-relative migrations, nullable-integer rejection and zero-audit rollback |
+| 2026-08-27 | remediation `pnpm typecheck` and `git diff --check` | Passed | Narrow placement DTO and all review-driven source/test changes |
+| 2026-08-27 | remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/56 tests and production build |
+| 2026-08-27 | `pnpm audit --audit-level high` plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
 
 ## Commits and remote state
 
@@ -303,7 +307,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `6f1b964` — `docs: propose native SQLite install policy correction` (ADR-0016 proposed).
 - `6c6d844` — `fix: enable pinned native SQLite build` (ADR-0016 accepted/implemented).
 - `a2f92d2` — `docs: propose Node-API 10 runtime floor` (ADR-0017 proposed).
-- `00b2773` — `fix: require Node-API 10 runtime` (ADR-0017 accepted/implemented; current remote head).
+- `00b2773` — `fix: require Node-API 10 runtime` (ADR-0017 accepted/implemented).
+- `9513ad2` — `docs: record M1 compatibility validation` (current remote head before approved review remediation).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -318,4 +323,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-ADR-0017 is accepted and committed as `00b2773`. Two clean Ubuntu/Node.js 22.14 CI runs pass driver installation, Node-API 10/native SQLite smoke, all 51 tests and build; GitGuardian passes. Next commit and push this final evidence update, wait for checks on the resulting docs-only head and obtain an actual Codex review for that exact head. Verify/classify all review findings, present any proposed remediation to the repository owner and stop for explicit approval before editing. Do not start M2, implement restore/undo or merge the PR.
+The repository owner approved all three verified Codex findings for head `9513ad2`: stale equipment DTOs overwriting canonical item data, migrations depending on process `cwd`, and fractional values accepted for nullable integer fields. The fixes and regressions are implemented locally; scoped tests pass (32/32), the full gate passes (9 files/56 tests and build), the high-severity audit passes, migration blobs are unchanged and the diff is clean. Next review and commit the remediation, push it to PR #3, wait for current-head CI/security, and trigger a new `@codex review`. Any new findings require a fresh user-approved remediation plan. Do not start M2, implement restore/undo or merge the PR.

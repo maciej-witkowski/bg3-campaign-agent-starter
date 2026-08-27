@@ -1,10 +1,12 @@
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 
 import { openSqliteConnection, type SqliteConnection } from "./connection.js";
 
-export const DEFAULT_MIGRATIONS_FOLDER = resolve("drizzle");
+export const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(
+  new URL("../../../drizzle", import.meta.url),
+);
 
 export interface OpenMigratedSqliteConnectionOptions {
   readonly filename: string;

@@ -12,6 +12,7 @@ import type {
   IllithidPower,
   IllithidPowerPrerequisite,
   InventoryItem,
+  InventoryPlacement,
   ItemDefinition,
   ItemEffect,
   PermanentModifier,
@@ -112,40 +113,21 @@ export class SqliteCampaignStateWriteRepository implements CampaignStateWriteRep
       .run();
   }
 
-  public setInventoryPlacement(value: InventoryItem): boolean {
+  public setInventoryPlacement(value: InventoryPlacement): boolean {
     const current = this.transaction
       .select()
       .from(inventoryItems)
       .where(eq(inventoryItems.id, value.id))
       .get();
-    if (
-      current !== undefined &&
-      current.itemDefinitionId === value.itemDefinitionId &&
-      current.status === value.status &&
-      current.ownerCharacterId === value.ownerCharacterId &&
-      current.quantity === value.quantity &&
-      current.obtainedAt === nullableInstant(value.obtainedAt) &&
-      current.obtainedLocation === value.obtainedLocation &&
-      current.notes === value.notes
-    )
+    if (current?.status === value.status && current.ownerCharacterId === value.ownerCharacterId)
       return false;
-    this.transaction
-      .insert(inventoryItems)
-      .values({ ...value, obtainedAt: nullableInstant(value.obtainedAt) })
-      .onConflictDoUpdate({
-        target: inventoryItems.id,
-        set: {
-          itemDefinitionId: value.itemDefinitionId,
-          status: value.status,
-          ownerCharacterId: value.ownerCharacterId,
-          quantity: value.quantity,
-          obtainedAt: nullableInstant(value.obtainedAt),
-          obtainedLocation: value.obtainedLocation,
-          notes: value.notes,
-        },
-      })
-      .run();
-    return true;
+    return (
+      this.transaction
+        .update(inventoryItems)
+        .set({ status: value.status, ownerCharacterId: value.ownerCharacterId })
+        .where(eq(inventoryItems.id, value.id))
+        .run().changes > 0
+    );
   }
 
   public setEquipment(value: EquipmentAssignment): boolean {

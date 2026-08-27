@@ -78,6 +78,41 @@ describe("CampaignSnapshotV1", () => {
     ],
     [
       "INVALID_STRUCTURE",
+      () => {
+        const v = emptySnapshot();
+        v.state.characterAbilities = [
+          {
+            characterId: "a",
+            abilityId: "ability",
+            source: "CLASS",
+            levelAcquired: 1.5,
+            notes: null,
+          },
+        ];
+        return serializeCampaignSnapshot(v);
+      },
+    ],
+    [
+      "INVALID_STRUCTURE",
+      () => {
+        const v = emptySnapshot();
+        v.state.illithidPowers = [
+          {
+            id: "power",
+            namePl: "Moc",
+            normalizedNamePl: "moc",
+            nameEn: null,
+            tier: 1.5,
+            descriptionPl: null,
+            verificationStatus: "UNKNOWN",
+            notes: null,
+          },
+        ];
+        return serializeCampaignSnapshot(v);
+      },
+    ],
+    [
+      "INVALID_STRUCTURE",
       () => serializeCampaignSnapshot({ ...emptySnapshot(), unexpected: true }),
     ],
   ])("rejects %s", (code, operation) => {

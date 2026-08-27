@@ -46,7 +46,14 @@ export class CampaignSnapshotError extends Error {
     super(message);
   }
 }
-type FieldKind = "string" | "nullableString" | "boolean" | "integer" | "number" | "nullableNumber";
+type FieldKind =
+  | "string"
+  | "nullableString"
+  | "boolean"
+  | "integer"
+  | "nullableInteger"
+  | "number"
+  | "nullableNumber";
 interface CollectionSpec {
   readonly fields: Readonly<Record<string, FieldKind>>;
   readonly identity: readonly string[];
@@ -185,7 +192,7 @@ const specs: Readonly<Record<SnapshotCollection, CollectionSpec>> = {
       characterId: "string",
       abilityId: "string",
       source: "string",
-      levelAcquired: "nullableNumber",
+      levelAcquired: "nullableInteger",
       notes: "nullableString",
     },
     identity: ["characterId", "abilityId", "source"],
@@ -196,7 +203,7 @@ const specs: Readonly<Record<SnapshotCollection, CollectionSpec>> = {
       namePl: "string",
       normalizedNamePl: "string",
       nameEn: "nullableString",
-      tier: "nullableNumber",
+      tier: "nullableInteger",
       descriptionPl: "nullableString",
       verificationStatus: "string",
       notes: "nullableString",
@@ -310,6 +317,11 @@ function matches(kind: FieldKind, value: unknown): boolean {
   if (kind === "boolean") return typeof value === "boolean";
   if (kind === "integer")
     return typeof value === "number" && Number.isFinite(value) && Number.isInteger(value);
+  if (kind === "nullableInteger")
+    return (
+      value === null ||
+      (typeof value === "number" && Number.isFinite(value) && Number.isInteger(value))
+    );
   if (kind === "number") return typeof value === "number" && Number.isFinite(value);
   return value === null || (typeof value === "number" && Number.isFinite(value));
 }

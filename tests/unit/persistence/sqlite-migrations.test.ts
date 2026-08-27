@@ -26,6 +26,26 @@ afterEach(() => {
 });
 
 describe("SQLite migrations", () => {
+  it("resolves committed migrations independently of the process working directory", () => {
+    const directory = createTemporaryDirectory();
+    const workingDirectory = createTemporaryDirectory();
+    const originalWorkingDirectory = process.cwd();
+    let connection: ReturnType<typeof openMigratedSqliteConnection> | undefined;
+
+    try {
+      process.chdir(workingDirectory);
+      connection = openMigratedSqliteConnection({ filename: join(directory, "campaign.sqlite") });
+      expect(
+        connection.database.$client
+          .prepare("select name from sqlite_master where type = 'table' and name = 'characters'")
+          .get(),
+      ).toEqual({ name: "characters" });
+    } finally {
+      connection?.close();
+      process.chdir(originalWorkingDirectory);
+    }
+  });
+
   it("applies an empty-to-latest migration and treats a second run as a no-op", () => {
     const directory = createTemporaryDirectory();
     const migrationsFolder = join(directory, "migrations");

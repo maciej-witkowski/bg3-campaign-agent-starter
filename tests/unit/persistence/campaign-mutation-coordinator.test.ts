@@ -24,11 +24,14 @@ import { SqliteCampaignStateReadRepository } from "../../../src/persistence/sqli
 import { CampaignMutationCoordinator } from "../../../src/persistence/sqlite/campaign-mutation-coordinator.js";
 import type { SqliteConnection } from "../../../src/persistence/sqlite/connection.js";
 import {
+  abilities,
   changeEvents,
+  characterAbilities,
   characterAttributes,
   characterSpells,
   characters,
   equipment,
+  illithidPowers,
   inventoryItems,
   itemDefinitions,
   spells,
@@ -155,6 +158,116 @@ describe("CampaignMutationCoordinator", () => {
       { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
     ]);
     expect(connection.database.select().from(changeEvents).all()).toHaveLength(1);
+  });
+
+  it("changes only inventory placement when equipment input contains stale item data", () => {
+    seedEquipment();
+    connection.database
+      .insert(itemDefinitions)
+      .values({
+        ...itemDefinition(),
+        id: "stale-ring",
+        namePl: "Nieaktualny pierścień",
+        normalizedNamePl: "nieaktualny pierscien",
+      })
+      .run();
+    const obtainedAt = "2026-08-01T10:00:00.000Z";
+    connection.database
+      .update(inventoryItems)
+      .set({
+        ownerCharacterId: null,
+        quantity: 3,
+        obtainedAt,
+        obtainedLocation: "Gaj druidów",
+        notes: "Dane kanoniczne",
+      })
+      .where(eq(inventoryItems.id, "item-a"))
+      .run();
+    const staleItem: InventoryItem = {
+      ...inventory("item-a"),
+      itemDefinitionId: "stale-ring",
+      quantity: 99,
+      obtainedAt: new Date("2020-01-01T00:00:00.000Z"),
+      obtainedLocation: "Nieaktualne miejsce",
+      notes: "Nieaktualne notatki",
+    };
+
+    new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [staleItem, inventory("item-b")],
+        assignments: [
+          { inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" },
+          { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
+        ],
+      },
+      { type: "EQUIPMENT_SWAP", summaryPl: "Zamiana pierścieni" },
+    );
+
+    expect(
+      connection.database
+        .select()
+        .from(inventoryItems)
+        .where(eq(inventoryItems.id, "item-a"))
+        .get(),
+    ).toMatchObject({
+      itemDefinitionId: "ring",
+      status: "EQUIPPED",
+      ownerCharacterId: "hero",
+      quantity: 3,
+      obtainedAt,
+      obtainedLocation: "Gaj druidów",
+      notes: "Dane kanoniczne",
+    });
+  });
+
+  it("rejects fractional optional integers transactionally without an audit event", () => {
+    connection.database.insert(characters).values(characterRow()).run();
+    connection.database
+      .insert(abilities)
+      .values({
+        id: "ability",
+        namePl: "Zdolność",
+        normalizedNamePl: "zdolnosc",
+        nameEn: null,
+        type: "CLASS_FEATURE",
+        descriptionPl: null,
+        verificationStatus: "UNKNOWN",
+        notes: null,
+      })
+      .run();
+    const service = new CharacterCapabilityMutationService(createCoordinator());
+
+    expect(() =>
+      service.setAbility(
+        {
+          characterId: "hero",
+          abilityId: "ability",
+          source: "CLASS",
+          levelAcquired: 1.5,
+          notes: null,
+        },
+        { type: "ABILITY_SET", summaryPl: "Niepoprawny poziom" },
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(() =>
+      service.createIllithidPower(
+        {
+          id: "power",
+          namePl: "Moc",
+          normalizedNamePl: "moc",
+          nameEn: null,
+          tier: 1.5,
+          descriptionPl: null,
+          verificationStatus: "UNKNOWN",
+          notes: null,
+        },
+        { type: "ILLITHID_POWER_CREATE", summaryPl: "Niepoprawny poziom mocy" },
+      ),
+    ).toThrow(CampaignDomainError);
+
+    expect(connection.database.select().from(characterAbilities).all()).toEqual([]);
+    expect(connection.database.select().from(illithidPowers).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
   });
 
   it.each(["write", "validation", "before snapshot", "after snapshot", "audit"] as const)(
