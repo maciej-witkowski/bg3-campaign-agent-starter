@@ -3,7 +3,7 @@
 Milestone: M1 — Canonical Campaign Database
 Branch: `codex/m1-canonical-database`
 Started: 2026-08-26
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 Overall status: In progress
 
 ## Purpose
@@ -31,6 +31,13 @@ This file is the durable handoff log for M1. Update it after every ADR session, 
 | ADR-0015 | Deterministic versioned JSON snapshots and SQLite checkpoints | Accepted by repository owner, 2026-08-26 | Committed: `d89aee8` |
 | ADR-0016 | Allow lifecycle script only for pinned `better-sqlite3` | Accepted by repository owner, 2026-08-26 | Committed: `6c6d844` |
 | ADR-0017 | Raise minimum Node.js version to 22.14.0 for Node-API 10 | Accepted by repository owner, 2026-08-26 | Committed: `00b2773` |
+| ADR-0018 | Equipped inventory rows represent exactly one physical item | Accepted by repository owner, 2026-08-27 | Committed: `e540a97` |
+
+## Proposed decisions awaiting approval
+
+| ADR | Decision | Status |
+| --- | --- | --- |
+| ADR-0019 | Forward legacy-checkpoint classification and structured checkpoint audit provenance | Proposed after review `5045547966`; owner decision pending |
 
 ## Session ledger
 
@@ -314,6 +321,8 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | third ADR-0014 equipment matrix plus `pnpm typecheck` | Passed | 1 file/39 tests; assignment-only swap/no-op and duplicate/omitted-occupant slot conflicts covered transactionally |
 | 2026-08-27 | third ADR-0014 remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/84 tests and production build |
 | 2026-08-27 | third remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
+| 2026-08-27 | CI, GitGuardian and Codex review at `3c4ccaa` | Passed with findings | Both quality gates and security passed; review `5045547966` reported two verified ADR-0015 compatibility/provenance findings |
+| 2026-08-27 | ADR-0019 proposal scope review | Passed | Proposed documentation only; no schema, migration or runtime behavior changed before decision approval |
 
 ## Commits and remote state
 
@@ -351,4 +360,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-The owner approved remediation of the verified assignment-only swap finding from Codex review `5043419179` at remote head `09fc70d`, with explicit direction to reduce similar regressions. The local worktree removes all affected assignments before recreation, preflights duplicate target slots and omitted current occupants, and covers assignment-only swap/no-op plus conflict rollback in a focused matrix. The full gate passes 9 files/84 tests plus build; audit-high passes and all migration hashes are unchanged. Next commit and push this focused ADR-0014 remediation, wait for current-head CI/security and trigger Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo, start M2 or merge the PR.
+Commit `3c4ccaa` contains the completed ADR-0014 assignment-swap remediation and has green CI/security. Codex review `5045547966` reported two verified ADR-0015 findings. ADR-0019 is now Proposed only: forward classification of `schema_version=2` checkpoint rows as legacy and a typed `change_events.checkpoint_id` association. No schema, migration or runtime code may be changed until the owner explicitly accepts ADR-0019. After acceptance, implement it as a separate ADR session with upgrade/fresh-install, compatibility, audit-provenance and rollback coverage. Do not rewrite migrations `0000`–`0002`, implement restore/undo, start M2 or merge the PR.
