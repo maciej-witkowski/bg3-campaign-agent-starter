@@ -34,6 +34,23 @@ describe("CampaignSnapshotV1", () => {
     expect(calculateSnapshotSha256(firstJson)).toBe(calculateSnapshotSha256(secondJson));
   });
 
+  it("uses a total code-unit order for canonically equivalent Unicode identities", () => {
+    const composed = character("é");
+    const decomposed = character("é");
+    const first = emptySnapshot();
+    first.state.characters = [composed, decomposed];
+    const second = emptySnapshot();
+    second.state.characters = [decomposed, composed];
+
+    const firstJson = serializeCampaignSnapshot(first);
+    const secondJson = serializeCampaignSnapshot(second);
+    expect(firstJson).toBe(secondJson);
+    expect(deserializeCampaignSnapshot(firstJson).state.characters.map((row) => row.id)).toEqual([
+      "é",
+      "é",
+    ]);
+  });
+
   it("round-trips Polish Unicode, nulls, booleans and signed numbers exactly", () => {
     const value = emptySnapshot();
     value.state.characters = [character("żółć")];

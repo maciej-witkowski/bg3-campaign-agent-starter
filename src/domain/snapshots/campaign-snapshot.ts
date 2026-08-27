@@ -361,8 +361,10 @@ function compareIdentity(
   right: SnapshotRecord,
 ): number {
   for (const key of specs[collection].identity) {
-    const comparison = String(left[key]).localeCompare(String(right[key]), "en");
-    if (comparison !== 0) return comparison;
+    const leftValue = String(left[key]);
+    const rightValue = String(right[key]);
+    if (leftValue < rightValue) return -1;
+    if (leftValue > rightValue) return 1;
   }
   return 0;
 }

@@ -174,3 +174,6 @@ None blocking. Compression or row-diff snapshots may be proposed later only with
   ignoring capture time while rejecting missing, incompatible or stale provenance.
 - 2026-08-27 — ADR-0019 corrects legacy format classification and adds structured
   checkpoint-to-audit provenance through a forward migration.
+- 2026-08-28 — Replaced locale collation with raw UTF-16 code-unit comparison so
+  distinct Unicode identity strings always have a total, input-order-independent
+  snapshot order; composed/decomposed regression coverage proves byte determinism.

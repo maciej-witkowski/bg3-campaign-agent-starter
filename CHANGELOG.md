@@ -6,6 +6,7 @@
 - Added the normalized campaign model for characters, attributes, modifiers, items, inventory, equipment, spells, abilities and illithid powers.
 - Added typed transactional mutation services with pre-commit campaign validation and append-only audit events containing deterministic before/after snapshots.
 - Added versioned deterministic campaign snapshots and atomic checkpoints with SHA-256 integrity metadata.
+- Made snapshot identity ordering locale-independent and total for canonically equivalent Unicode strings.
 - Added forward legacy-checkpoint classification and structured checkpoint-to-audit provenance.
 - Hardened review-discovered boundaries: equipment swaps update placement only, default migrations are module-relative, and nullable integer fields reject fractional values transactionally.
 - Rejected missing equipment references and blank optional facts transactionally so stale commands cannot masquerade as no-ops and unknown values remain `NULL`.

@@ -360,6 +360,11 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 | 2026-08-27 | final Codex connector request at `3d9f332` | Unavailable | A single `@codex review` request received no reaction or current-head review after waiting beyond the prior completion window; no duplicate request was sent |
 | 2026-08-27 | independent milestone-wide review at `3d9f332` | Passed with documentation finding | Separate read-only reviewer used `prompts/review-milestone.md`; no code/schema/test/ADR finding, one verified P2 stale PR-description finding |
 | 2026-08-27 | approved PR-description remediation | Passed | PR #3 now records ADRs `0012`–`0019`, 9 files/93 tests, migrations `0000`–`0003`, historical upgrade cut points and current review focus |
+| 2026-08-28 | unresolved review-thread reconciliation at `ad5b92b` | Passed with finding | Fourteen historical findings have implemented evidence; one still-valid P2 showed locale collation was not a total Unicode identity order, remediation approved by owner |
+| 2026-08-28 | ADR-0015 Unicode ordering regression plus `pnpm typecheck` | Passed | 1 file/16 tests; composed/decomposed identities serialize byte-identically for reversed input order |
+| 2026-08-28 | Unicode ordering remediation `pnpm check` and audit-high | Passed | Prettier, ESLint, strict typecheck, 9 files/94 tests and build; zero high/critical advisories, one existing moderate development-only advisory |
+| 2026-08-28 | independent reconciliation of all 15 review threads | Passed | Every historical finding has current implementation and regression evidence; reviewer reran 4 focused files/78 tests, typecheck and diff check with no remaining finding |
+| 2026-08-28 | final cumulative milestone stabilization sweep | Passed locally | Unicode comparator batch changes no schema, migration, dependency or public API; immutable migration hashes, M1 scope and full validation remain intact |
 
 ## Commits and remote state
 
@@ -403,4 +408,4 @@ approval before edits. Do not implement restore/undo, start M2 or merge PR #3.
 
 ## Exact resume point
 
-Approved code remediation is committed as `b3967fa`; the final docs-only review record is committed in the current local HEAD and PR #3 has the corrected description. The final Codex connector request remained unavailable, so the documented independent-review fallback completed the full milestone prompt: no code findings and one stale PR-description P2, explicitly approved by the owner and corrected. Delivery is ready for human approval once the remote includes this docs-only HEAD and its CI/security checks are green. No further AI review is required because the material code head and reviewed cumulative diff are unchanged. Do not merge, rewrite migrations `0000`–`0002`, implement restore/undo or start M2.
+The owner-approved ADR-0015 Unicode total-order remediation is complete in the current branch state. Full local validation passes (9 files/94 tests plus build and audit-high), the cumulative sweep is clean, and an independent reconciliation confirmed all 15 historical review threads fixed with evidence. Before human approval, ensure the current HEAD is pushed, PR #3 reports 94 tests, current-head CI/security are green and the 15 verified threads are resolved. No further code change or AI review is required unless those checks expose new evidence. Do not merge, rewrite migrations `0000`–`0002`, implement restore/undo or start M2.
