@@ -28,6 +28,10 @@ export interface CampaignStateWriteRepository {
   insertInventoryItem(value: InventoryItem): void;
   findInventoryPlacement(id: string): InventoryPlacement | null;
   findEquipmentAssignment(inventoryItemId: string): EquipmentAssignment | null;
+  findEquipmentAssignmentAtSlot(
+    characterId: string,
+    slot: EquipmentAssignment["slot"],
+  ): EquipmentAssignment | null;
   setInventoryPlacement(value: InventoryPlacement): boolean;
   setEquipment(value: EquipmentAssignment): boolean;
   removeEquipment(inventoryItemId: string): boolean;

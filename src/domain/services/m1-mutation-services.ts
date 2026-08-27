@@ -217,6 +217,26 @@ export class InventoryMutationService {
         assignments.set(assignment.inventoryItemId, assignment);
       }
       const equipmentItemIds = new Set([...placements.keys(), ...assignments.keys()]);
+      const desiredSlots = new Map<string, string>();
+      for (const assignment of assignments.values()) {
+        const slotKey = `${assignment.characterId}:${assignment.slot}`;
+        const competingItemId = desiredSlots.get(slotKey);
+        if (competingItemId !== undefined && competingItemId !== assignment.inventoryItemId)
+          throw new CampaignDomainError("Sprzeczne przypisania do pozycji ekwipunku.");
+        desiredSlots.set(slotKey, assignment.inventoryItemId);
+        const currentOccupant = writes.findEquipmentAssignmentAtSlot(
+          assignment.characterId,
+          assignment.slot,
+        );
+        if (
+          currentOccupant !== null &&
+          currentOccupant.inventoryItemId !== assignment.inventoryItemId &&
+          !equipmentItemIds.has(currentOccupant.inventoryItemId)
+        )
+          throw new CampaignDomainError(
+            "Komenda nie obejmuje elementu zajmującego docelową pozycję ekwipunku.",
+          );
+      }
       const currentPlacements = new Map(
         [...equipmentItemIds].map((inventoryItemId) => {
           const placement = writes.findInventoryPlacement(inventoryItemId);
@@ -236,7 +256,8 @@ export class InventoryMutationService {
       if (placementUnchanged && equipmentUnchanged) return false;
 
       let changed = false;
-      for (const item of placements.values()) changed = writes.removeEquipment(item.id) || changed;
+      for (const inventoryItemId of equipmentItemIds)
+        changed = writes.removeEquipment(inventoryItemId) || changed;
       for (const item of placements.values())
         changed = writes.setInventoryPlacement(item) || changed;
       for (const assignment of assignments.values()) {

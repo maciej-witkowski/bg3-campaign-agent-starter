@@ -162,6 +162,85 @@ describe("CampaignMutationCoordinator", () => {
     expect(connection.database.select().from(changeEvents).all()).toHaveLength(1);
   });
 
+  it("swaps assignments atomically without redundant placement input", () => {
+    seedEquipment();
+
+    const result = new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [],
+        assignments: [
+          { inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" },
+          { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
+        ],
+      },
+      { type: "EQUIPMENT_SWAP", summaryPl: "Zamiana samych przypisań" },
+    );
+
+    expect(result.changed).toBe(true);
+    expect(
+      connection.database
+        .select({
+          id: inventoryItems.id,
+          status: inventoryItems.status,
+          ownerCharacterId: inventoryItems.ownerCharacterId,
+        })
+        .from(inventoryItems)
+        .orderBy(asc(inventoryItems.id))
+        .all(),
+    ).toEqual([
+      { id: "item-a", status: "EQUIPPED", ownerCharacterId: "hero" },
+      { id: "item-b", status: "EQUIPPED", ownerCharacterId: "hero" },
+    ]);
+    expect(
+      connection.database.select().from(equipment).orderBy(asc(equipment.inventoryItemId)).all(),
+    ).toEqual([
+      { inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" },
+      { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
+    ]);
+    expect(connection.database.select().from(changeEvents).all()).toHaveLength(1);
+  });
+
+  it("keeps an identical assignment-only command as a no-op", () => {
+    seedEquipment();
+
+    const result = new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [],
+        assignments: [{ inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" }],
+      },
+      { type: "EQUIPMENT_SET", summaryPl: "Identyczne przypisanie" },
+    );
+
+    expect(result).toEqual({ changed: false });
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
+  it.each(["duplicate target", "omitted occupant"] as const)(
+    "rejects equipment slot conflict: %s",
+    (conflictKind) => {
+      seedEquipment();
+      const before = snapshot(connection.database as never).capture();
+
+      expect(() =>
+        new InventoryMutationService(createCoordinator()).setEquipment(
+          {
+            items: [],
+            assignments:
+              conflictKind === "duplicate target"
+                ? [
+                    { inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" },
+                    { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
+                  ]
+                : [{ inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" }],
+          },
+          { type: "EQUIPMENT_SET", summaryPl: "Niepełny konflikt pozycji" },
+        ),
+      ).toThrow(CampaignDomainError);
+      expect(snapshot(connection.database as never).capture()).toBe(before);
+      expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    },
+  );
+
   it("returns unchanged and writes no audit for an identical equipment aggregate", () => {
     seedEquipment();
 

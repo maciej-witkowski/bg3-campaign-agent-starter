@@ -310,6 +310,10 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | second ADR-0014 review regressions plus `pnpm typecheck` | Passed | 1 file/35 tests; non-finite nullable numbers and conflicting duplicate equipment entries roll back with zero audit; identical duplicates deduplicate |
 | 2026-08-27 | second ADR-0014 remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/80 tests and production build |
 | 2026-08-27 | second remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
+| 2026-08-27 | CI, GitGuardian and Codex review at `09fc70d` | Passed with finding | Both quality gates and security passed; review `5043419179` reported one verified P2 assignment-only swap finding, remediation approved by owner |
+| 2026-08-27 | third ADR-0014 equipment matrix plus `pnpm typecheck` | Passed | 1 file/39 tests; assignment-only swap/no-op and duplicate/omitted-occupant slot conflicts covered transactionally |
+| 2026-08-27 | third ADR-0014 remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/84 tests and production build |
+| 2026-08-27 | third remediation audit-high plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; migrations `0000`–`0002` unchanged |
 
 ## Commits and remote state
 
@@ -332,6 +336,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `7d95e8b` — `docs: accept equipped stack invariant` (ADR-0018 accepted; local head before implementation commit).
 - `e540a97` — `fix: reject equipped inventory stacks` (ADR-0018 implemented; current remote head before approved review remediation).
 - `0cd6581` — `fix: reject stale and blank mutation inputs` (ADR-0014 review remediation; current remote head with green CI/security).
+- `09fc70d` — `fix: validate numeric and equipment command inputs` (ADR-0014 review remediation; current remote head with green CI/security).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -346,4 +351,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-The owner approved remediation of the two verified findings from Codex review `5041406130` at remote head `0cd6581`. The local worktree rejects non-finite `verificationConfidence`/`numericValue`, rejects conflicting duplicate placement/assignment entries, deduplicates identical entries before no-op detection and includes zero-audit rollback regressions. The full gate passes 9 files/80 tests plus build; audit-high passes and all migration hashes are unchanged. Next commit and push this focused ADR-0014 remediation, wait for current-head CI/security and trigger Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo, start M2 or merge the PR.
+The owner approved remediation of the verified assignment-only swap finding from Codex review `5043419179` at remote head `09fc70d`, with explicit direction to reduce similar regressions. The local worktree removes all affected assignments before recreation, preflights duplicate target slots and omitted current occupants, and covers assignment-only swap/no-op plus conflict rollback in a focused matrix. The full gate passes 9 files/84 tests plus build; audit-high passes and all migration hashes are unchanged. Next commit and push this focused ADR-0014 remediation, wait for current-head CI/security and trigger Codex review. Any new review finding requires a fresh owner-approved remediation plan. Do not implement restore/undo, start M2 or merge the PR.

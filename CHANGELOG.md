@@ -9,6 +9,7 @@
 - Hardened review-discovered boundaries: equipment swaps update placement only, default migrations are module-relative, and nullable integer fields reject fractional values transactionally.
 - Rejected missing equipment references and blank optional facts transactionally so stale commands cannot masquerade as no-ops and unknown values remain `NULL`.
 - Rejected non-finite optional numeric facts and conflicting duplicate equipment commands before persistence.
+- Made assignment-only equipment swaps atomic and added preflight rejection for incomplete or conflicting slot commands.
 - Rejected ambiguous equipped stacks transactionally: an equipped inventory row now represents exactly one physical item.
 - Added empty-database and upgrade migration coverage, domain invariant and rollback tests, Polish-name/null round trips, and checkpoint integrity tests.
 - Recorded the approved M1 architecture in ADRs 0012–0015 and documented the implemented data model and test strategy.
