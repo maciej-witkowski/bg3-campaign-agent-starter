@@ -150,6 +150,7 @@ export class ItemCatalogMutationService {
         fingerprint: value.fingerprint,
         notes: value.notes,
       });
+      requiredNullableFiniteNumber(value.verificationConfidence, "verificationConfidence");
       writes.insertItemDefinition(value);
       return true;
     });
@@ -164,6 +165,7 @@ export class ItemCatalogMutationService {
         conditionTextPl: value.conditionTextPl,
         durationTextPl: value.durationTextPl,
       });
+      requiredNullableFiniteNumber(value.numericValue, "numericValue");
       writes.insertItemEffect(value);
       return true;
     });
@@ -200,10 +202,20 @@ export class InventoryMutationService {
     return this.coordinator.execute({ ...metadata, characterId }, (writes) => {
       for (const item of change.items)
         rejectBlankNullableText({ ownerCharacterId: item.ownerCharacterId });
-      const placements = new Map(change.items.map((item) => [item.id, item]));
-      const assignments = new Map(
-        change.assignments.map((assignment) => [assignment.inventoryItemId, assignment]),
-      );
+      const placements = new Map<string, InventoryPlacement>();
+      for (const item of change.items) {
+        const duplicate = placements.get(item.id);
+        if (duplicate !== undefined && !inventoryPlacementEquals(duplicate, item))
+          throw new CampaignDomainError("Sprzeczne położenia elementu ekwipunku.");
+        placements.set(item.id, item);
+      }
+      const assignments = new Map<string, EquipmentAssignment>();
+      for (const assignment of change.assignments) {
+        const duplicate = assignments.get(assignment.inventoryItemId);
+        if (duplicate !== undefined && !equipmentAssignmentEquals(duplicate, assignment))
+          throw new CampaignDomainError("Sprzeczne przypisania elementu ekwipunku.");
+        assignments.set(assignment.inventoryItemId, assignment);
+      }
       const equipmentItemIds = new Set([...placements.keys(), ...assignments.keys()]);
       const currentPlacements = new Map(
         [...equipmentItemIds].map((inventoryItemId) => {
@@ -224,9 +236,10 @@ export class InventoryMutationService {
       if (placementUnchanged && equipmentUnchanged) return false;
 
       let changed = false;
-      for (const item of change.items) changed = writes.removeEquipment(item.id) || changed;
-      for (const item of change.items) changed = writes.setInventoryPlacement(item) || changed;
-      for (const assignment of change.assignments) {
+      for (const item of placements.values()) changed = writes.removeEquipment(item.id) || changed;
+      for (const item of placements.values())
+        changed = writes.setInventoryPlacement(item) || changed;
+      for (const assignment of assignments.values()) {
         changed = writes.setEquipment(assignment) || changed;
       }
       return changed;
@@ -339,6 +352,11 @@ function rejectBlankNullableText(fields: Readonly<Record<string, string | null>>
     if (value !== null && value.trim() === "")
       throw new CampaignDomainError(`${field} nie może być puste.`);
   }
+}
+
+function requiredNullableFiniteNumber(value: number | null, field: string): void {
+  if (value !== null && !Number.isFinite(value))
+    throw new CampaignDomainError(`${field} musi być skończoną liczbą.`);
 }
 
 function requiredNullableIntegerInRange(

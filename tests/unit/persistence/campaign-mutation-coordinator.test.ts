@@ -34,6 +34,7 @@ import {
   equipment,
   illithidPowers,
   inventoryItems,
+  itemEffects,
   itemDefinitions,
   spells,
 } from "../../../src/persistence/sqlite/schema.js";
@@ -210,6 +211,56 @@ describe("CampaignMutationCoordinator", () => {
     },
   );
 
+  it.each(["placement", "assignment"] as const)(
+    "rejects conflicting duplicate equipment %s entries transactionally",
+    (inputKind) => {
+      seedEquipment();
+      const before = snapshot(connection.database as never).capture();
+
+      expect(() =>
+        new InventoryMutationService(createCoordinator()).setEquipment(
+          {
+            items:
+              inputKind === "placement"
+                ? [
+                    { id: "item-a", status: "CHEST", ownerCharacterId: null },
+                    { id: "item-a", status: "SITUATIONAL", ownerCharacterId: null },
+                  ]
+                : [],
+            assignments:
+              inputKind === "assignment"
+                ? [
+                    { inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" },
+                    { inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" },
+                  ]
+                : [],
+          },
+          { type: "EQUIPMENT_SET", summaryPl: "Sprzeczne duplikaty" },
+        ),
+      ).toThrow(CampaignDomainError);
+      expect(snapshot(connection.database as never).capture()).toBe(before);
+      expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    },
+  );
+
+  it("deduplicates identical equipment entries before no-op detection", () => {
+    seedEquipment();
+    const placement = inventory("item-a");
+    const assignment = {
+      inventoryItemId: "item-a",
+      characterId: "hero",
+      slot: "RING_1",
+    } as const;
+
+    const result = new InventoryMutationService(createCoordinator()).setEquipment(
+      { items: [placement, placement], assignments: [assignment, assignment] },
+      { type: "EQUIPMENT_SET", summaryPl: "Identyczne duplikaty" },
+    );
+
+    expect(result).toEqual({ changed: false });
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
   it.each([
     "nameEn",
     "typePl",
@@ -245,6 +296,41 @@ describe("CampaignMutationCoordinator", () => {
       notes: null,
     });
   });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    "rejects non-finite optional numeric facts (%s) transactionally",
+    (invalidNumber) => {
+      const service = new ItemCatalogMutationService(createCoordinator());
+      expect(() =>
+        service.createDefinition(
+          { ...itemDefinition(), verificationConfidence: invalidNumber },
+          { type: "ITEM_DEFINITION_CREATE", summaryPl: "Niepoprawna pewność" },
+        ),
+      ).toThrow(CampaignDomainError);
+
+      connection.database.insert(itemDefinitions).values(itemDefinition()).run();
+      expect(() =>
+        service.addEffect(
+          {
+            id: "effect",
+            itemDefinitionId: "ring",
+            effectType: "BONUS",
+            numericValue: invalidNumber,
+            diceExpression: null,
+            damageType: null,
+            trigger: null,
+            conditionTextPl: null,
+            durationTextPl: null,
+            descriptionPl: "Efekt testowy",
+            verificationStatus: "UNKNOWN",
+          },
+          { type: "ITEM_EFFECT_CREATE", summaryPl: "Niepoprawna wartość" },
+        ),
+      ).toThrow(CampaignDomainError);
+      expect(connection.database.select().from(itemEffects).all()).toEqual([]);
+      expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+    },
+  );
 
   it.each(["reasonPl", "proposalId"] as const)(
     "rejects blank optional audit metadata %s and rolls back state",
