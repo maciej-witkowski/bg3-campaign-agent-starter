@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm";
+
 import type {
   CampaignMutationCoordinatorPort,
   CampaignMutationMetadata,
@@ -57,6 +59,17 @@ export class CampaignMutationCoordinator implements CampaignMutationCoordinatorP
         const changed = mutation(new SqliteCampaignStateWriteRepository(transaction), {
           occurredAt,
           snapshotter,
+          changeEventSnapshots: {
+            findAfterSnapshot(changeEventId) {
+              return (
+                transaction
+                  .select({ afterJson: changeEvents.afterJson })
+                  .from(changeEvents)
+                  .where(eq(changeEvents.id, changeEventId))
+                  .get()?.afterJson ?? null
+              );
+            },
+          },
         });
         if (!changed) return { changed: false } as const;
 

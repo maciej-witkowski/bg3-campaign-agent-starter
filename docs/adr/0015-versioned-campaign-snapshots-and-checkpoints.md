@@ -167,3 +167,6 @@ None blocking. Compression or row-diff snapshots may be proposed later only with
 - 2026-08-26 — Initial M1 proposal.
 - 2026-08-26 — Accepted after explicit user approval.
 - 2026-08-26 — Implemented deterministic V1 snapshots, strict validation, atomic checkpoints and the metadata upgrade migration with regression evidence.
+- 2026-08-27 — Review remediation validates an optional checkpoint event reference
+  against the referenced event's canonical after-state inside the same transaction,
+  ignoring capture time while rejecting missing, incompatible or stale provenance.

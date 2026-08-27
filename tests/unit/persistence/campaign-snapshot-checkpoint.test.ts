@@ -74,6 +74,56 @@ describe("real snapshots and checkpoint mutation", () => {
     expect(verifySnapshotSha256(row.snapshotJson, row.snapshotSha256).state.characters).toEqual([]);
   });
 
+  it("links a checkpoint when it captures the referenced event post-state", () => {
+    new CharacterMutationService(coordinator()).createCharacter(hero("bohater"), {
+      type: "CHARACTER_CREATED",
+      summaryPl: "Dodano bohatera",
+    });
+
+    const result = service({
+      clock: { now: () => new Date("2026-08-26T13:00:00.000Z") },
+    }).createCheckpoint(
+      { label: "Po dodaniu", reasonPl: "Stan po zmianie", changeEventId: "event-1" },
+      metadata,
+    );
+
+    expect(result.changed).toBe(true);
+    expect(connection.database.select().from(checkpoints).get()?.changeEventId).toBe("event-1");
+    expect(connection.database.select().from(changeEvents).all()).toHaveLength(2);
+  });
+
+  it("rejects a stale checkpoint event association with zero checkpoint or audit writes", () => {
+    const characters = new CharacterMutationService(coordinator());
+    characters.createCharacter(hero("bohater"), {
+      type: "CHARACTER_CREATED",
+      summaryPl: "Dodano bohatera",
+    });
+    characters.setAttribute(
+      { characterId: "bohater", attribute: "STR", baseValue: 17 },
+      { type: "ATTRIBUTE_SET", summaryPl: "Zmieniono siłę" },
+    );
+
+    expect(() =>
+      service().createCheckpoint(
+        { label: "Nieaktualny", reasonPl: "Test", changeEventId: "event-1" },
+        metadata,
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(connection.database.select().from(checkpoints).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toHaveLength(2);
+  });
+
+  it("rejects a missing checkpoint event association with zero writes", () => {
+    expect(() =>
+      service().createCheckpoint(
+        { label: "Brakujące", reasonPl: "Test", changeEventId: "missing-event" },
+        metadata,
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(connection.database.select().from(checkpoints).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
   it.each(["digest", "snapshot", "checkpoint persistence", "audit"] as const)(
     "rolls checkpoint and audit back on %s failure",
     (failure) => {
@@ -148,8 +198,8 @@ function coordinator(overrides: Record<string, unknown> = {}) {
     ...overrides,
   } as never);
 }
-function service() {
-  return new CheckpointMutationService(coordinator(), {
+function service(overrides: Record<string, unknown> = {}) {
+  return new CheckpointMutationService(coordinator(overrides), {
     nextId: () => `checkpoint-${++checkpointId}`,
   });
 }

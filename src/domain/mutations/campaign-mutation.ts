@@ -13,6 +13,10 @@ export interface CampaignSnapshotPort {
   capture(): string;
 }
 
+export interface CampaignChangeEventSnapshotPort {
+  findAfterSnapshot(changeEventId: string): string | null;
+}
+
 export interface CampaignMutationMetadata {
   readonly type: string;
   readonly summaryPl: string;
@@ -45,6 +49,7 @@ export interface CampaignValidatorPort {
 export interface CampaignMutationContext {
   readonly occurredAt: Date;
   readonly snapshotter: CampaignSnapshotPort;
+  readonly changeEventSnapshots: CampaignChangeEventSnapshotPort;
 }
 
 export type TransactionalMutation = (

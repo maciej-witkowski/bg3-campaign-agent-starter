@@ -88,6 +88,21 @@ export class CheckpointMutationService {
     const result = this.coordinator.execute(metadata, (writes, context) => {
       const snapshotJson = context.snapshotter.capture();
       const snapshot = deserializeCampaignSnapshot(snapshotJson);
+      if (input.changeEventId !== undefined && input.changeEventId !== null) {
+        const referencedSnapshotJson = context.changeEventSnapshots.findAfterSnapshot(
+          input.changeEventId,
+        );
+        if (referencedSnapshotJson === null)
+          throw new CampaignDomainError("Powiązane zdarzenie zmiany nie istnieje.");
+        const referencedSnapshot = deserializeCampaignSnapshot(referencedSnapshotJson);
+        if (
+          referencedSnapshot.schemaVersion !== snapshot.schemaVersion ||
+          JSON.stringify(referencedSnapshot.state) !== JSON.stringify(snapshot.state)
+        )
+          throw new CampaignDomainError(
+            "Checkpoint nie odpowiada stanowi po powiązanym zdarzeniu zmiany.",
+          );
+      }
       const checkpoint: Checkpoint = {
         id: checkpointId,
         label: requiredCheckpointText(input.label, "label"),

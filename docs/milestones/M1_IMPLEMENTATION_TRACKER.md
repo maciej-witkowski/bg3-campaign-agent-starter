@@ -295,6 +295,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 | 2026-08-27 | remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 9 files/56 tests and production build |
 | 2026-08-27 | `pnpm audit --audit-level high` plus migration hashes | Passed | Existing one moderate development-only advisory; zero high/critical; all three migration blobs unchanged |
 | 2026-08-27 | ADR-0014 no-op equipment regression plus `pnpm typecheck` | Passed | 1 file/16 tests; identical aggregate returns unchanged with zero audit |
+| 2026-08-27 | ADR-0015 checkpoint-reference regressions plus `pnpm typecheck` | Passed | 2 files/28 tests; matching state accepted across capture times; missing/stale references roll back with zero writes |
 
 ## Commits and remote state
 
@@ -311,6 +312,7 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 - `00b2773` — `fix: require Node-API 10 runtime` (ADR-0017 accepted/implemented).
 - `9513ad2` — `docs: record M1 compatibility validation` (current remote head before approved review remediation).
 - `645762e` — `fix: address M1 review findings` (current remote head; both CI runs and GitGuardian pass).
+- `794bf89` — `fix: preserve equipment no-op semantics` (ADR-0014 review remediation; local head before ADR-0015 commit).
 - PR #3 is open against `main`; branch `codex/m1-canonical-database` is pushed.
 
 ## Known risks and watch points
@@ -325,4 +327,4 @@ Handoff: Main agent reviews and commits this focused ADR-0015 session. Confirm t
 
 ## Exact resume point
 
-Codex review `5040869921` for head `645762e` produced three verified P2 findings. The repository owner approved remediation under ADR-0014 and ADR-0015 plus preparation of a new Proposed ADR-0018; ADR-0018 implementation still requires a separate approval. ADR-0014 no-op equipment remediation is implemented locally and its 16-test suite plus typecheck pass. Next review and commit the ADR-0014 session, then implement the approved ADR-0015 checkpoint-reference validation in a separate session. Finally prepare ADR-0018 Proposed and stop for owner approval before its implementation. Do not start M2, implement restore/undo or merge the PR.
+Codex review `5040869921` for head `645762e` produced three verified P2 findings. The repository owner approved remediation under ADR-0014 and ADR-0015 plus preparation of a new Proposed ADR-0018; ADR-0018 implementation still requires a separate approval. ADR-0014 is committed as `794bf89`. ADR-0015 checkpoint-reference validation is implemented locally; 28 scoped tests and typecheck pass. Next review and commit the ADR-0015 session, then prepare ADR-0018 Proposed with the equipped-stack invariant and stop for owner approval before implementation. Do not start M2, implement restore/undo or merge the PR.
