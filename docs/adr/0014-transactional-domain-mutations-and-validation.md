@@ -197,3 +197,6 @@ None blocking. Domain service method granularity may be refined during implement
 - 2026-08-27 — Review remediation compares the requested final equipment aggregate
   inside the transaction before destructive replacement, preserving explicit no-op
   semantics and suppressing identical-state audit events.
+- 2026-08-27 — Review remediation derives equipment audit character provenance from
+  both current and requested assignments inside the transaction: single-character
+  changes retain that character, while cross-character changes remain unscoped.

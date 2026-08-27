@@ -11,6 +11,7 @@
 - Rejected missing equipment references and blank optional facts transactionally so stale commands cannot masquerade as no-ops and unknown values remain `NULL`.
 - Rejected non-finite optional numeric facts and conflicting duplicate equipment commands before persistence.
 - Made assignment-only equipment swaps atomic and added preflight rejection for incomplete or conflicting slot commands.
+- Derived equipment audit character provenance from both current and requested assignments, including removals and cross-character moves.
 - Rejected ambiguous equipped stacks transactionally: an equipped inventory row now represents exactly one physical item.
 - Added empty-database and upgrade migration coverage, domain invariant and rollback tests, Polish-name/null round trips, and checkpoint integrity tests.
 - Recorded the approved M1 architecture in ADRs 0012–0019 and documented the implemented data model and test strategy.

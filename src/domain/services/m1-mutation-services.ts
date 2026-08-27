@@ -199,10 +199,8 @@ export class InventoryMutationService {
     change: InventoryEquipmentChange,
     metadata: Metadata,
   ): CampaignMutationResult {
-    const characterIds = new Set(change.assignments.map((value) => value.characterId));
-    const characterId =
-      characterIds.size === 1 ? (characterIds.values().next().value ?? null) : null;
-    return this.coordinator.execute({ ...metadata, characterId }, (writes) => {
+    const auditMetadata = { ...metadata, characterId: null as string | null };
+    return this.coordinator.execute(auditMetadata, (writes) => {
       for (const item of change.items)
         rejectBlankNullableText({ ownerCharacterId: item.ownerCharacterId });
       const placements = new Map<string, InventoryPlacement>();
@@ -220,6 +218,21 @@ export class InventoryMutationService {
         assignments.set(assignment.inventoryItemId, assignment);
       }
       const equipmentItemIds = new Set([...placements.keys(), ...assignments.keys()]);
+      const currentAssignments = new Map(
+        [...equipmentItemIds].map(
+          (inventoryItemId) =>
+            [inventoryItemId, writes.findEquipmentAssignment(inventoryItemId)] as const,
+        ),
+      );
+      const affectedCharacterIds = new Set(
+        [...assignments.values()].map((assignment) => assignment.characterId),
+      );
+      for (const assignment of currentAssignments.values())
+        if (assignment !== null) affectedCharacterIds.add(assignment.characterId);
+      auditMetadata.characterId =
+        affectedCharacterIds.size === 1
+          ? (affectedCharacterIds.values().next().value ?? null)
+          : null;
       const desiredSlots = new Map<string, string>();
       for (const assignment of assignments.values()) {
         const slotKey = `${assignment.characterId}:${assignment.slot}`;
@@ -252,7 +265,7 @@ export class InventoryMutationService {
       );
       const equipmentUnchanged = [...equipmentItemIds].every((inventoryItemId) =>
         equipmentAssignmentEquals(
-          writes.findEquipmentAssignment(inventoryItemId),
+          currentAssignments.get(inventoryItemId) ?? null,
           assignments.get(inventoryItemId) ?? null,
         ),
       );

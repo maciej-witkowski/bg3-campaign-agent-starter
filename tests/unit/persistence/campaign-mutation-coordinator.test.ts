@@ -159,7 +159,78 @@ describe("CampaignMutationCoordinator", () => {
       { inventoryItemId: "item-a", characterId: "hero", slot: "RING_2" },
       { inventoryItemId: "item-b", characterId: "hero", slot: "RING_1" },
     ]);
-    expect(connection.database.select().from(changeEvents).all()).toHaveLength(1);
+    expect(connection.database.select().from(changeEvents).get()).toMatchObject({
+      characterId: "hero",
+    });
+  });
+
+  it("associates an equipment removal with its current character", () => {
+    seedEquipment();
+
+    new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [{ id: "item-a", status: "CHEST", ownerCharacterId: null }],
+        assignments: [],
+      },
+      { type: "EQUIPMENT_REMOVE", summaryPl: "Zdjęcie pierścienia" },
+    );
+
+    expect(connection.database.select().from(changeEvents).get()).toMatchObject({
+      characterId: "hero",
+    });
+    expect(
+      connection.database.select().from(equipment).orderBy(asc(equipment.inventoryItemId)).all(),
+    ).toEqual([{ inventoryItemId: "item-b", characterId: "hero", slot: "RING_2" }]);
+  });
+
+  it("uses unscoped audit metadata when equipment moves between characters", () => {
+    seedEquipment();
+    seedCompanion();
+
+    new InventoryMutationService(createCoordinator()).setEquipment(
+      {
+        items: [{ id: "item-a", status: "EQUIPPED", ownerCharacterId: "companion" }],
+        assignments: [{ inventoryItemId: "item-a", characterId: "companion", slot: "RING_1" }],
+      },
+      { type: "EQUIPMENT_MOVE", summaryPl: "Przekazanie pierścienia" },
+    );
+
+    expect(connection.database.select().from(changeEvents).get()).toMatchObject({
+      characterId: null,
+    });
+    expect(
+      connection.database
+        .select()
+        .from(equipment)
+        .where(eq(equipment.inventoryItemId, "item-a"))
+        .get(),
+    ).toEqual({ inventoryItemId: "item-a", characterId: "companion", slot: "RING_1" });
+  });
+
+  it("rolls back an incomplete cross-character equipment move without audit", () => {
+    seedEquipment();
+    seedCompanion();
+    connection.database
+      .insert(inventoryItems)
+      .values({ ...inventoryRow("item-c"), ownerCharacterId: "companion" })
+      .run();
+    connection.database
+      .insert(equipment)
+      .values({ inventoryItemId: "item-c", characterId: "companion", slot: "RING_1" })
+      .run();
+    const before = snapshot(connection.database as never).capture();
+
+    expect(() =>
+      new InventoryMutationService(createCoordinator()).setEquipment(
+        {
+          items: [{ id: "item-a", status: "EQUIPPED", ownerCharacterId: "companion" }],
+          assignments: [{ inventoryItemId: "item-a", characterId: "companion", slot: "RING_1" }],
+        },
+        { type: "EQUIPMENT_MOVE", summaryPl: "Niepełne przekazanie pierścienia" },
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(snapshot(connection.database as never).capture()).toBe(before);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
   });
 
   it("swaps assignments atomically without redundant placement input", () => {
@@ -692,6 +763,18 @@ describe("CampaignMutationCoordinator", () => {
         { inventoryItemId: "item-a", characterId: "hero", slot: "RING_1" },
         { inventoryItemId: "item-b", characterId: "hero", slot: "RING_2" },
       ])
+      .run();
+  }
+
+  function seedCompanion(): void {
+    connection.database
+      .insert(characters)
+      .values({
+        ...characterRow(),
+        id: "companion",
+        canonicalName: "towarzysz",
+        displayNamePl: "Towarzysz",
+      })
       .run();
   }
 });
