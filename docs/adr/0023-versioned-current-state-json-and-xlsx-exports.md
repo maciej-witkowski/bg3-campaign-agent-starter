@@ -231,5 +231,4 @@ contract or import authority.
 - 2026-08-28 — Accepted after explicit repository-owner approval.
 - 2026-08-29 — Implemented strict deterministic JSON, normalized formula-safe XLSX,
   verified atomic publication and stable-ID import into empty databases. Private JSON
-  and XLSX round trips matched state digest
-  `47f80d59e8971e69256ef577969318314cc762b043f1006dbec4097cf46f2539`.
+  and XLSX round trips matched the source database's canonical state digest.

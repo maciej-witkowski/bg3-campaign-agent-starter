@@ -106,6 +106,7 @@ export async function parseLegacyTrackerWorkbook(
   if (bytes.byteLength > limits.maxBytes) {
     throw new LegacyTrackerWorkbookError("FILE_TOO_LARGE", "Plik XLSX przekracza limit rozmiaru.");
   }
+  validateWorkbookArchiveSafety(bytes, limits);
 
   const parsedSheets =
     (await tryParseDocumentWorkbook(bytes, limits)) ??
@@ -170,7 +171,7 @@ async function parseCompatibleDocumentWorkbook(
   bytes: Uint8Array,
   limits: LegacyWorkbookLimits,
 ): Promise<ReadonlyMap<string, readonly LegacyStagedRow<string>[] | null>> {
-  const normalizedBytes = normalizeLegacyWorkbookNamespace(bytes, limits);
+  const normalizedBytes = normalizeLegacyWorkbookNamespace(bytes);
   const workbook = new Workbook();
   try {
     const payload = Buffer.from(normalizedBytes) as unknown as Parameters<
@@ -205,11 +206,7 @@ const LEGACY_SPREADSHEET_XML_MANIFEST = new Map<string, string>([
   ...Array.from({ length: 8 }, (_, index) => [`xl/tables/table${index + 1}.xml`, "table"] as const),
 ]);
 
-function normalizeLegacyWorkbookNamespace(
-  bytes: Uint8Array,
-  limits: LegacyWorkbookLimits,
-): Uint8Array {
-  validateZipDirectory(bytes, limits);
+function normalizeLegacyWorkbookNamespace(bytes: Uint8Array): Uint8Array {
   let archive: Unzipped;
   try {
     archive = unzipSync(bytes);
@@ -299,7 +296,13 @@ function decodeUtf8Xml(content: Uint8Array): string {
   }
 }
 
-function validateZipDirectory(bytes: Uint8Array, limits: LegacyWorkbookLimits): void {
+export function validateWorkbookArchiveSafety(
+  bytes: Uint8Array,
+  limits: LegacyWorkbookLimits = DEFAULT_LEGACY_WORKBOOK_LIMITS,
+): void {
+  if (bytes.byteLength > limits.maxBytes) {
+    throw new LegacyTrackerWorkbookError("FILE_TOO_LARGE", "Plik XLSX przekracza limit rozmiaru.");
+  }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const endOffset = findZipEnd(view);
   if (endOffset === null) {

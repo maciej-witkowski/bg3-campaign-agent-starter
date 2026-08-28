@@ -2,6 +2,10 @@ import ExcelJS from "exceljs";
 import type { CellValue, Workbook as ExcelWorkbook, Worksheet } from "exceljs";
 
 import {
+  DEFAULT_LEGACY_WORKBOOK_LIMITS,
+  validateWorkbookArchiveSafety,
+} from "./legacy-tracker-workbook.js";
+import {
   CAMPAIGN_EXPORT_FORMAT,
   CAMPAIGN_EXPORT_VERSION,
   normalizeCampaignExport,
@@ -52,6 +56,7 @@ export async function serializeCampaignExportWorkbook(value: unknown): Promise<U
 export async function deserializeCampaignExportWorkbook(
   bytes: Uint8Array,
 ): Promise<CampaignExportV1> {
+  validateWorkbookArchiveSafety(bytes);
   const workbook = new Workbook();
   try {
     await workbook.xlsx.load(
@@ -68,6 +73,7 @@ export async function deserializeCampaignExportWorkbook(
   ) {
     throw new CampaignExportWorkbookError("Zestaw lub kolejność arkuszy eksportu jest niezgodna.");
   }
+  for (const sheet of workbook.worksheets) validateWorksheetLimits(sheet);
   const metadata = readMetadata(workbook.getWorksheet(CAMPAIGN_XLSX_METADATA_SHEET));
   if (
     metadata.format !== CAMPAIGN_XLSX_FORMAT ||
@@ -97,6 +103,23 @@ export async function deserializeCampaignExportWorkbook(
   } catch {
     throw new CampaignExportWorkbookError("Dane eksportu XLSX nie przeszły walidacji.");
   }
+}
+
+function validateWorksheetLimits(sheet: Worksheet): void {
+  const limits = DEFAULT_LEGACY_WORKBOOK_LIMITS;
+  if (
+    sheet.actualRowCount > limits.maxRowsPerSheet ||
+    sheet.actualColumnCount > limits.maxColumnsPerSheet
+  ) {
+    throw new CampaignExportWorkbookError(`Arkusz ${sheet.name} przekracza limit wymiarów.`);
+  }
+  sheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      if (typeof cell.value === "string" && cell.value.length > limits.maxCellTextLength) {
+        throw new CampaignExportWorkbookError(`Arkusz ${sheet.name} zawiera zbyt długi tekst.`);
+      }
+    });
+  });
 }
 
 function addMetadataSheet(workbook: ExcelWorkbook, value: CampaignExportV1): void {
