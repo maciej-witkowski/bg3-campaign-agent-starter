@@ -6,7 +6,7 @@ Milestone: M2 — Import Existing Campaign Tracker
 
 Refines: ADR-0020 versioned XLSX adapter and legacy tracker contract
 
-Refined by: ADR-0025 exact package-wide SpreadsheetML prefix normalization (Proposed)
+Refined by: ADR-0025 exact package-wide SpreadsheetML prefix normalization (Accepted)
 
 ## Context and problem statement
 

@@ -1,6 +1,6 @@
 # ADR-0025: Exact package-wide SpreadsheetML prefix normalization
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M2 — Import Existing Campaign Tracker
 
@@ -64,7 +64,7 @@ which is much larger than M2.
 This avoids the shim but no longer imports the concrete existing campaign tracker,
 which is the narrow purpose retained for M2.
 
-## Proposed decision and rationale
+## Decision and rationale
 
 Select Option A.
 
@@ -136,11 +136,11 @@ No source or normalized workbook is written to disk.
 
 ## Approval record
 
-Not yet approved. Explicit repository-owner approval is required before broadening the
-compatibility transformation beyond `xl/workbook.xml`.
+Accepted by the repository owner on 2026-08-28.
 
 ## Change log
 
 - 2026-08-28 — Proposed after the accepted workbook-only transformation reached and
   failed on the same `x:` prefix in `xl/sharedStrings.xml`, followed by an exact
   read-only package inventory.
+- 2026-08-28 — Accepted by the repository owner.
