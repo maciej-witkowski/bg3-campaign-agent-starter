@@ -80,9 +80,10 @@ export class CampaignImportService {
   public applyImport(plan: CampaignImportPlan): CampaignImportApplyResult {
     if (plan.blocked)
       throw new CampaignDomainError("Plan importu zawiera konflikty blokujące zapis kampanii.");
-    if (stateDigest(this.stateReader.readImportState()) !== plan.stateSha256)
-      throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
-    if (!hasWrites(plan)) return { changed: false, report: plan.report };
+    if (!hasWrites(plan)) {
+      this.assertCurrentState(plan.stateSha256);
+      return { changed: false, report: plan.report };
+    }
 
     const result = this.coordinator.execute(
       {
@@ -116,8 +117,14 @@ export class CampaignImportService {
           writes.setCharacterIllithidPower(value);
         return true;
       },
+      () => this.assertCurrentState(plan.stateSha256),
     );
     return { ...result, report: plan.report };
+  }
+
+  private assertCurrentState(expectedSha256: string): void {
+    if (stateDigest(this.stateReader.readImportState()) !== expectedSha256)
+      throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
   }
 }
 

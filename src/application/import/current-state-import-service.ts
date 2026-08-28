@@ -43,11 +43,10 @@ export class CurrentStateImportService {
         "Import znormalizowanego eksportu wymaga pustej albo identycznej kampanii.",
       );
     }
-    const current = currentExport(this.source, plan.campaignExport.exportedAt);
-    if (current.stateSha256 !== plan.currentStateSha256) {
-      throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
+    if (!plan.changed) {
+      this.assertCurrentState(plan);
+      return { changed: false };
     }
-    if (!plan.changed) return { changed: false };
 
     const state = exportToDomainState(plan.campaignExport);
     return this.coordinator.execute(
@@ -73,7 +72,15 @@ export class CurrentStateImportService {
         for (const row of state.characterIllithidPowers) writes.setCharacterIllithidPower(row);
         return true;
       },
+      () => this.assertCurrentState(plan),
     );
+  }
+
+  private assertCurrentState(plan: CurrentStateImportPlan): void {
+    const current = currentExport(this.source, plan.campaignExport.exportedAt);
+    if (current.stateSha256 !== plan.currentStateSha256) {
+      throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
+    }
   }
 }
 

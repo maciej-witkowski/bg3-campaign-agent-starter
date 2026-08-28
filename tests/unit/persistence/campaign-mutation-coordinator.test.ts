@@ -685,6 +685,30 @@ describe("CampaignMutationCoordinator", () => {
     },
   );
 
+  it("runs mutation preconditions inside the same rollback boundary", () => {
+    const coordinator = createCoordinator();
+
+    expect(() =>
+      coordinator.execute(
+        metadata,
+        () => true,
+        () => {
+          connection.database
+            .insert(characters)
+            .values({
+              ...hero(),
+              createdAt: occurredAt.toISOString(),
+              updatedAt: occurredAt.toISOString(),
+            })
+            .run();
+          throw new CampaignDomainError("stale plan");
+        },
+      ),
+    ).toThrow(CampaignDomainError);
+    expect(connection.database.select().from(characters).all()).toEqual([]);
+    expect(connection.database.select().from(changeEvents).all()).toEqual([]);
+  });
+
   it("keeps audit append-only and records reversal as a new referencing event", () => {
     const coordinator = createCoordinator();
     new CharacterMutationService(coordinator).createCharacter(hero(), metadata);
