@@ -17,10 +17,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm smoke:production",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

@@ -1,4 +1,5 @@
-import { Workbook, type CellValue, type Worksheet } from "exceljs";
+import ExcelJS from "exceljs";
+import type { CellValue, Workbook as ExcelWorkbook, Worksheet } from "exceljs";
 
 import {
   CAMPAIGN_EXPORT_FORMAT,
@@ -16,6 +17,7 @@ import {
 export const CAMPAIGN_XLSX_FORMAT = "BG3_CAMPAIGN_XLSX" as const;
 export const CAMPAIGN_XLSX_VERSION = 1 as const;
 export const CAMPAIGN_XLSX_METADATA_SHEET = "Metadane" as const;
+const { Workbook } = ExcelJS;
 
 const METADATA_KEYS = [
   "format",
@@ -97,7 +99,7 @@ export async function deserializeCampaignExportWorkbook(
   }
 }
 
-function addMetadataSheet(workbook: Workbook, value: CampaignExportV1): void {
+function addMetadataSheet(workbook: ExcelWorkbook, value: CampaignExportV1): void {
   const sheet = workbook.addWorksheet(CAMPAIGN_XLSX_METADATA_SHEET);
   sheet.addRow(["klucz", "wartość"]);
   const metadata = {
@@ -117,7 +119,7 @@ function addMetadataSheet(workbook: Workbook, value: CampaignExportV1): void {
 }
 
 function addCollectionSheet(
-  workbook: Workbook,
+  workbook: ExcelWorkbook,
   collection: SnapshotCollection,
   value: CampaignExportV1,
 ): void {

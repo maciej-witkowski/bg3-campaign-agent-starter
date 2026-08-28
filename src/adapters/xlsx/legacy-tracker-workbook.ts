@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
-import { Workbook, type CellValue, type Row } from "exceljs";
+import ExcelJS from "exceljs";
+import type { CellValue, Row, Workbook as ExcelWorkbook } from "exceljs";
 import { strToU8, unzipSync, zipSync, type Unzipped } from "fflate";
 
 import {
@@ -86,6 +87,7 @@ const HEADERS_BY_SHEET = new Map<string, readonly string[]>([
   ["Dziennik zmian", LEGACY_CHANGE_LOG_HEADERS],
 ]);
 const EXCELJS_LOAD_OPTIONS = { ignoreNodes: ["tableParts"] };
+const { Workbook } = ExcelJS;
 
 export async function parseLegacyTrackerWorkbook(
   filePath: string,
@@ -137,7 +139,7 @@ async function tryParseDocumentWorkbook(
 }
 
 function parseLoadedWorkbook(
-  workbook: Workbook,
+  workbook: ExcelWorkbook,
   limits: LegacyWorkbookLimits,
 ): ReadonlyMap<string, readonly LegacyStagedRow<string>[] | null> {
   if (workbook.worksheets.length > limits.maxSheets) {
