@@ -228,6 +228,10 @@ const specs: Readonly<Record<SnapshotCollection, CollectionSpec>> = {
     identity: ["characterId", "powerId"],
   },
 };
+export const SNAPSHOT_COLLECTION_FIELDS: Readonly<Record<SnapshotCollection, readonly string[]>> =
+  Object.fromEntries(
+    SNAPSHOT_COLLECTIONS.map((collection) => [collection, Object.keys(specs[collection].fields)]),
+  ) as unknown as Readonly<Record<SnapshotCollection, readonly string[]>>;
 export function normalizeCampaignSnapshot(value: unknown): CampaignSnapshotV1 {
   const root = object(value, "snapshot");
   exactKeys(root, ["format", "version", "schemaVersion", "capturedAt", "state"], "snapshot");
