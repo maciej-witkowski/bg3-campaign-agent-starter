@@ -6,6 +6,8 @@ Milestone: M2 — Import Existing Campaign Tracker
 
 Refines: ADR-0020 versioned XLSX adapter and legacy tracker contract
 
+Refined by: ADR-0025 exact package-wide SpreadsheetML prefix normalization (Proposed)
+
 ## Context and problem statement
 
 ADR-0020 selected `exceljs` for the M2 XLSX adapter. Implementation against sanitized
@@ -222,3 +224,5 @@ low-priority, narrowly scoped migration-bridge character of this decision.
 - 2026-08-28 — Narrowed after owner priority guidance: M2 is a low-priority one-time
   migration bridge, while new campaigns should start directly in SQLite.
 - 2026-08-28 — Accepted by the repository owner.
+- 2026-08-28 — Implementation found the same prefix in 20 additional SpreadsheetML
+  parts; the required exact package-wide correction is proposed separately in ADR-0025.
