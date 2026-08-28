@@ -46,6 +46,7 @@ type LegacyIssueFact = string | number | boolean | null;
 
 export interface LegacyNormalizationIssue extends ImportReportEntry {
   readonly issueId: string;
+  readonly category: "ambiguous" | "conflicts";
   readonly rawFacts: Readonly<Record<string, LegacyIssueFact>>;
 }
 
