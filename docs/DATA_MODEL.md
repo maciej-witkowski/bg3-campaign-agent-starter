@@ -62,7 +62,8 @@ Columns: `id` PK, `name_pl`, `normalized_name_pl`, nullable `name_en`,
 `verification_confidence`, `verification_source`, `fingerprint`, `notes`.
 
 `name_pl` is deliberately not unique. Normalized name is indexed. A non-null
-fingerprint is unique, but M1 does not define or populate fingerprinting policy.
+fingerprint is unique. M2 populates version-prefixed deterministic fingerprints for
+definitions created from the legacy tracker; M1 itself does not infer fingerprints.
 Confidence is nullable and otherwise constrained to 0–1.
 
 ### item_effects
@@ -174,9 +175,13 @@ SQLite read repository maps persisted ISO strings to `Date` and preserves nullab
 values unchanged. Transaction-scoped write repositories, mutation coordination,
 campaign validation and audit insertion are introduced only by ADR-0014.
 
+## M2 population without schema changes
+
+M2 uses the existing M1 tables without a migration. It does not persist import jobs or reconciliation documents. One successful legacy import creates the canonical rows plus one `CAMPAIGN_IMPORTED` audit event; reports and reconciliation files remain private generated artifacts. Current-state exports omit `change_events`, checkpoints and migration history.
+
 ## Deferred schema
 
-M1 intentionally has no merchant session/candidate, proposal, item alias, import,
-research or other M2+ workflow tables. The real campaign spreadsheet is not read or
-modified by this migration. Future physical changes require forward migrations and
-corresponding updates to this document.
+The schema intentionally has no merchant session/candidate, proposal, item alias,
+import-job, research or other later-workflow tables. The real campaign spreadsheet is
+never modified. Future physical changes require forward migrations and corresponding
+updates to this document.

@@ -144,3 +144,6 @@ Accepted by the repository owner on 2026-08-28.
   failed on the same `x:` prefix in `xl/sharedStrings.xml`, followed by an exact
   read-only package inventory.
 - 2026-08-28 — Accepted by the repository owner.
+- 2026-08-29 — Implemented exact manifest-wide normalization with ZIP safety limits,
+  root/namespace projection checks and rejection of additional prefixed XML parts;
+  the real tracker acceptance succeeds.

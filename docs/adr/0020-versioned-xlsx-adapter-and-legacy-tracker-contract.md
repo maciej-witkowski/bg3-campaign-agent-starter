@@ -222,3 +222,6 @@ gates.
 - 2026-08-28 — Initial M2 proposal after read-only profiling of the real tracker and
   verification that M1 is merged and green.
 - 2026-08-28 — Accepted after explicit repository-owner approval.
+- 2026-08-29 — Implemented with ExcelJS 4.4.0 and fflate 0.8.3; private acceptance
+  parsed the real 40,706-byte tracker and production ESM smoke testing corrected the
+  ExcelJS CommonJS import boundary.

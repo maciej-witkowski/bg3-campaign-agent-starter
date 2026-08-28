@@ -226,3 +226,5 @@ low-priority, narrowly scoped migration-bridge character of this decision.
 - 2026-08-28 — Accepted by the repository owner.
 - 2026-08-28 — Implementation found the same prefix in 20 additional SpreadsheetML
   parts; the required exact package-wide correction is proposed separately in ADR-0025.
+- 2026-08-29 — Implemented as the bounded fallback path; direct parsing remains first
+  and the private acceptance succeeds without modifying the source workbook.

@@ -262,3 +262,6 @@ review.
 - 2026-08-28 — Initial M2 proposal based on the actual workbook value domains and M1
   identity/invariant model.
 - 2026-08-28 — Accepted after explicit repository-owner approval.
+- 2026-08-29 — Implemented deterministic normalizers, entity-specific fingerprints,
+  complete report/reconciliation artifacts and private acceptance with zero ambiguous
+  or conflicting facts in the supplied tracker.

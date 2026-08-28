@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Implemented M2 legacy XLSX staging, exact Polish normalization, entity-specific planning and one-transaction audited campaign import.
+- Added deterministic import reports and digest-bound reconciliation documents for skipped, ambiguous and conflicting source facts.
+- Added versioned current-state JSON and normalized XLSX exports with literal campaign text, strict validation, SHA-256 integrity and verified atomic publication.
+- Added stable-ID JSON/XLSX round-trip import into empty databases, idempotent re-import and refusal to overwrite a different non-empty campaign.
+- Added a private real-tracker acceptance harness and database review report covering integrity, collection counts, character statistics, equipment, travel-chest contents and unresolved issues.
+- Added bounded OpenXML compatibility for the legacy SpreadsheetML namespace variant and corrected ExcelJS CommonJS interoperability in production ESM builds.
 - Implemented the M1 canonical SQLite database with committed Drizzle migrations and hardened connection settings.
 - Added the normalized campaign model for characters, attributes, modifiers, items, inventory, equipment, spells, abilities and illithid powers.
 - Added typed transactional mutation services with pre-commit campaign validation and append-only audit events containing deterministic before/after snapshots.

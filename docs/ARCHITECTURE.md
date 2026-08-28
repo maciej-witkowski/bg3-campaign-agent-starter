@@ -59,3 +59,11 @@ All M1 writes enter through typed domain services and execute inside one SQLite 
 Checkpoint creation follows the same path. Its versioned JSON payload and SHA-256 digest are stored atomically with the checkpoint and audit event. Snapshots intentionally exclude audit events, checkpoints and migration metadata, and M1 does not implement restore or undo.
 
 The UI, model and future tool adapters must receive typed services only. The raw SQLite connection, unrestricted SQL and transaction-scoped write repository are persistence internals.
+
+## Implemented M2 import/export path
+
+The legacy XLSX adapter stages an exact, bounded workbook profile without database access. Pure normalizers preserve Polish display text and produce typed facts, issues and skipped-source records. Entity-specific planners compare those facts with a deterministic read-only SQLite state and produce a report, reconciliation document and immutable write plan.
+
+Only an unblocked, non-stale plan reaches the M1 mutation coordinator. All imported rows, validation and the single `CAMPAIGN_IMPORTED` audit event commit or roll back together. A repeated semantic import is a no-op with no new event.
+
+Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M15 scope.

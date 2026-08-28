@@ -251,3 +251,6 @@ explicit approval are required before adding a migration.
 - 2026-08-28 — Initial M2 proposal aligned with the M1 coordinator, validation,
   append-only audit and no-op guarantees.
 - 2026-08-28 — Accepted after explicit repository-owner approval.
+- 2026-08-29 — Implemented one-transaction application, stale-plan rejection,
+  validation/audit rollback and no-op re-import; the real tracker produced one audit
+  event and an unchanged second import.
