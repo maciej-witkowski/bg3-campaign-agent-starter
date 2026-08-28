@@ -28,6 +28,11 @@ acceptance gate.
 The original tracker must not be modified merely to accommodate a parser. M2 needs a
 bounded compatibility decision before more parser code or dependencies are added.
 
+M2 is a low-priority migration bridge. The expected long-term path is to create new
+campaigns directly in SQLite rather than maintain spreadsheet compatibility. The
+solution should therefore be the smallest safe shim that imports this concrete legacy
+profile, not a reusable OpenXML repair subsystem.
+
 ## Decision drivers and invariants
 
 - The private source workbook remains byte-for-byte unchanged.
@@ -39,6 +44,8 @@ bounded compatibility decision before more parser code or dependencies are added
 - Workbook formulas, links, macros and cell text remain non-executable data.
 - ExcelJS remains the single semantic workbook parser/writer selected by ADR-0020.
 - Unsupported namespace/layout variants fail explicitly with zero canonical writes.
+- Engineering and maintenance cost must stay proportional to a one-time legacy
+  migration path; broad producer compatibility is an explicit non-goal.
 
 ## Considered options
 
@@ -106,6 +113,11 @@ The compatibility branch is covered by a sanitized prefixed-namespace fixture an
 explicit private acceptance test. The original standard ExcelJS path remains first so
 M2-generated V1 exports do not pass through compatibility rewriting.
 
+This is deliberately not a general normalization pipeline. It supports one exact
+legacy signature, lives as a private helper beside the legacy adapter and may be
+retired when the known legacy campaigns have migrated. It will not gain a plugin
+system, producer detection, XML repair heuristics, configurable rewrite rules or UI.
+
 ## Boundaries and dependency direction
 
 - ZIP inspection and namespace normalization are private functions of the inbound XLSX
@@ -128,6 +140,7 @@ M2-generated V1 exports do not pass through compatibility rewriting.
 - The compatibility signature is specific to the evidenced legacy workbook namespace.
   New variations require a new tested rule or explicit rejection; they are not
   generalized silently.
+- New campaigns do not use this path; they start from the canonical SQLite model.
 
 ## Transaction, validation, audit and rollback impact
 
@@ -157,9 +170,8 @@ validation, one transaction and one audit event for a real state change.
   its default-namespace equivalent.
 - The compatibility path preserves original SHA-256 and does not write a normalized
   workbook to disk.
-- Reject path traversal, absolute/backslash paths, duplicate entries, excessive entry
-  count, excessive declared per-entry/total uncompressed size, missing/duplicate
-  `xl/workbook.xml`, wrong namespace and unrelated XML corruption.
+- Reject unsafe ZIP paths, duplicate entries, excessive declared uncompressed size,
+  missing/duplicate `xl/workbook.xml` and the wrong namespace.
 - Prove formulas and shared strings remain unchanged and are not evaluated.
 - The private acceptance test parses exactly 4 character, 41 equipment, 188 item, 42
   ability, 66 spell, 19 illithid and 10 legacy-log rows.
@@ -176,6 +188,8 @@ validation, one transaction and one audit event for a real state change.
   persisted or used as source identity.
 - Exact rejection makes the adapter less forgiving of unrelated producer quirks, which
   is intentional for canonical campaign import.
+- The shim receives only corrective maintenance needed to migrate a known campaign;
+  broader XLSX compatibility is deferred unless real demand changes the priority.
 
 ## Rejected alternatives
 
@@ -206,3 +220,5 @@ adapter.
 - 2026-08-28 — Proposed after direct and streaming ExcelJS 4.4.0 acceptance attempts
   failed on the real prefixed-namespace tracker while sanitized default-namespace
   fixtures passed.
+- 2026-08-28 — Narrowed after owner priority guidance: M2 is a low-priority one-time
+  migration bridge, while new campaigns should start directly in SQLite.
