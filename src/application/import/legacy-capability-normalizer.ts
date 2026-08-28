@@ -177,7 +177,7 @@ function normalizeAbilities(
     }
     const assignment: NormalizedLegacyAbilityAssignment = {
       characterCanonicalName: character.canonicalName,
-      source: typeToken,
+      source: abilityAssignmentSource(typeToken, levelAcquired),
       levelAcquired,
       notes,
       location: abilityLocation(stage, row, null),
@@ -189,6 +189,10 @@ function normalizeAbilities(
   return [...values.values()]
     .map(freezeAbility)
     .sort((a, b) => a.sourceKey.localeCompare(b.sourceKey, "pl-PL"));
+}
+
+function abilityAssignmentSource(typeToken: string, levelAcquired: number | null): string {
+  return levelAcquired === null ? typeToken : `${typeToken} — poziom ${levelAcquired}`;
 }
 
 function normalizeSpells(

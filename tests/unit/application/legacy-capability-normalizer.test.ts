@@ -28,7 +28,7 @@ describe("legacy capability normalization", () => {
         assignments: [
           expect.objectContaining({
             characterCanonicalName: "PC_WARLOCK",
-            source: "Atut",
+            source: "Atut — poziom 8",
             levelAcquired: 8,
             notes: "Aktywny wybór",
           }),
@@ -57,6 +57,25 @@ describe("legacy capability normalization", () => {
         },
       ],
     });
+  });
+
+  it("distinguishes repeated selections of the same ability by acquisition level", () => {
+    const result = normalizeLegacyCapabilities(
+      stage({
+        abilities: [
+          abilityRow({ Nazwa: "Zwiększenie Cech", "Poziom wyboru": "4" }, 2),
+          abilityRow({ Nazwa: "Zwiększenie Cech", "Poziom wyboru": "8" }, 3),
+        ],
+      }),
+      [hero()],
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.abilities).toHaveLength(1);
+    expect(result.abilities[0]?.assignments.map((value) => value.source)).toEqual([
+      "Atut — poziom 4",
+      "Atut — poziom 8",
+    ]);
   });
 
   it("creates acquired powers, named definitions and exact prerequisite names while skipping placeholders", () => {
