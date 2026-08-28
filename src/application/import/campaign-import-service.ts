@@ -8,6 +8,7 @@ import {
 } from "../../domain/mutations/campaign-mutation.js";
 import type { CampaignImportState, CampaignImportStateReadPort } from "./campaign-import-state.js";
 import {
+  createNormalizationReconciliation,
   createNormalizationReport,
   type NormalizedLegacyCampaign,
 } from "./legacy-campaign-normalizer.js";
@@ -31,7 +32,7 @@ import {
   planLegacyItemImport,
   type LegacyItemImportPlan,
 } from "./legacy-item-import-planner.js";
-import type { ImportReport, ImportReportEntry } from "./import-contracts.js";
+import type { ImportReconciliation, ImportReport, ImportReportEntry } from "./import-contracts.js";
 
 export interface CampaignImportPlan {
   readonly campaign: NormalizedLegacyCampaign;
@@ -40,6 +41,7 @@ export interface CampaignImportPlan {
   readonly items: LegacyItemImportPlan;
   readonly capabilities: LegacyCapabilityImportPlan;
   readonly report: ImportReport;
+  readonly reconciliation: ImportReconciliation;
   readonly blocked: boolean;
 }
 
@@ -62,6 +64,7 @@ export class CampaignImportService {
       ...items.entries,
       ...capabilities.entries,
     ]);
+    const reconciliation = mergeReconciliation(campaign, report.entries);
     return {
       campaign,
       stateSha256: stateDigest(state),
@@ -69,6 +72,7 @@ export class CampaignImportService {
       items,
       capabilities,
       report,
+      reconciliation,
       blocked: characters.blocked || items.blocked || capabilities.blocked,
     };
   }
@@ -115,6 +119,55 @@ export class CampaignImportService {
     );
     return { ...result, report: plan.report };
   }
+}
+
+function mergeReconciliation(
+  campaign: NormalizedLegacyCampaign,
+  entries: readonly ImportReportEntry[],
+): ImportReconciliation {
+  const normalization = createNormalizationReconciliation(campaign);
+  const existingKeys = new Set(
+    normalization.issues.map((issue) => issueKey(issue.entityKind, issue.source, issue.reasonCode)),
+  );
+  const plannedIssues = entries
+    .filter((entry) => entry.category === "ambiguous" || entry.category === "conflicts")
+    .filter(
+      (entry) => !existingKeys.has(issueKey(entry.entityKind, entry.source, entry.reasonCode)),
+    )
+    .map((entry) => ({
+      issueId: createHash("sha256")
+        .update(
+          `${campaign.workbookSha256}\u0000${issueKey(entry.entityKind, entry.source, entry.reasonCode)}\u0000${entry.sourceKey}`,
+          "utf8",
+        )
+        .digest("hex"),
+      entityKind: entry.entityKind,
+      source: entry.source,
+      category: entry.category as "ambiguous" | "conflicts",
+      reasonCode: entry.reasonCode,
+      candidateCanonicalIds: [
+        ...new Set([
+          ...entry.relatedIds,
+          ...(entry.canonicalEntityId === null ? [] : [entry.canonicalEntityId]),
+        ]),
+      ].sort(),
+      rawFacts: { sourceKey: entry.sourceKey },
+      resolution: null,
+    }));
+  return {
+    ...normalization,
+    issues: [...normalization.issues, ...plannedIssues].sort((left, right) =>
+      left.issueId.localeCompare(right.issueId),
+    ),
+  };
+}
+
+function issueKey(
+  entityKind: ImportReportEntry["entityKind"],
+  source: ImportReportEntry["source"],
+  reasonCode: string,
+): string {
+  return `${entityKind}\u0000${source.sheet}\u0000${source.row}\u0000${source.field ?? ""}\u0000${reasonCode}`;
 }
 
 function hasWrites(plan: CampaignImportPlan): boolean {

@@ -70,6 +70,30 @@ const sourceLocationSchema = z
   })
   .strict();
 
+const reportEntrySchema = z
+  .object({
+    category: z.enum(IMPORT_REPORT_CATEGORIES),
+    entityKind: z.enum(IMPORT_ENTITY_KINDS),
+    source: sourceLocationSchema,
+    sourceKey: z.string().trim().min(1),
+    reasonCode: z.string().trim().min(1),
+    messagePl: z.string().trim().min(1),
+    blocking: z.boolean(),
+    canonicalEntityId: z.string().trim().min(1).nullable(),
+    relatedIds: z.array(z.string().trim().min(1)),
+  })
+  .strict();
+
+export const importReportSchema = z
+  .object({
+    format: z.literal(IMPORT_REPORT_FORMAT),
+    version: z.literal(IMPORT_REPORT_VERSION),
+    workbookProfile: z.string().trim().min(1),
+    workbookSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+    entries: z.array(reportEntrySchema),
+  })
+  .strict();
+
 const selectExistingResolutionSchema = z
   .object({
     action: z.literal("select_existing"),
@@ -162,4 +186,8 @@ export type ImportReconciliation = z.infer<typeof importReconciliationSchema>;
 
 export function parseImportReconciliation(value: unknown): ImportReconciliation {
   return importReconciliationSchema.parse(value);
+}
+
+export function parseImportReport(value: unknown): ImportReport {
+  return importReportSchema.parse(value);
 }
