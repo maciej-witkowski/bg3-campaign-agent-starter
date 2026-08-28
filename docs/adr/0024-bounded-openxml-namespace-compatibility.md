@@ -1,6 +1,6 @@
 # ADR-0024: Bounded OpenXML namespace compatibility before ExcelJS parsing
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M2 — Import Existing Campaign Tracker
 
@@ -76,7 +76,7 @@ rather than making import reproducible.
 This passes sanitized tests but fails M2's primary deliverable: importing the existing
 tracker.
 
-## Proposed decision and rationale
+## Decision and rationale
 
 Select Option A.
 
@@ -211,9 +211,8 @@ than weakening ZIP defenses.
 
 ## Approval record
 
-Not yet approved. Explicit repository-owner approval is required before adding
-`fflate`, implementing namespace normalization or continuing the affected XLSX
-adapter.
+Accepted by the repository owner on 2026-08-28. Approval explicitly retained the
+low-priority, narrowly scoped migration-bridge character of this decision.
 
 ## Change log
 
@@ -222,3 +221,4 @@ adapter.
   fixtures passed.
 - 2026-08-28 — Narrowed after owner priority guidance: M2 is a low-priority one-time
   migration bridge, while new campaigns should start directly in SQLite.
+- 2026-08-28 — Accepted by the repository owner.
