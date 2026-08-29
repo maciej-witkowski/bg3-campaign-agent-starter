@@ -274,3 +274,6 @@ review.
 - 2026-08-29 — Preserved each aggregated assignment's original row in reports and
   reconciliation decisions, matched illithid prerequisites by their full composite
   identity and mapped sold legacy inventory to an ownerless placement.
+- 2026-08-29 — Compared equipment conflicts with both persisted and pending slot
+  assignments; resolving a collision by retaining or skipping the occupant now also
+  removes any dependent newly planned `EQUIPPED` inventory row.

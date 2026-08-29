@@ -259,3 +259,6 @@ explicit approval are required before adding a migration.
   writes.
 - 2026-08-29 — Authenticated in-memory plans by service instance and operation digest;
   copied or modified structural plan objects are rejected before any write.
+- 2026-08-29 — Hardened plan authentication by recursively freezing issued objects and
+  hashing a structured clone, preventing caller-supplied `toJSON` hooks from hiding
+  post-planning mutations.

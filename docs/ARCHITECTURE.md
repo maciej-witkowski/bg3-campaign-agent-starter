@@ -66,7 +66,7 @@ The legacy XLSX adapter stages an exact, bounded workbook profile without databa
 
 Only an unblocked plan reaches the M1 mutation coordinator. Plan freshness is checked again inside the same SQLite transaction before any import write. All imported rows, validation and the single `CAMPAIGN_IMPORTED` audit event commit or roll back together. A repeated semantic import is a no-op with no new event.
 
-Import plans are in-memory capabilities issued by one application-service instance. The service records a digest of each issued plan and refuses copied or modified structural objects before mutation. Planners also compare new assignments with rows already pending in the same plan, so conflicting composite identities become reconciliation conflicts rather than database constraint failures.
+Import plans are in-memory capabilities issued by one application-service instance. Issued plans are recursively frozen, and the service records a digest computed from a structured clone that cannot honor caller-supplied JSON serialization hooks. Copied or modified structural objects are refused before mutation. Planners also compare new assignments and equipment slots with rows already pending in the same plan, so conflicting composite identities become reconciliation conflicts rather than database constraint failures.
 
 Current-state export captures and validates one transactionally consistent read snapshot before serializing JSON or XLSX. Invalid canonical state is refused rather than published as a portable campaign artifact.
 

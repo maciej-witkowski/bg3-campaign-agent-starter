@@ -44,4 +44,6 @@ Review regressions additionally cover rejection of copied or mutated import plan
 
 Further planner regressions preserve distinct source rows for repeated assignment conflicts, allow multiple different illithid prerequisite relations and verify that sold inventory never receives an owner.
 
+Issued-plan regressions reject copied objects, nested mutation and injected `toJSON` hooks. Equipment regressions detect collisions with assignments pending in the same plan and ensure a skipped new equipped item cannot leave ownerless invalid inventory behind.
+
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.
