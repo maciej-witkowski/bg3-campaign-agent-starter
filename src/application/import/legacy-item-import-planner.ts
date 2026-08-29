@@ -270,8 +270,9 @@ export function planLegacyItemImport(
     }
 
     if (fact.equipmentSlot !== null && ownerCharacterId !== null) {
-      const existing = state.equipment.find((value) => value.inventoryItemId === inventoryItemId);
-      const occupant = state.equipment.find(
+      const knownEquipment = [...state.equipment, ...equipment];
+      const existing = knownEquipment.find((value) => value.inventoryItemId === inventoryItemId);
+      const occupant = knownEquipment.find(
         (value) => value.characterId === ownerCharacterId && value.slot === fact.equipmentSlot,
       );
       if (
@@ -290,6 +291,7 @@ export function planLegacyItemImport(
           "EQUIPMENT_SLOT_CONFLICT",
         );
         if (decision?.action === "select_existing" || decision?.action === "skip") {
+          removePendingInventory(inventory, inventoryItemId);
           entries.push(
             report(
               fact,
@@ -341,6 +343,14 @@ export function planLegacyItemImport(
     entries: sortEntries(entries),
     blocked: characters.blocked || entries.some((value) => value.category === "conflicts"),
   };
+}
+
+function removePendingInventory(
+  inventory: PlannedInventoryItemInsert[],
+  inventoryItemId: string,
+): void {
+  const index = inventory.findIndex((value) => value.id === inventoryItemId);
+  if (index >= 0) inventory.splice(index, 1);
 }
 
 export function materializeItemDefinition(value: PlannedItemDefinitionInsert): ItemDefinition {

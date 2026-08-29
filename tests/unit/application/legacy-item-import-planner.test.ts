@@ -138,6 +138,50 @@ describe("legacy item import planner", () => {
       expect.objectContaining({ category: "skipped", reasonCode: "RECONCILED_SKIP" }),
     ]);
   });
+
+  it("detects a slot collision with pending equipment and drops skipped dependent inventory", () => {
+    const second = {
+      ...item(),
+      sourceKey: "item:fp-2",
+      source: { ...item().source, row: 3 },
+      namePl: "Drugi Miecz",
+      normalizedNamePl: "drugi miecz",
+      fingerprint: "import-v1:fp-2",
+    };
+    const twoItems: NormalizedLegacyCampaign = { ...campaign(), items: [item(), second] };
+    const unresolved = planLegacyItemImport(twoItems, emptyState(), characterPlan(), ids());
+    expect(unresolved.blocked).toBe(true);
+    expect(unresolved.equipment).toHaveLength(1);
+    expect(unresolved.entries).toContainEqual(
+      expect.objectContaining({
+        source: expect.objectContaining({ row: 3 }),
+        reasonCode: "EQUIPMENT_SLOT_CONFLICT",
+        relatedIds: ["id-3"],
+      }),
+    );
+
+    const key = planningDecisionKey(
+      "equipment_assignment",
+      second.source,
+      "EQUIPMENT_SLOT_CONFLICT",
+    );
+    const skipped = planLegacyItemImport(
+      twoItems,
+      emptyState(),
+      characterPlan(),
+      ids(),
+      new Map([[key, { action: "skip" }]]),
+    );
+    expect(skipped.blocked).toBe(false);
+    expect(skipped.equipment).toHaveLength(1);
+    expect(skipped.inventoryItems).toHaveLength(1);
+    expect(skipped.entries).toContainEqual(
+      expect.objectContaining({
+        source: expect.objectContaining({ row: 3 }),
+        reasonCode: "RECONCILED_SKIP",
+      }),
+    );
+  });
 });
 
 function campaign(): NormalizedLegacyCampaign {
