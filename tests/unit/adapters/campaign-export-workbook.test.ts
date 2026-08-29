@@ -16,26 +16,28 @@ import {
   type SnapshotRecord,
 } from "../../../src/domain/snapshots/campaign-snapshot.js";
 
-function exportWithCampaignText() {
+function exportWithCampaignText(characterCount = 1) {
   const state = Object.fromEntries(
     SNAPSHOT_COLLECTIONS.map((name) => [name, []]),
   ) as unknown as Record<SnapshotCollection, SnapshotRecord[]>;
-  state.characters = [
-    {
-      id: "character-1",
-      canonicalName: "cień",
-      displayNamePl: "=NIE FORMUŁA",
-      racePl: null,
-      classPl: "Kleryczka",
-      subclassPl: null,
-      level: 7,
-      roleSummary: "+wsparcie",
-      activeParty: true,
-      notes: "@tekst",
-      createdAt: "2026-08-29T12:00:00.000Z",
-      updatedAt: "2026-08-29T12:00:00.000Z",
-    },
-  ];
+  state.characters = Array.from(
+    { length: characterCount },
+    (_, index) =>
+      ({
+        id: `character-${index + 1}`,
+        canonicalName: "cień",
+        displayNamePl: "=NIE FORMUŁA",
+        racePl: null,
+        classPl: "Kleryczka",
+        subclassPl: null,
+        level: 7,
+        roleSummary: "+wsparcie",
+        activeParty: true,
+        notes: "@tekst",
+        createdAt: "2026-08-29T12:00:00.000Z",
+        updatedAt: "2026-08-29T12:00:00.000Z",
+      }) as SnapshotRecord,
+  );
   return createCampaignExport(
     serializeCampaignSnapshot({
       format: CAMPAIGN_SNAPSHOT_FORMAT,
@@ -80,5 +82,12 @@ describe("normalized campaign export workbook", () => {
     const modified = new Uint8Array(await workbook.xlsx.writeBuffer());
 
     await expect(deserializeCampaignExportWorkbook(modified)).rejects.toThrow(/formułę/u);
+  });
+
+  it("round-trips 1,000 canonical records without applying legacy tracker row limits", async () => {
+    const campaignExport = exportWithCampaignText(1_000);
+    const bytes = await serializeCampaignExportWorkbook(campaignExport);
+
+    await expect(deserializeCampaignExportWorkbook(bytes)).resolves.toEqual(campaignExport);
   });
 });

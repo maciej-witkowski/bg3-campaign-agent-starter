@@ -2,8 +2,8 @@ import ExcelJS from "exceljs";
 import type { CellValue, Workbook as ExcelWorkbook, Worksheet } from "exceljs";
 
 import {
-  DEFAULT_LEGACY_WORKBOOK_LIMITS,
   validateWorkbookArchiveSafety,
+  type LegacyWorkbookLimits,
 } from "./legacy-tracker-workbook.js";
 import {
   CAMPAIGN_EXPORT_FORMAT,
@@ -21,6 +21,16 @@ import {
 export const CAMPAIGN_XLSX_FORMAT = "BG3_CAMPAIGN_XLSX" as const;
 export const CAMPAIGN_XLSX_VERSION = 1 as const;
 export const CAMPAIGN_XLSX_METADATA_SHEET = "Metadane" as const;
+export const CAMPAIGN_EXPORT_WORKBOOK_LIMITS = {
+  maxBytes: 50 * 1024 * 1024,
+  maxSheets: SNAPSHOT_COLLECTIONS.length + 1,
+  maxRowsPerSheet: 100_001,
+  maxColumnsPerSheet: 64,
+  maxCellTextLength: 10_000,
+  maxArchiveEntries: 512,
+  maxEntryUncompressedBytes: 50 * 1024 * 1024,
+  maxArchiveUncompressedBytes: 250 * 1024 * 1024,
+} as const satisfies LegacyWorkbookLimits;
 const { Workbook } = ExcelJS;
 
 const METADATA_KEYS = [
@@ -41,6 +51,7 @@ export class CampaignExportWorkbookError extends Error {
 
 export async function serializeCampaignExportWorkbook(value: unknown): Promise<Uint8Array> {
   const campaignExport = normalizeCampaignExport(value);
+  validateCampaignExportLimits(campaignExport);
   const workbook = new Workbook();
   workbook.creator = "BG3 Campaign Agent";
   workbook.created = new Date(campaignExport.exportedAt);
@@ -50,13 +61,15 @@ export async function serializeCampaignExportWorkbook(value: unknown): Promise<U
     addCollectionSheet(workbook, collection, campaignExport);
   }
   const bytes = await workbook.xlsx.writeBuffer();
-  return new Uint8Array(bytes);
+  const result = new Uint8Array(bytes);
+  validateCampaignArchiveSafety(result);
+  return result;
 }
 
 export async function deserializeCampaignExportWorkbook(
   bytes: Uint8Array,
 ): Promise<CampaignExportV1> {
-  validateWorkbookArchiveSafety(bytes);
+  validateCampaignArchiveSafety(bytes);
   const workbook = new Workbook();
   try {
     await workbook.xlsx.load(
@@ -106,7 +119,7 @@ export async function deserializeCampaignExportWorkbook(
 }
 
 function validateWorksheetLimits(sheet: Worksheet): void {
-  const limits = DEFAULT_LEGACY_WORKBOOK_LIMITS;
+  const limits = CAMPAIGN_EXPORT_WORKBOOK_LIMITS;
   if (
     sheet.actualRowCount > limits.maxRowsPerSheet ||
     sheet.actualColumnCount > limits.maxColumnsPerSheet
@@ -120,6 +133,33 @@ function validateWorksheetLimits(sheet: Worksheet): void {
       }
     });
   });
+}
+
+function validateCampaignExportLimits(value: CampaignExportV1): void {
+  for (const collection of SNAPSHOT_COLLECTIONS) {
+    const records = value.state[collection];
+    if (records.length + 1 > CAMPAIGN_EXPORT_WORKBOOK_LIMITS.maxRowsPerSheet)
+      throw new CampaignExportWorkbookError(
+        `Kolekcja ${collection} przekracza limit wierszy eksportu.`,
+      );
+    for (const record of records) {
+      for (const scalar of Object.values(record)) {
+        if (
+          typeof scalar === "string" &&
+          scalar.length > CAMPAIGN_EXPORT_WORKBOOK_LIMITS.maxCellTextLength
+        )
+          throw new CampaignExportWorkbookError(`Kolekcja ${collection} zawiera zbyt długi tekst.`);
+      }
+    }
+  }
+}
+
+function validateCampaignArchiveSafety(bytes: Uint8Array): void {
+  try {
+    validateWorkbookArchiveSafety(bytes, CAMPAIGN_EXPORT_WORKBOOK_LIMITS);
+  } catch {
+    throw new CampaignExportWorkbookError("Archiwum eksportu XLSX przekracza bezpieczne limity.");
+  }
 }
 
 function addMetadataSheet(workbook: ExcelWorkbook, value: CampaignExportV1): void {
