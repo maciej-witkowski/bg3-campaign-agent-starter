@@ -67,6 +67,7 @@ export interface NormalizedLegacySpell {
 
 export interface NormalizedLegacyIllithidAssignment {
   readonly characterCanonicalName: string;
+  readonly acquisitionSourcePl: "WYKUPIONA";
   readonly notes: string | null;
   readonly location: ImportSourceLocation;
 }
@@ -79,7 +80,6 @@ export interface NormalizedLegacyIllithidPower {
   readonly nameEn: null;
   readonly tier: null;
   readonly verificationStatus: "UNKNOWN";
-  readonly legacyStatusPl: string;
   readonly pathRequirementPl: string | null;
   readonly prerequisiteNamePl: string | null;
   readonly assignments: readonly NormalizedLegacyIllithidAssignment[];
@@ -348,16 +348,11 @@ function normalizeIllithidPowers(
       nameEn: null,
       tier: null,
       verificationStatus: "UNKNOWN",
-      legacyStatusPl: status,
       pathRequirementPl,
       prerequisiteNamePl,
       assignments: [],
     };
-    if (
-      value.namePl !== namePl ||
-      value.pathRequirementPl !== pathRequirementPl ||
-      value.legacyStatusPl !== status
-    ) {
+    if (value.namePl !== namePl || value.pathRequirementPl !== pathRequirementPl) {
       issues.push(
         capabilityIssue(stage, row, "Moc", "illithid_power", "ILLITHID_POWER_COLLISION", true, {
           key,
@@ -369,6 +364,7 @@ function normalizeIllithidPowers(
     if (status === "WYKUPIONA") {
       const assignment: NormalizedLegacyIllithidAssignment = {
         characterCanonicalName: character.canonicalName,
+        acquisitionSourcePl: "WYKUPIONA",
         notes,
         location: illithidLocation(stage, row, null),
       };

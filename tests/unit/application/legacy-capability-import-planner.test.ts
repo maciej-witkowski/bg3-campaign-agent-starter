@@ -26,7 +26,7 @@ describe("legacy capability import planner", () => {
     expect(materializeSpell(plan.spells[0]!)).toMatchObject({ id: "id-2", level: 1 });
     expect(materializeIllithidPower(plan.illithidPowers[1]!)).toMatchObject({
       id: "id-4",
-      notes: "Status legacy: ZABLOKOWANA\nŚcieżka / wymóg: Za Tunel Mocy",
+      notes: "Ścieżka / wymóg: Za Tunel Mocy",
     });
   });
 
@@ -252,11 +252,15 @@ function campaign(): NormalizedLegacyCampaign {
         nameEn: null,
         tier: null,
         verificationStatus: "UNKNOWN",
-        legacyStatusPl: "WYKUPIONA",
         pathRequirementPl: null,
         prerequisiteNamePl: null,
         assignments: [
-          { characterCanonicalName: "HERO", notes: null, location: location("Moce illithidów", 2) },
+          {
+            characterCanonicalName: "HERO",
+            acquisitionSourcePl: "WYKUPIONA",
+            notes: null,
+            location: location("Moce illithidów", 2),
+          },
         ],
       },
       {
@@ -267,7 +271,6 @@ function campaign(): NormalizedLegacyCampaign {
         nameEn: null,
         tier: null,
         verificationStatus: "UNKNOWN",
-        legacyStatusPl: "ZABLOKOWANA",
         pathRequirementPl: "Za Tunel Mocy",
         prerequisiteNamePl: "Tunel Mocy",
         assignments: [],

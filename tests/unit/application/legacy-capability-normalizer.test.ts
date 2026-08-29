@@ -118,6 +118,32 @@ describe("legacy capability normalization", () => {
     ]);
   });
 
+  it("keeps per-character illithid status out of the shared power definition", () => {
+    const result = normalizeLegacyCapabilities(
+      stage({
+        illithidPowers: [
+          illithidRow({ Postać: "Główny bohater", Status: "WYKUPIONA" }, 2),
+          illithidRow({ Postać: "Towarzysz", Status: "DOSTĘPNA — BRAK KIJANKI" }, 3),
+        ],
+      }),
+      [hero(), companion()],
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.illithidPowers).toEqual([
+      expect.objectContaining({
+        namePl: "Urok",
+        assignments: [
+          expect.objectContaining({
+            characterCanonicalName: "PC_WARLOCK",
+            acquisitionSourcePl: "WYKUPIONA",
+          }),
+        ],
+      }),
+    ]);
+    expect(result.illithidPowers[0]).not.toHaveProperty("legacyStatusPl");
+  });
+
   it("reports unknown closed tokens and excludes their dependent facts", () => {
     const result = normalizeLegacyCapabilities(
       stage({
@@ -240,5 +266,15 @@ function hero(): NormalizedLegacyCharacter {
     attributes: { STR: 8, DEX: 14, CON: 16, INT: 8, WIS: 10, CHA: 20 },
     permanentStrengthModifier: null,
     effectiveStrength: 8,
+  };
+}
+
+function companion(): NormalizedLegacyCharacter {
+  return {
+    ...hero(),
+    sourceKey: "character:COMPANION",
+    source: { profile: LEGACY_TRACKER_PROFILE, sheet: "Postacie", row: 3, field: null },
+    canonicalName: "COMPANION",
+    displayNamePl: "Towarzysz",
   };
 }

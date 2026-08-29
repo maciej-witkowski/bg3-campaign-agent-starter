@@ -217,7 +217,7 @@ export function planLegacyCapabilityImport(
         characterId,
         powerId: resolution.id,
         acquiredAt: null,
-        acquisitionSourcePl: fact.legacyStatusPl,
+        acquisitionSourcePl: assignment.acquisitionSourcePl,
         notes: assignment.notes,
       };
       const current = state.characterIllithidPowers.filter(
@@ -478,13 +478,8 @@ function powerEquals(value: IllithidPower, fact: NormalizedLegacyIllithidPower):
     value.notes === powerNotes(fact)
   );
 }
-function powerNotes(fact: NormalizedLegacyIllithidPower): string {
-  return [
-    `Status legacy: ${fact.legacyStatusPl}`,
-    fact.pathRequirementPl === null ? null : `Ścieżka / wymóg: ${fact.pathRequirementPl}`,
-  ]
-    .filter((value): value is string => value !== null)
-    .join("\n");
+function powerNotes(fact: NormalizedLegacyIllithidPower): string | null {
+  return fact.pathRequirementPl === null ? null : `Ścieżka / wymóg: ${fact.pathRequirementPl}`;
 }
 function characterAbilityEquals(a: CharacterAbility, b: CharacterAbility): boolean {
   return (
