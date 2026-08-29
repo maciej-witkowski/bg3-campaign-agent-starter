@@ -134,6 +134,10 @@ check.
 FKs, nullable `acquired_at`, `acquisition_source_pl`, and `notes`. Missing
 acquisition metadata remains unknown; prerequisites are not inferred.
 
+During M2 legacy import, `WYKUPIONA` is preserved as assignment acquisition source.
+Availability and blocked statuses do not become definition identity or definition
+notes because they describe a character's tracker row rather than the shared power.
+
 ### change_events
 
 Columns: `id` PK, `occurred_at`, required `type`, nullable `character_id` FK

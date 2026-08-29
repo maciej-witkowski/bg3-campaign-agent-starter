@@ -9,6 +9,7 @@
 - Hardened issued import plans against copying or mutation, classified conflicting pending capability assignments before persistence and separated canonical-export XLSX limits from legacy-tracker limits.
 - Preserved per-row source locations for capability-assignment reconciliation, matched illithid prerequisites by their composite identity and normalized sold inventory as ownerless.
 - Reconciled equipment against both persisted and pending slot occupants, removed dependent new equipped inventory when its assignment is skipped and hardened issued-plan integrity against serialization hooks.
+- Rejected ambiguous duplicate character display names before reference resolution and separated per-character illithid status from shared power-definition identity.
 - Added versioned current-state JSON and normalized XLSX exports with literal campaign text, strict validation, SHA-256 integrity and verified atomic publication.
 - Added stable-ID JSON/XLSX round-trip import into empty databases, idempotent re-import and refusal to overwrite a different non-empty campaign.
 - Added a private real-tracker acceptance harness and database review report covering integrity, collection counts, character statistics, equipment, travel-chest contents and unresolved issues.

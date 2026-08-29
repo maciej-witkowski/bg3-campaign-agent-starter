@@ -102,7 +102,9 @@ ambiguous reconciliation entry.
 Matching is entity-specific:
 
 - Character identity uses the exact non-empty legacy `ID` as `canonical_name`; the
-  Polish `Postać` cell becomes exact `display_name_pl`.
+  Polish `Postać` cell becomes exact `display_name_pl`. Two different IDs may not
+  share one display name in a single import: such input is a blocking ambiguity before
+  any owner or capability reference is resolved.
 - Item definitions use a deterministic fingerprint over the exact material source
   facts: preserved Polish name, mapped definition slot/type, nullable rarity,
   verification status and ordered imported effect text. A fingerprint is a matching
@@ -113,6 +115,10 @@ Matching is entity-specific:
   More than one database candidate is ambiguous.
 - Character assignments match their existing composite identities, including the
   exact mapped source.
+- An illithid power status belongs to its character row, not to the shared power
+  definition. `WYKUPIONA` creates an assignment with preserved acquisition source;
+  available and blocked rows may still establish the named definition without
+  colliding with another character's status.
 - For this legacy tracker, one `Przedmioty` row denotes one catalog definition and one
   inventory record unless explicit quantity data is present. The current workbook has
   188 distinct item names and no quantity column. A second same-definition row may be
@@ -277,3 +283,6 @@ review.
 - 2026-08-29 — Compared equipment conflicts with both persisted and pending slot
   assignments; resolving a collision by retaining or skipping the occupant now also
   removes any dependent newly planned `EQUIPPED` inventory row.
+- 2026-08-29 — Rejected duplicate character display names before reference lookup and
+  moved legacy illithid status from shared definition identity to acquired-character
+  assignment semantics.
