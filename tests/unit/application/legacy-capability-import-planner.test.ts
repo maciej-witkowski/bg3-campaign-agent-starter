@@ -75,6 +75,34 @@ describe("legacy capability import planner", () => {
       }),
     );
   });
+
+  it("reports conflicting assignments within the pending plan before persistence", () => {
+    const source = campaign();
+    const spell = source.spells[0]!;
+    const conflicting: NormalizedLegacyCampaign = {
+      ...source,
+      spells: [
+        {
+          ...spell,
+          assignments: [
+            spell.assignments[0]!,
+            { ...spell.assignments[0]!, prepared: true, notes: "inna wersja" },
+          ],
+        },
+      ],
+    };
+
+    const plan = planLegacyCapabilityImport(conflicting, emptyState(), characterPlan(), ids());
+    expect(plan.blocked).toBe(true);
+    expect(plan.characterSpells).toHaveLength(1);
+    expect(plan.entries).toContainEqual(
+      expect.objectContaining({
+        entityKind: "character_spell",
+        category: "conflicts",
+        reasonCode: "CAPABILITY_ASSIGNMENT_FACT_CONFLICT",
+      }),
+    );
+  });
 });
 
 function campaign(): NormalizedLegacyCampaign {

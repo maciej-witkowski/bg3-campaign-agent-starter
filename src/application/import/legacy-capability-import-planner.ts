@@ -104,6 +104,7 @@ export function planLegacyCapabilityImport(
         current,
         characterAbilities,
         characterAbilityEquals,
+        characterAbilityIdentityEquals,
         "character_ability",
         entries,
         decisions,
@@ -157,6 +158,7 @@ export function planLegacyCapabilityImport(
         current,
         characterSpells,
         characterSpellEquals,
+        characterSpellIdentityEquals,
         "character_spell",
         entries,
         decisions,
@@ -212,6 +214,7 @@ export function planLegacyCapabilityImport(
         current,
         characterPowers,
         characterPowerEquals,
+        characterPowerIdentityEquals,
         "character_illithid_power",
         entries,
         decisions,
@@ -241,6 +244,7 @@ export function planLegacyCapabilityImport(
       current,
       prerequisites,
       prerequisiteEquals,
+      prerequisiteIdentityEquals,
       "illithid_prerequisite",
       entries,
       decisions,
@@ -336,14 +340,16 @@ function classifyAssignment<F extends DefinitionFact, V>(
   current: readonly V[],
   target: V[],
   equals: (left: V, right: V) => boolean,
+  identityEquals: (left: V, right: V) => boolean,
   kind: ImportReportEntry["entityKind"],
   entries: ImportReportEntry[],
   decisions?: ImportPlanningDecisions,
 ): void {
-  if (current.length === 0) {
+  const candidates = [...current, ...target.filter((value) => identityEquals(value, desired))];
+  if (candidates.length === 0) {
     target.push(desired);
     entries.push(entry(fact, kind, "inserted", "CAPABILITY_ASSIGNMENT_INSERT_PLANNED", null));
-  } else if (current.length === 1 && equals(current[0]!, desired))
+  } else if (candidates.length === 1 && equals(candidates[0]!, desired))
     entries.push(entry(fact, kind, "matched", "CAPABILITY_ASSIGNMENT_EXACT_MATCH", null));
   else {
     const decision = findPlanningDecision(
@@ -461,6 +467,9 @@ function characterAbilityEquals(a: CharacterAbility, b: CharacterAbility): boole
     a.notes === b.notes
   );
 }
+function characterAbilityIdentityEquals(a: CharacterAbility, b: CharacterAbility): boolean {
+  return a.characterId === b.characterId && a.abilityId === b.abilityId && a.source === b.source;
+}
 function characterSpellEquals(a: CharacterSpell, b: CharacterSpell): boolean {
   return (
     a.characterId === b.characterId &&
@@ -472,6 +481,9 @@ function characterSpellEquals(a: CharacterSpell, b: CharacterSpell): boolean {
     a.notes === b.notes
   );
 }
+function characterSpellIdentityEquals(a: CharacterSpell, b: CharacterSpell): boolean {
+  return a.characterId === b.characterId && a.spellId === b.spellId && a.source === b.source;
+}
 function characterPowerEquals(a: CharacterIllithidPower, b: CharacterIllithidPower): boolean {
   return (
     a.characterId === b.characterId &&
@@ -481,8 +493,20 @@ function characterPowerEquals(a: CharacterIllithidPower, b: CharacterIllithidPow
     a.notes === b.notes
   );
 }
+function characterPowerIdentityEquals(
+  a: CharacterIllithidPower,
+  b: CharacterIllithidPower,
+): boolean {
+  return a.characterId === b.characterId && a.powerId === b.powerId;
+}
 function prerequisiteEquals(a: IllithidPowerPrerequisite, b: IllithidPowerPrerequisite): boolean {
   return a.powerId === b.powerId && a.prerequisitePowerId === b.prerequisitePowerId;
+}
+function prerequisiteIdentityEquals(
+  a: IllithidPowerPrerequisite,
+  b: IllithidPowerPrerequisite,
+): boolean {
+  return a.powerId === b.powerId;
 }
 function entry(
   fact: DefinitionFact,
