@@ -38,6 +38,7 @@ import {
   type ImportReport,
   type ImportReportEntry,
 } from "./import-contracts.js";
+import { freezeIssuedPlan, issuedPlanDigest } from "./issued-plan.js";
 import {
   planningDecisionKey,
   reconciliationIssueIdentity,
@@ -101,8 +102,9 @@ export class CampaignImportService {
       reconciliation,
       blocked: characters.blocked || items.blocked || capabilities.blocked,
     };
-    this.issuedPlanDigests.set(plan, importPlanDigest(plan));
-    return plan;
+    const issuedPlan = freezeIssuedPlan(plan);
+    this.issuedPlanDigests.set(issuedPlan, issuedPlanDigest(issuedPlan));
+    return issuedPlan;
   }
 
   public applyImport(plan: CampaignImportPlan): CampaignImportApplyResult {
@@ -158,22 +160,11 @@ export class CampaignImportService {
 
   private assertIssuedPlan(plan: CampaignImportPlan): void {
     const expectedDigest = this.issuedPlanDigests.get(plan);
-    if (expectedDigest === undefined || expectedDigest !== importPlanDigest(plan))
+    if (expectedDigest === undefined || expectedDigest !== issuedPlanDigest(plan))
       throw new CampaignDomainError(
         "Plan importu nie został wydany przez tę usługę albo został zmodyfikowany.",
       );
   }
-}
-
-function importPlanDigest(plan: CampaignImportPlan): string {
-  return createHash("sha256")
-    .update(
-      JSON.stringify(plan, (_key, value: unknown) =>
-        value instanceof Map ? [...value.entries()] : value,
-      ),
-      "utf8",
-    )
-    .digest("hex");
 }
 
 function createPlans(

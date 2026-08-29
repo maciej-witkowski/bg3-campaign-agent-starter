@@ -94,6 +94,7 @@ describe("current-state import service", () => {
     const plan = service.planImport(campaignExport);
 
     expect(() => service.applyImport({ ...plan })).toThrow(/nie został wydany/u);
+    expect(() => Object.assign(plan.campaignExport, { toJSON: () => ({}) })).toThrow();
     expect(eventCount(targetConnection)).toBe(0);
   });
 });

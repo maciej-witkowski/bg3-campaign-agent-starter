@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import type { CampaignExportSourcePort } from "../export/campaign-export-service.js";
 import {
   createCampaignExport,
@@ -12,6 +10,7 @@ import {
   type CampaignMutationResult,
 } from "../../domain/mutations/campaign-mutation.js";
 import type { CampaignImportState } from "./campaign-import-state.js";
+import { freezeIssuedPlan, issuedPlanDigest } from "./issued-plan.js";
 
 export interface CurrentStateImportPlan {
   readonly campaignExport: CampaignExportV1;
@@ -39,8 +38,9 @@ export class CurrentStateImportService {
       changed: currentIsEmpty && !identical,
       blocked: !currentIsEmpty && !identical,
     };
-    this.issuedPlanDigests.set(plan, currentStatePlanDigest(plan));
-    return plan;
+    const issuedPlan = freezeIssuedPlan(plan);
+    this.issuedPlanDigests.set(issuedPlan, issuedPlanDigest(issuedPlan));
+    return issuedPlan;
   }
 
   public applyImport(plan: CurrentStateImportPlan): CampaignMutationResult {
@@ -92,15 +92,11 @@ export class CurrentStateImportService {
 
   private assertIssuedPlan(plan: CurrentStateImportPlan): void {
     const expectedDigest = this.issuedPlanDigests.get(plan);
-    if (expectedDigest === undefined || expectedDigest !== currentStatePlanDigest(plan))
+    if (expectedDigest === undefined || expectedDigest !== issuedPlanDigest(plan))
       throw new CampaignDomainError(
         "Plan importu nie został wydany przez tę usługę albo został zmodyfikowany.",
       );
   }
-}
-
-function currentStatePlanDigest(plan: CurrentStateImportPlan): string {
-  return createHash("sha256").update(JSON.stringify(plan), "utf8").digest("hex");
 }
 
 function currentExport(source: CampaignExportSourcePort, instant: string): CampaignExportV1 {
