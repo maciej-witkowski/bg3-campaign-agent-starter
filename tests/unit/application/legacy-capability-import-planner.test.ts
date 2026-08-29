@@ -86,7 +86,12 @@ describe("legacy capability import planner", () => {
           ...spell,
           assignments: [
             spell.assignments[0]!,
-            { ...spell.assignments[0]!, prepared: true, notes: "inna wersja" },
+            {
+              ...spell.assignments[0]!,
+              prepared: true,
+              notes: "inna wersja",
+              location: { ...spell.assignments[0]!.location, row: 3 },
+            },
           ],
         },
       ],
@@ -100,6 +105,37 @@ describe("legacy capability import planner", () => {
         entityKind: "character_spell",
         category: "conflicts",
         reasonCode: "CAPABILITY_ASSIGNMENT_FACT_CONFLICT",
+        source: expect.objectContaining({ sheet: "Czary", row: 3 }),
+      }),
+    );
+  });
+
+  it("matches one prerequisite relation without conflicting with another relation", () => {
+    const source = campaign();
+    const first = planLegacyCapabilityImport(source, emptyState(), characterPlan(), ids());
+    const exact = first.illithidPrerequisites[0]!;
+    const state: CampaignImportState = {
+      ...emptyState(),
+      abilities: first.abilities.map(materializeAbility),
+      characterAbilities: first.characterAbilities,
+      spells: first.spells.map(materializeSpell),
+      characterSpells: first.characterSpells,
+      illithidPowers: first.illithidPowers.map(materializeIllithidPower),
+      illithidPowerPrerequisites: [
+        exact,
+        { powerId: exact.powerId, prerequisitePowerId: "another-prerequisite" },
+      ],
+      characterIllithidPowers: first.characterIllithidPowers,
+    };
+
+    const plan = planLegacyCapabilityImport(source, state, characterPlan(), ids());
+    expect(plan.blocked).toBe(false);
+    expect(plan.illithidPrerequisites).toEqual([]);
+    expect(plan.entries).toContainEqual(
+      expect.objectContaining({
+        entityKind: "illithid_prerequisite",
+        category: "matched",
+        reasonCode: "CAPABILITY_ASSIGNMENT_EXACT_MATCH",
       }),
     );
   });

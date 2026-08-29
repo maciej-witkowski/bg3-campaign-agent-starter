@@ -9,7 +9,7 @@ import type {
 } from "../../domain/model/campaign.js";
 import type { IdSource } from "../../domain/mutations/campaign-mutation.js";
 import type { CampaignImportState } from "./campaign-import-state.js";
-import type { ImportReportEntry } from "./import-contracts.js";
+import type { ImportReportEntry, ImportSourceLocation } from "./import-contracts.js";
 import type {
   NormalizedLegacyAbility,
   NormalizedLegacyIllithidPower,
@@ -81,7 +81,13 @@ export function planLegacyCapabilityImport(
       );
       if (characterId === undefined) {
         entries.push(
-          dependencyEntry(fact, "character_ability", "CHARACTER_DEPENDENCY_MISSING", decisions),
+          dependencyEntry(
+            fact,
+            assignment.location,
+            "character_ability",
+            "CHARACTER_DEPENDENCY_MISSING",
+            decisions,
+          ),
         );
         continue;
       }
@@ -105,6 +111,7 @@ export function planLegacyCapabilityImport(
         characterAbilities,
         characterAbilityEquals,
         characterAbilityIdentityEquals,
+        assignment.location,
         "character_ability",
         entries,
         decisions,
@@ -133,7 +140,13 @@ export function planLegacyCapabilityImport(
       );
       if (characterId === undefined) {
         entries.push(
-          dependencyEntry(fact, "character_spell", "CHARACTER_DEPENDENCY_MISSING", decisions),
+          dependencyEntry(
+            fact,
+            assignment.location,
+            "character_spell",
+            "CHARACTER_DEPENDENCY_MISSING",
+            decisions,
+          ),
         );
         continue;
       }
@@ -159,6 +172,7 @@ export function planLegacyCapabilityImport(
         characterSpells,
         characterSpellEquals,
         characterSpellIdentityEquals,
+        assignment.location,
         "character_spell",
         entries,
         decisions,
@@ -191,6 +205,7 @@ export function planLegacyCapabilityImport(
         entries.push(
           dependencyEntry(
             fact,
+            assignment.location,
             "character_illithid_power",
             "CHARACTER_DEPENDENCY_MISSING",
             decisions,
@@ -215,6 +230,7 @@ export function planLegacyCapabilityImport(
         characterPowers,
         characterPowerEquals,
         characterPowerIdentityEquals,
+        assignment.location,
         "character_illithid_power",
         entries,
         decisions,
@@ -229,6 +245,7 @@ export function planLegacyCapabilityImport(
       entries.push(
         dependencyEntry(
           fact,
+          fact.source,
           "illithid_prerequisite",
           "PREREQUISITE_DEPENDENCY_MISSING",
           decisions,
@@ -237,7 +254,9 @@ export function planLegacyCapabilityImport(
       continue;
     }
     const desired = { powerId, prerequisitePowerId };
-    const current = state.illithidPowerPrerequisites.filter((value) => value.powerId === powerId);
+    const current = state.illithidPowerPrerequisites.filter(
+      (value) => value.powerId === powerId && value.prerequisitePowerId === prerequisitePowerId,
+    );
     classifyAssignment(
       fact,
       desired,
@@ -245,6 +264,7 @@ export function planLegacyCapabilityImport(
       prerequisites,
       prerequisiteEquals,
       prerequisiteIdentityEquals,
+      fact.source,
       "illithid_prerequisite",
       entries,
       decisions,
@@ -341,6 +361,7 @@ function classifyAssignment<F extends DefinitionFact, V>(
   target: V[],
   equals: (left: V, right: V) => boolean,
   identityEquals: (left: V, right: V) => boolean,
+  source: ImportSourceLocation,
   kind: ImportReportEntry["entityKind"],
   entries: ImportReportEntry[],
   decisions?: ImportPlanningDecisions,
@@ -348,34 +369,41 @@ function classifyAssignment<F extends DefinitionFact, V>(
   const candidates = [...current, ...target.filter((value) => identityEquals(value, desired))];
   if (candidates.length === 0) {
     target.push(desired);
-    entries.push(entry(fact, kind, "inserted", "CAPABILITY_ASSIGNMENT_INSERT_PLANNED", null));
+    entries.push(
+      entry(fact, kind, "inserted", "CAPABILITY_ASSIGNMENT_INSERT_PLANNED", null, false, source),
+    );
   } else if (candidates.length === 1 && equals(candidates[0]!, desired))
-    entries.push(entry(fact, kind, "matched", "CAPABILITY_ASSIGNMENT_EXACT_MATCH", null));
+    entries.push(
+      entry(fact, kind, "matched", "CAPABILITY_ASSIGNMENT_EXACT_MATCH", null, false, source),
+    );
   else {
     const decision = findPlanningDecision(
       decisions,
       kind,
-      fact.source,
+      source,
       "CAPABILITY_ASSIGNMENT_FACT_CONFLICT",
     );
     if (decision?.action === "skip") {
-      entries.push(entry(fact, kind, "skipped", "RECONCILED_SKIP", null));
+      entries.push(entry(fact, kind, "skipped", "RECONCILED_SKIP", null, false, source));
       return;
     }
-    entries.push(entry(fact, kind, "conflicts", "CAPABILITY_ASSIGNMENT_FACT_CONFLICT", null, true));
+    entries.push(
+      entry(fact, kind, "conflicts", "CAPABILITY_ASSIGNMENT_FACT_CONFLICT", null, true, source),
+    );
   }
 }
 
 function dependencyEntry(
   fact: DefinitionFact,
+  source: ImportSourceLocation,
   kind: ImportReportEntry["entityKind"],
   reasonCode: "CHARACTER_DEPENDENCY_MISSING" | "PREREQUISITE_DEPENDENCY_MISSING",
   decisions?: ImportPlanningDecisions,
 ): ImportReportEntry {
-  const decision = findPlanningDecision(decisions, kind, fact.source, reasonCode);
+  const decision = findPlanningDecision(decisions, kind, source, reasonCode);
   return decision?.action === "skip"
-    ? entry(fact, kind, "skipped", "RECONCILED_SKIP", null)
-    : entry(fact, kind, "ambiguous", reasonCode, null);
+    ? entry(fact, kind, "skipped", "RECONCILED_SKIP", null, false, source)
+    : entry(fact, kind, "ambiguous", reasonCode, null, false, source);
 }
 
 export function materializeAbility(value: PlannedAbilityInsert): Ability {
@@ -506,7 +534,7 @@ function prerequisiteIdentityEquals(
   a: IllithidPowerPrerequisite,
   b: IllithidPowerPrerequisite,
 ): boolean {
-  return a.powerId === b.powerId;
+  return a.powerId === b.powerId && a.prerequisitePowerId === b.prerequisitePowerId;
 }
 function entry(
   fact: DefinitionFact,
@@ -515,11 +543,12 @@ function entry(
   reasonCode: string,
   canonicalEntityId: string | null,
   blocking = false,
+  source: ImportSourceLocation = fact.source,
 ): ImportReportEntry {
   return {
     category,
     entityKind,
-    source: fact.source,
+    source,
     sourceKey: fact.sourceKey,
     reasonCode,
     messagePl: messages[reasonCode] ?? "Fakt zdolności został sklasyfikowany.",
