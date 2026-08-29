@@ -32,7 +32,17 @@ import {
   planLegacyItemImport,
   type LegacyItemImportPlan,
 } from "./legacy-item-import-planner.js";
-import type { ImportReconciliation, ImportReport, ImportReportEntry } from "./import-contracts.js";
+import {
+  parseImportReconciliation,
+  type ImportReconciliation,
+  type ImportReport,
+  type ImportReportEntry,
+} from "./import-contracts.js";
+import {
+  planningDecisionKey,
+  reconciliationIssueIdentity,
+  type ImportPlanningDecisions,
+} from "./reconciliation-decisions.js";
 
 export interface CampaignImportPlan {
   readonly campaign: NormalizedLegacyCampaign;
@@ -54,17 +64,31 @@ export class CampaignImportService {
     private readonly ids: IdSource,
   ) {}
 
-  public planImport(campaign: NormalizedLegacyCampaign): CampaignImportPlan {
+  public planImport(
+    campaign: NormalizedLegacyCampaign,
+    reconciliationInput?: unknown,
+  ): CampaignImportPlan {
     const state = this.stateReader.readImportState();
-    const characters = planLegacyCharacterImport(campaign, state, this.ids);
-    const items = planLegacyItemImport(campaign, state, characters, this.ids);
-    const capabilities = planLegacyCapabilityImport(campaign, state, characters, this.ids);
+    const base = createPlans(campaign, state, this.ids);
+    const baseReport = mergeReport(campaign, [
+      ...base.characters.entries,
+      ...base.items.entries,
+      ...base.capabilities.entries,
+    ]);
+    const generatedReconciliation = mergeReconciliation(campaign, baseReport.entries);
+    const reconciliation =
+      reconciliationInput === undefined
+        ? generatedReconciliation
+        : validateReconciliation(campaign, generatedReconciliation, reconciliationInput);
+    const decisions = createPlanningDecisions(campaign, generatedReconciliation, reconciliation);
+    const { characters, items, capabilities } =
+      decisions.size === 0 ? base : createPlans(campaign, state, this.ids, decisions);
     const report = mergeReport(campaign, [
       ...characters.entries,
       ...items.entries,
       ...capabilities.entries,
     ]);
-    const reconciliation = mergeReconciliation(campaign, report.entries);
+    assertPlanningDecisionsApplied(campaign, reconciliation, report.entries);
     return {
       campaign,
       stateSha256: stateDigest(state),
@@ -125,6 +149,110 @@ export class CampaignImportService {
   private assertCurrentState(expectedSha256: string): void {
     if (stateDigest(this.stateReader.readImportState()) !== expectedSha256)
       throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
+  }
+}
+
+function createPlans(
+  campaign: NormalizedLegacyCampaign,
+  state: CampaignImportState,
+  ids: IdSource,
+  decisions?: ImportPlanningDecisions,
+): Pick<CampaignImportPlan, "characters" | "items" | "capabilities"> {
+  const characters = planLegacyCharacterImport(campaign, state, ids, decisions);
+  const items = planLegacyItemImport(campaign, state, characters, ids, decisions);
+  const capabilities = planLegacyCapabilityImport(campaign, state, characters, ids, decisions);
+  return { characters, items, capabilities };
+}
+
+function validateReconciliation(
+  campaign: NormalizedLegacyCampaign,
+  generated: ImportReconciliation,
+  input: unknown,
+): ImportReconciliation {
+  const reconciliation = parseImportReconciliation(input);
+  if (
+    reconciliation.workbookProfile !== campaign.workbookProfile ||
+    reconciliation.workbookSha256 !== campaign.workbookSha256
+  )
+    throw new CampaignDomainError(
+      "Dokument rekonsyliacji nie dotyczy tego profilu i skrótu skoroszytu.",
+    );
+
+  const expected = new Map(
+    [...(campaign.appliedReconciliationIssues ?? []), ...generated.issues].map((issue) => [
+      issue.issueId,
+      issue,
+    ]),
+  );
+  if (reconciliation.issues.length !== expected.size)
+    throw new CampaignDomainError("Dokument rekonsyliacji ma niepełny lub obcy zestaw problemów.");
+  for (const issue of reconciliation.issues) {
+    const expectedIssue = expected.get(issue.issueId);
+    if (
+      expectedIssue === undefined ||
+      reconciliationIssueIdentity(issue) !== reconciliationIssueIdentity(expectedIssue)
+    )
+      throw new CampaignDomainError(
+        "Problem rekonsyliacji nie odpowiada bieżącemu planowi importu.",
+      );
+  }
+  return reconciliation;
+}
+
+function createPlanningDecisions(
+  campaign: NormalizedLegacyCampaign,
+  generated: ImportReconciliation,
+  reconciliation: ImportReconciliation,
+): Map<string, NonNullable<ImportReconciliation["issues"][number]["resolution"]>> {
+  const normalizationIssueIds = new Set([
+    ...campaign.issues.map((issue) => issue.issueId),
+    ...(campaign.appliedReconciliationIssues ?? []).map((issue) => issue.issueId),
+  ]);
+  const generatedIds = new Set(generated.issues.map((issue) => issue.issueId));
+  const decisions = new Map<
+    string,
+    NonNullable<ImportReconciliation["issues"][number]["resolution"]>
+  >();
+  for (const issue of reconciliation.issues) {
+    if (issue.resolution === null || normalizationIssueIds.has(issue.issueId)) continue;
+    if (!generatedIds.has(issue.issueId))
+      throw new CampaignDomainError("Decyzja rekonsyliacji nie dotyczy bieżącego planu.");
+    if (
+      issue.resolution.action === "provide_canonical_value" ||
+      issue.resolution.action === "attest_verified_alias"
+    )
+      throw new CampaignDomainError(
+        `Akcja ${issue.resolution.action} nie może rozstrzygnąć konfliktu planowania.`,
+      );
+    decisions.set(
+      planningDecisionKey(issue.entityKind, issue.source, issue.reasonCode),
+      issue.resolution,
+    );
+  }
+  return decisions;
+}
+
+function assertPlanningDecisionsApplied(
+  campaign: NormalizedLegacyCampaign,
+  reconciliation: ImportReconciliation,
+  entries: readonly ImportReportEntry[],
+): void {
+  const normalizationIssueIds = new Set([
+    ...campaign.issues.map((issue) => issue.issueId),
+    ...(campaign.appliedReconciliationIssues ?? []).map((issue) => issue.issueId),
+  ]);
+  for (const issue of reconciliation.issues) {
+    if (issue.resolution === null || normalizationIssueIds.has(issue.issueId)) continue;
+    const unresolved = entries.some(
+      (entry) =>
+        (entry.category === "ambiguous" || entry.category === "conflicts") &&
+        planningDecisionKey(entry.entityKind, entry.source, entry.reasonCode) ===
+          planningDecisionKey(issue.entityKind, issue.source, issue.reasonCode),
+    );
+    if (unresolved)
+      throw new CampaignDomainError(
+        `Akcja ${issue.resolution.action} nie rozstrzyga problemu ${issue.reasonCode}.`,
+      );
   }
 }
 

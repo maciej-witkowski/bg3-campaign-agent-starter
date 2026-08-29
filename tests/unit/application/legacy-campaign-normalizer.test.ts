@@ -9,8 +9,11 @@ import {
 import { parseImportReconciliation } from "../../../src/application/import/import-contracts.js";
 import {
   LEGACY_CHANGE_LOG_HEADERS,
+  LEGACY_ITEM_HEADERS,
   LEGACY_TRACKER_PROFILE,
   type LegacyChangeLogRow,
+  type LegacyItemRow,
+  type LegacyScalar,
   type LegacyTrackerStage,
 } from "../../../src/application/import/legacy-tracker-stage.js";
 
@@ -78,19 +81,82 @@ describe("legacy campaign normalization aggregate", () => {
       ],
     });
   });
+
+  it("applies canonical-value and verified-alias decisions to the staged source", () => {
+    const source = stage([], [itemRow({ Status: "NIEZNANY", "Alias EN": "Astral Sword" })]);
+    const initial = normalizeLegacyCampaign(source);
+    const document = createNormalizationReconciliation(initial);
+    const reconciled = {
+      ...document,
+      issues: document.issues.map((issue) => ({
+        ...issue,
+        resolution:
+          issue.reasonCode === "ITEM_STATUS_UNKNOWN"
+            ? ({ action: "provide_canonical_value", value: "SKRZYNIA" } as const)
+            : issue.reasonCode === "ENGLISH_ALIAS_UNATTESTED"
+              ? ({ action: "attest_verified_alias", aliasEn: "Astral Sword" } as const)
+              : null,
+      })),
+    };
+
+    const campaign = normalizeLegacyCampaign(source, reconciled);
+    expect(campaign.issues).toEqual([]);
+    expect(campaign.items).toHaveLength(1);
+    expect(campaign.items[0]).toMatchObject({
+      nameEn: "Astral Sword",
+      unresolvedAliasEn: null,
+      placement: { status: "CHEST" },
+    });
+    expect(campaign.appliedReconciliationIssues).toHaveLength(2);
+    expect(createNormalizationReport(campaign).entries).toEqual(
+      expect.arrayContaining([expect.objectContaining({ reasonCode: "RECONCILIATION_APPLIED" })]),
+    );
+  });
 });
 
-function stage(legacyChangeLog: readonly LegacyChangeLogRow[]): LegacyTrackerStage {
+function stage(
+  legacyChangeLog: readonly LegacyChangeLogRow[],
+  items: readonly LegacyItemRow[] = [],
+): LegacyTrackerStage {
   return {
     profile: LEGACY_TRACKER_PROFILE,
     workbookSha256: "d".repeat(64),
     characters: [],
     equipment: [],
-    items: [],
+    items,
     abilities: [],
     spells: [],
     illithidPowers: [],
     legacyChangeLog,
+  };
+}
+
+function itemRow(
+  overrides: Partial<Record<(typeof LEGACY_ITEM_HEADERS)[number], LegacyScalar>> = {},
+): LegacyItemRow {
+  const values: Record<(typeof LEGACY_ITEM_HEADERS)[number], LegacyScalar> = {
+    "Nazwa PL": "Miecz Astralny",
+    "Alias EN": null,
+    Kategoria: "Broń",
+    Rzadkość: null,
+    Status: "SKRZYNIA",
+    "Lokalizacja / właściciel": "Skrzynia podróżna",
+    Slot: null,
+    "Efekt / mechanika": null,
+    "Weryfikacja efektu": "POTWIERDZONE W GRZE",
+    "Tagi synergii": null,
+    Uwagi: null,
+    ...overrides,
+  };
+  return {
+    sheet: "Przedmioty",
+    row: 2,
+    cells: Object.fromEntries(
+      LEGACY_ITEM_HEADERS.map((header, index) => [
+        header,
+        { value: values[header], formula: null, column: index + 1 },
+      ]),
+    ) as unknown as LegacyItemRow["cells"],
   };
 }
 

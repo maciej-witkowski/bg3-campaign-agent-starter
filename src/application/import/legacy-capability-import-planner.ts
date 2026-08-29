@@ -18,6 +18,7 @@ import type {
 import type { NormalizedLegacyCampaign } from "./legacy-campaign-normalizer.js";
 import type { LegacyCharacterImportPlan } from "./legacy-character-import-planner.js";
 import { normalizePolishMatchingKey } from "./legacy-normalization.js";
+import { findPlanningDecision, type ImportPlanningDecisions } from "./reconciliation-decisions.js";
 
 export interface PlannedAbilityInsert {
   readonly id: string;
@@ -48,6 +49,7 @@ export function planLegacyCapabilityImport(
   state: CampaignImportState,
   characters: LegacyCharacterImportPlan,
   ids: IdSource,
+  decisions?: ImportPlanningDecisions,
 ): LegacyCapabilityImportPlan {
   const abilities: PlannedAbilityInsert[] = [];
   const characterAbilities: CharacterAbility[] = [];
@@ -62,7 +64,15 @@ export function planLegacyCapabilityImport(
     const candidates = state.abilities.filter(
       (value) => value.normalizedNamePl === fact.normalizedNamePl && value.type === fact.type,
     );
-    const resolution = resolveDefinition(fact, candidates, ids, abilityEquals, "ability", entries);
+    const resolution = resolveDefinition(
+      fact,
+      candidates,
+      ids,
+      abilityEquals,
+      "ability",
+      entries,
+      decisions,
+    );
     if (resolution === null) continue;
     if (resolution.inserted) abilities.push({ id: resolution.id, fact });
     for (const assignment of fact.assignments) {
@@ -71,7 +81,7 @@ export function planLegacyCapabilityImport(
       );
       if (characterId === undefined) {
         entries.push(
-          entry(fact, "character_ability", "ambiguous", "CHARACTER_DEPENDENCY_MISSING", null),
+          dependencyEntry(fact, "character_ability", "CHARACTER_DEPENDENCY_MISSING", decisions),
         );
         continue;
       }
@@ -96,6 +106,7 @@ export function planLegacyCapabilityImport(
         characterAbilityEquals,
         "character_ability",
         entries,
+        decisions,
       );
     }
   }
@@ -104,7 +115,15 @@ export function planLegacyCapabilityImport(
     const candidates = state.spells.filter(
       (value) => value.normalizedNamePl === fact.normalizedNamePl && value.level === fact.level,
     );
-    const resolution = resolveDefinition(fact, candidates, ids, spellEquals, "spell", entries);
+    const resolution = resolveDefinition(
+      fact,
+      candidates,
+      ids,
+      spellEquals,
+      "spell",
+      entries,
+      decisions,
+    );
     if (resolution === null) continue;
     if (resolution.inserted) spells.push({ id: resolution.id, fact });
     for (const assignment of fact.assignments) {
@@ -113,7 +132,7 @@ export function planLegacyCapabilityImport(
       );
       if (characterId === undefined) {
         entries.push(
-          entry(fact, "character_spell", "ambiguous", "CHARACTER_DEPENDENCY_MISSING", null),
+          dependencyEntry(fact, "character_spell", "CHARACTER_DEPENDENCY_MISSING", decisions),
         );
         continue;
       }
@@ -140,6 +159,7 @@ export function planLegacyCapabilityImport(
         characterSpellEquals,
         "character_spell",
         entries,
+        decisions,
       );
     }
   }
@@ -156,6 +176,7 @@ export function planLegacyCapabilityImport(
       powerEquals,
       "illithid_power",
       entries,
+      decisions,
     );
     if (resolution === null) continue;
     powerIds.set(fact.normalizedNamePl, resolution.id);
@@ -166,12 +187,11 @@ export function planLegacyCapabilityImport(
       );
       if (characterId === undefined) {
         entries.push(
-          entry(
+          dependencyEntry(
             fact,
             "character_illithid_power",
-            "ambiguous",
             "CHARACTER_DEPENDENCY_MISSING",
-            null,
+            decisions,
           ),
         );
         continue;
@@ -194,6 +214,7 @@ export function planLegacyCapabilityImport(
         characterPowerEquals,
         "character_illithid_power",
         entries,
+        decisions,
       );
     }
   }
@@ -203,7 +224,12 @@ export function planLegacyCapabilityImport(
     const prerequisitePowerId = powerIds.get(normalizePolishMatchingKey(fact.prerequisiteNamePl));
     if (powerId === undefined || prerequisitePowerId === undefined) {
       entries.push(
-        entry(fact, "illithid_prerequisite", "ambiguous", "PREREQUISITE_DEPENDENCY_MISSING", null),
+        dependencyEntry(
+          fact,
+          "illithid_prerequisite",
+          "PREREQUISITE_DEPENDENCY_MISSING",
+          decisions,
+        ),
       );
       continue;
     }
@@ -217,6 +243,7 @@ export function planLegacyCapabilityImport(
       prerequisiteEquals,
       "illithid_prerequisite",
       entries,
+      decisions,
     );
   }
 
@@ -243,6 +270,7 @@ function resolveDefinition<F extends DefinitionFact, D extends Definition>(
   equals: (value: D, fact: F) => boolean,
   kind: "ability" | "spell" | "illithid_power",
   entries: ImportReportEntry[],
+  decisions?: ImportPlanningDecisions,
 ): { readonly id: string; readonly inserted: boolean } | null {
   if (candidates.length === 0) {
     const id = ids.nextId();
@@ -250,6 +278,27 @@ function resolveDefinition<F extends DefinitionFact, D extends Definition>(
     return { id, inserted: true };
   }
   if (candidates.length > 1) {
+    const decision = findPlanningDecision(
+      decisions,
+      kind,
+      fact.source,
+      "CAPABILITY_DEFINITION_AMBIGUOUS",
+    );
+    if (decision?.action === "select_existing") {
+      entries.push(
+        entry(fact, kind, "matched", "RECONCILED_SELECT_EXISTING", decision.canonicalEntityId),
+      );
+      return { id: decision.canonicalEntityId, inserted: false };
+    }
+    if (decision?.action === "treat_as_new") {
+      const id = ids.nextId();
+      entries.push(entry(fact, kind, "inserted", "RECONCILED_TREAT_AS_NEW", id));
+      return { id, inserted: true };
+    }
+    if (decision?.action === "skip") {
+      entries.push(entry(fact, kind, "skipped", "RECONCILED_SKIP", null));
+      return null;
+    }
     entries.push({
       ...entry(fact, kind, "ambiguous", "CAPABILITY_DEFINITION_AMBIGUOUS", null),
       relatedIds: candidates.map((value) => value.id).sort(),
@@ -258,6 +307,20 @@ function resolveDefinition<F extends DefinitionFact, D extends Definition>(
   }
   const candidate = candidates[0]!;
   if (!equals(candidate, fact)) {
+    const decision = findPlanningDecision(
+      decisions,
+      kind,
+      fact.source,
+      "CAPABILITY_DEFINITION_FACT_CONFLICT",
+    );
+    if (decision?.action === "select_existing") {
+      entries.push(entry(fact, kind, "matched", "RECONCILED_SELECT_EXISTING", candidate.id));
+      return { id: candidate.id, inserted: false };
+    }
+    if (decision?.action === "skip") {
+      entries.push(entry(fact, kind, "skipped", "RECONCILED_SKIP", null));
+      return null;
+    }
     entries.push(
       entry(fact, kind, "conflicts", "CAPABILITY_DEFINITION_FACT_CONFLICT", candidate.id, true),
     );
@@ -275,14 +338,38 @@ function classifyAssignment<F extends DefinitionFact, V>(
   equals: (left: V, right: V) => boolean,
   kind: ImportReportEntry["entityKind"],
   entries: ImportReportEntry[],
+  decisions?: ImportPlanningDecisions,
 ): void {
   if (current.length === 0) {
     target.push(desired);
     entries.push(entry(fact, kind, "inserted", "CAPABILITY_ASSIGNMENT_INSERT_PLANNED", null));
   } else if (current.length === 1 && equals(current[0]!, desired))
     entries.push(entry(fact, kind, "matched", "CAPABILITY_ASSIGNMENT_EXACT_MATCH", null));
-  else
+  else {
+    const decision = findPlanningDecision(
+      decisions,
+      kind,
+      fact.source,
+      "CAPABILITY_ASSIGNMENT_FACT_CONFLICT",
+    );
+    if (decision?.action === "skip") {
+      entries.push(entry(fact, kind, "skipped", "RECONCILED_SKIP", null));
+      return;
+    }
     entries.push(entry(fact, kind, "conflicts", "CAPABILITY_ASSIGNMENT_FACT_CONFLICT", null, true));
+  }
+}
+
+function dependencyEntry(
+  fact: DefinitionFact,
+  kind: ImportReportEntry["entityKind"],
+  reasonCode: "CHARACTER_DEPENDENCY_MISSING" | "PREREQUISITE_DEPENDENCY_MISSING",
+  decisions?: ImportPlanningDecisions,
+): ImportReportEntry {
+  const decision = findPlanningDecision(decisions, kind, fact.source, reasonCode);
+  return decision?.action === "skip"
+    ? entry(fact, kind, "skipped", "RECONCILED_SKIP", null)
+    : entry(fact, kind, "ambiguous", reasonCode, null);
 }
 
 export function materializeAbility(value: PlannedAbilityInsert): Ability {
@@ -427,6 +514,9 @@ const messages: Readonly<Record<string, string>> = {
   CAPABILITY_ASSIGNMENT_FACT_CONFLICT: "Istniejące przypisanie ma sprzeczne fakty.",
   CHARACTER_DEPENDENCY_MISSING: "Brakuje rozstrzygniętej postaci.",
   PREREQUISITE_DEPENDENCY_MISSING: "Brakuje rozstrzygniętej mocy wymaganej.",
+  RECONCILED_SELECT_EXISTING: "Rekonsyliacja wskazała istniejący rekord.",
+  RECONCILED_TREAT_AS_NEW: "Rekonsyliacja nakazała utworzyć nowy rekord.",
+  RECONCILED_SKIP: "Rekonsyliacja pominęła fakt źródłowy.",
 };
 function sortEntries(values: readonly ImportReportEntry[]): readonly ImportReportEntry[] {
   return [...values].sort(

@@ -265,3 +265,6 @@ review.
 - 2026-08-29 — Implemented deterministic normalizers, entity-specific fingerprints,
   complete report/reconciliation artifacts and private acceptance with zero ambiguous
   or conflicting facts in the supplied tracker.
+- 2026-08-29 — Applied review hardening: strictly validated digest-bound decisions now
+  transform only their staged source field or conservative planner outcome, and
+  inapplicable, stale, fabricated-target or unrelated decisions are rejected.

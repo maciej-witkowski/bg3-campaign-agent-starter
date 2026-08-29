@@ -8,6 +8,7 @@ import type { CampaignImportState } from "./campaign-import-state.js";
 import type { ImportReportEntry } from "./import-contracts.js";
 import type { NormalizedLegacyCampaign } from "./legacy-campaign-normalizer.js";
 import type { NormalizedLegacyCharacter } from "./legacy-character-normalizer.js";
+import { findPlanningDecision, type ImportPlanningDecisions } from "./reconciliation-decisions.js";
 
 export interface PlannedCharacterInsert {
   readonly id: string;
@@ -32,6 +33,7 @@ export function planLegacyCharacterImport(
   campaign: NormalizedLegacyCampaign,
   state: CampaignImportState,
   ids: IdSource,
+  decisions?: ImportPlanningDecisions,
 ): LegacyCharacterImportPlan {
   const characters: PlannedCharacterInsert[] = [];
   const attributes: PlannedAttributeInsert[] = [];
@@ -50,10 +52,26 @@ export function planLegacyCharacterImport(
     } else if (characterEquals(existing, fact)) {
       entries.push(report(fact, "character", "matched", "CHARACTER_EXACT_MATCH", characterId));
     } else {
-      entries.push(
-        report(fact, "character", "conflicts", "CHARACTER_FACT_CONFLICT", characterId, true),
+      const decision = findPlanningDecision(
+        decisions,
+        "character",
+        fact.source,
+        "CHARACTER_FACT_CONFLICT",
       );
-      continue;
+      if (decision?.action === "select_existing") {
+        entries.push(
+          report(fact, "character", "matched", "RECONCILED_SELECT_EXISTING", characterId),
+        );
+      } else if (decision?.action === "skip") {
+        entries.push(report(fact, "character", "skipped", "RECONCILED_SKIP", characterId));
+        characterIdsByCanonicalName.delete(fact.canonicalName);
+        continue;
+      } else {
+        entries.push(
+          report(fact, "character", "conflicts", "CHARACTER_FACT_CONFLICT", characterId, true),
+        );
+        continue;
+      }
     }
     if (fact.pactVariantPl !== null)
       entries.push({
@@ -95,6 +113,26 @@ export function planLegacyCharacterImport(
           ),
         );
       } else {
+        const decision = findPlanningDecision(
+          decisions,
+          "attribute",
+          { ...fact.source, field: attribute },
+          "ATTRIBUTE_FACT_CONFLICT",
+        );
+        if (decision?.action === "select_existing" || decision?.action === "skip") {
+          entries.push(
+            report(
+              fact,
+              "attribute",
+              decision.action === "skip" ? "skipped" : "matched",
+              decision.action === "skip" ? "RECONCILED_SKIP" : "RECONCILED_SELECT_EXISTING",
+              characterId,
+              false,
+              attribute,
+            ),
+          );
+          continue;
+        }
         entries.push(
           report(
             fact,
@@ -126,8 +164,26 @@ export function planLegacyCharacterImport(
           report(fact, "permanent_modifier", "matched", "MODIFIER_EXACT_MATCH", matches[0]!.id),
         );
       } else if (matches.length > 1 || competing.length > 0) {
-        entries.push(
-          report(
+        const decision = findPlanningDecision(
+          decisions,
+          "permanent_modifier",
+          fact.source,
+          "MODIFIER_FACT_CONFLICT",
+        );
+        if (decision?.action === "select_existing" || decision?.action === "skip") {
+          entries.push(
+            report(
+              fact,
+              "permanent_modifier",
+              decision.action === "skip" ? "skipped" : "matched",
+              decision.action === "skip" ? "RECONCILED_SKIP" : "RECONCILED_SELECT_EXISTING",
+              decision.action === "select_existing" ? decision.canonicalEntityId : characterId,
+            ),
+          );
+          continue;
+        }
+        entries.push({
+          ...report(
             fact,
             "permanent_modifier",
             "conflicts",
@@ -135,7 +191,9 @@ export function planLegacyCharacterImport(
             characterId,
             true,
           ),
-        );
+          canonicalEntityId: null,
+          relatedIds: competing.map((value) => value.id).sort(),
+        });
       } else {
         const id = ids.nextId();
         permanentModifiers.push({ id, characterId, fact: fact.permanentStrengthModifier });
@@ -258,6 +316,8 @@ function message(code: string): string {
     MODIFIER_INSERT_PLANNED: "Stały modyfikator zostanie dodany.",
     MODIFIER_EXACT_MATCH: "Stały modyfikator jest już zgodny.",
     MODIFIER_FACT_CONFLICT: "Istniejący stały modyfikator jest sprzeczny.",
+    RECONCILED_SELECT_EXISTING: "Rekonsyliacja wskazała istniejący rekord.",
+    RECONCILED_SKIP: "Rekonsyliacja pominęła fakt źródłowy.",
   };
   return values[code] ?? "Fakt importu został sklasyfikowany.";
 }

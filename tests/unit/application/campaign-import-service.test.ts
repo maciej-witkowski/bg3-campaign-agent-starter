@@ -89,6 +89,59 @@ describe("CampaignImportService", () => {
     expect(connection.database.select().from(characters).all()).toHaveLength(0);
     expect(connection.database.select().from(changeEvents).all()).toHaveLength(0);
   });
+
+  it("validates and applies a digest-bound select-existing reconciliation", () => {
+    const service = createService();
+    service.applyImport(service.planImport(campaign()));
+    const conflicting = {
+      ...campaign(),
+      characters: [{ ...campaign().characters[0]!, classPl: "Wojownik" }],
+    };
+    const unresolved = service.planImport(conflicting);
+    const issue = unresolved.reconciliation.issues.find(
+      (value) => value.reasonCode === "CHARACTER_FACT_CONFLICT",
+    )!;
+    expect(unresolved.blocked).toBe(true);
+
+    const reconciliation = {
+      ...unresolved.reconciliation,
+      issues: unresolved.reconciliation.issues.map((value) =>
+        value.issueId === issue.issueId
+          ? {
+              ...value,
+              resolution: {
+                action: "select_existing" as const,
+                canonicalEntityId: value.candidateCanonicalIds[0]!,
+              },
+            }
+          : value,
+      ),
+    };
+    const resolved = service.planImport(conflicting, reconciliation);
+    expect(resolved.blocked).toBe(false);
+    expect(resolved.report.entries).toContainEqual(
+      expect.objectContaining({
+        entityKind: "character",
+        category: "matched",
+        reasonCode: "RECONCILED_SELECT_EXISTING",
+      }),
+    );
+    expect(service.applyImport(resolved).changed).toBe(false);
+
+    expect(() =>
+      service.planImport(conflicting, { ...reconciliation, workbookSha256: "b".repeat(64) }),
+    ).toThrow(CampaignDomainError);
+    expect(() =>
+      service.planImport(conflicting, {
+        ...reconciliation,
+        issues: reconciliation.issues.map((value) =>
+          value.issueId === issue.issueId
+            ? { ...value, resolution: { action: "treat_as_new" as const } }
+            : value,
+        ),
+      }),
+    ).toThrow(CampaignDomainError);
+  });
 });
 
 function createService(): CampaignImportService {

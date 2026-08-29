@@ -232,3 +232,5 @@ contract or import authority.
 - 2026-08-29 — Implemented strict deterministic JSON, normalized formula-safe XLSX,
   verified atomic publication and stable-ID import into empty databases. Private JSON
   and XLSX round trips matched the source database's canonical state digest.
+- 2026-08-29 — Added review hardening that validates the transactionally captured
+  campaign state before any current-state export artifact can be serialized.

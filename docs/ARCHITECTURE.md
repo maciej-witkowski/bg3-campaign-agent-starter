@@ -62,8 +62,10 @@ The UI, model and future tool adapters must receive typed services only. The raw
 
 ## Implemented M2 import/export path
 
-The legacy XLSX adapter stages an exact, bounded workbook profile without database access. Pure normalizers preserve Polish display text and produce typed facts, issues and skipped-source records. Entity-specific planners compare those facts with a deterministic read-only SQLite state and produce a report, reconciliation document and immutable write plan.
+The legacy XLSX adapter stages an exact, bounded workbook profile without database access. Pure normalizers preserve Polish display text and produce typed facts, issues and skipped-source records. A supplied reconciliation document is strictly checked against the exact workbook digest and generated issue identities before its bounded decisions can alter staged values or planner classification. Entity-specific planners compare the resulting facts with a deterministic read-only SQLite state and produce a report, reconciliation document and immutable write plan.
 
-Only an unblocked, non-stale plan reaches the M1 mutation coordinator. All imported rows, validation and the single `CAMPAIGN_IMPORTED` audit event commit or roll back together. A repeated semantic import is a no-op with no new event.
+Only an unblocked plan reaches the M1 mutation coordinator. Plan freshness is checked again inside the same SQLite transaction before any import write. All imported rows, validation and the single `CAMPAIGN_IMPORTED` audit event commit or roll back together. A repeated semantic import is a no-op with no new event.
+
+Current-state export captures and validates one transactionally consistent read snapshot before serializing JSON or XLSX. Invalid canonical state is refused rather than published as a portable campaign artifact.
 
 Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M15 scope.

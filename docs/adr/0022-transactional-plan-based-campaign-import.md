@@ -254,3 +254,6 @@ explicit approval are required before adding a migration.
 - 2026-08-29 — Implemented one-transaction application, stale-plan rejection,
   validation/audit rollback and no-op re-import; the real tracker produced one audit
   event and an unchanged second import.
+- 2026-08-29 — Moved the final state-digest precondition into the mutation transaction
+  so no concurrent state change can occur between the freshness check and imported
+  writes.

@@ -10,6 +10,7 @@ import type { ImportReportEntry } from "./import-contracts.js";
 import type { NormalizedLegacyCampaign } from "./legacy-campaign-normalizer.js";
 import type { LegacyCharacterImportPlan } from "./legacy-character-import-planner.js";
 import type { NormalizedLegacyItem } from "./legacy-item-normalizer.js";
+import { findPlanningDecision, type ImportPlanningDecisions } from "./reconciliation-decisions.js";
 
 export interface PlannedItemDefinitionInsert {
   readonly id: string;
@@ -40,6 +41,7 @@ export function planLegacyItemImport(
   state: CampaignImportState,
   characters: LegacyCharacterImportPlan,
   ids: IdSource,
+  decisions?: ImportPlanningDecisions,
 ): LegacyItemImportPlan {
   const definitions: PlannedItemDefinitionInsert[] = [];
   const effects: PlannedItemEffectInsert[] = [];
@@ -60,29 +62,69 @@ export function planLegacyItemImport(
       const existing = fingerprintMatches[0]!;
       definitionId = existing.id;
       if (!definitionEquals(existing, fact)) {
-        entries.push(
-          report(
-            fact,
-            "item_definition",
-            "conflicts",
-            "ITEM_DEFINITION_FACT_CONFLICT",
-            definitionId,
-            true,
-          ),
+        const decision = findPlanningDecision(
+          decisions,
+          "item_definition",
+          fact.source,
+          "ITEM_DEFINITION_FACT_CONFLICT",
         );
+        if (decision?.action === "select_existing") {
+          entries.push(
+            report(fact, "item_definition", "matched", "RECONCILED_SELECT_EXISTING", definitionId),
+          );
+        } else if (decision?.action === "skip") {
+          entries.push(report(fact, "item_definition", "skipped", "RECONCILED_SKIP", null));
+          continue;
+        } else {
+          entries.push(
+            report(
+              fact,
+              "item_definition",
+              "conflicts",
+              "ITEM_DEFINITION_FACT_CONFLICT",
+              definitionId,
+              true,
+            ),
+          );
+          continue;
+        }
+      } else {
+        entries.push(
+          report(fact, "item_definition", "matched", "ITEM_DEFINITION_EXACT_MATCH", definitionId),
+        );
+      }
+    } else if (fingerprintMatches.length > 1 || nameMatches.length > 0) {
+      const candidates = [
+        ...new Set([...fingerprintMatches, ...nameMatches].map((value) => value.id)),
+      ].sort();
+      const decision = findPlanningDecision(
+        decisions,
+        "item_definition",
+        fact.source,
+        "ITEM_DEFINITION_AMBIGUOUS",
+      );
+      if (decision?.action === "select_existing") {
+        definitionId = decision.canonicalEntityId;
+        entries.push(
+          report(fact, "item_definition", "matched", "RECONCILED_SELECT_EXISTING", definitionId),
+        );
+      } else if (decision?.action === "treat_as_new") {
+        definitionId = ids.nextId();
+        definitionIsNew = true;
+        definitions.push({ id: definitionId, fact });
+        entries.push(
+          report(fact, "item_definition", "inserted", "RECONCILED_TREAT_AS_NEW", definitionId),
+        );
+      } else if (decision?.action === "skip") {
+        entries.push(report(fact, "item_definition", "skipped", "RECONCILED_SKIP", null));
+        continue;
+      } else {
+        entries.push({
+          ...report(fact, "item_definition", "ambiguous", "ITEM_DEFINITION_AMBIGUOUS", null),
+          relatedIds: candidates,
+        });
         continue;
       }
-      entries.push(
-        report(fact, "item_definition", "matched", "ITEM_DEFINITION_EXACT_MATCH", definitionId),
-      );
-    } else if (fingerprintMatches.length > 1 || nameMatches.length > 0) {
-      entries.push({
-        ...report(fact, "item_definition", "ambiguous", "ITEM_DEFINITION_AMBIGUOUS", null),
-        relatedIds: [
-          ...new Set([...fingerprintMatches, ...nameMatches].map((value) => value.id)),
-        ].sort(),
-      });
-      continue;
     } else {
       definitionId = ids.nextId();
       definitionIsNew = true;
@@ -104,10 +146,37 @@ export function planLegacyItemImport(
           report(fact, "item_effect", "matched", "ITEM_EFFECT_EXACT_MATCH", exactEffects[0]!.id),
         );
       } else if (exactEffects.length > 1 || (!definitionIsNew && competingEffects.length > 0)) {
-        entries.push(
-          report(fact, "item_effect", "conflicts", "ITEM_EFFECT_FACT_CONFLICT", definitionId, true),
+        const decision = findPlanningDecision(
+          decisions,
+          "item_effect",
+          fact.source,
+          "ITEM_EFFECT_FACT_CONFLICT",
         );
-        continue;
+        if (decision?.action === "select_existing" || decision?.action === "skip") {
+          entries.push(
+            report(
+              fact,
+              "item_effect",
+              decision.action === "skip" ? "skipped" : "matched",
+              decision.action === "skip" ? "RECONCILED_SKIP" : "RECONCILED_SELECT_EXISTING",
+              decision.action === "select_existing" ? decision.canonicalEntityId : null,
+            ),
+          );
+        } else {
+          entries.push({
+            ...report(
+              fact,
+              "item_effect",
+              "conflicts",
+              "ITEM_EFFECT_FACT_CONFLICT",
+              definitionId,
+              true,
+            ),
+            canonicalEntityId: null,
+            relatedIds: competingEffects.map((value) => value.id).sort(),
+          });
+          continue;
+        }
       } else {
         const effectId = ids.nextId();
         effects.push({ id: effectId, itemDefinitionId: definitionId, fact: fact.effect });
@@ -123,8 +192,16 @@ export function planLegacyItemImport(
         : (characters.characterIdsByCanonicalName.get(fact.placement.ownerCharacterCanonicalName) ??
           null);
     if (fact.placement.ownerCharacterCanonicalName !== null && ownerCharacterId === null) {
+      const decision = findPlanningDecision(
+        decisions,
+        "inventory_item",
+        fact.source,
+        "ITEM_OWNER_DEPENDENCY_MISSING",
+      );
       entries.push(
-        report(fact, "inventory_item", "ambiguous", "ITEM_OWNER_DEPENDENCY_MISSING", null),
+        decision?.action === "skip"
+          ? report(fact, "inventory_item", "skipped", "RECONCILED_SKIP", null)
+          : report(fact, "inventory_item", "ambiguous", "ITEM_OWNER_DEPENDENCY_MISSING", null),
       );
       continue;
     }
@@ -141,11 +218,38 @@ export function planLegacyItemImport(
         report(fact, "inventory_item", "matched", "INVENTORY_ITEM_EXACT_MATCH", inventoryItemId),
       );
     } else if (exactInventory.length > 1 || definitionInventory.length > 0) {
-      entries.push({
-        ...report(fact, "inventory_item", "ambiguous", "INVENTORY_ITEM_AMBIGUOUS", null),
-        relatedIds: definitionInventory.map((value) => value.id).sort(),
-      });
-      continue;
+      const decision = findPlanningDecision(
+        decisions,
+        "inventory_item",
+        fact.source,
+        "INVENTORY_ITEM_AMBIGUOUS",
+      );
+      if (decision?.action === "select_existing") {
+        inventoryItemId = decision.canonicalEntityId;
+        entries.push(
+          report(fact, "inventory_item", "matched", "RECONCILED_SELECT_EXISTING", inventoryItemId),
+        );
+      } else if (decision?.action === "treat_as_new") {
+        inventoryItemId = ids.nextId();
+        inventory.push({
+          id: inventoryItemId,
+          itemDefinitionId: definitionId,
+          ownerCharacterId,
+          fact,
+        });
+        entries.push(
+          report(fact, "inventory_item", "inserted", "RECONCILED_TREAT_AS_NEW", inventoryItemId),
+        );
+      } else if (decision?.action === "skip") {
+        entries.push(report(fact, "inventory_item", "skipped", "RECONCILED_SKIP", null));
+        continue;
+      } else {
+        entries.push({
+          ...report(fact, "inventory_item", "ambiguous", "INVENTORY_ITEM_AMBIGUOUS", null),
+          relatedIds: definitionInventory.map((value) => value.id).sort(),
+        });
+        continue;
+      }
     } else {
       inventoryItemId = ids.nextId();
       inventory.push({
@@ -179,8 +283,26 @@ export function planLegacyItemImport(
           report(fact, "equipment_assignment", "matched", "EQUIPMENT_EXACT_MATCH", inventoryItemId),
         );
       } else if (existing !== undefined || occupant !== undefined) {
-        entries.push(
-          report(
+        const decision = findPlanningDecision(
+          decisions,
+          "equipment_assignment",
+          fact.source,
+          "EQUIPMENT_SLOT_CONFLICT",
+        );
+        if (decision?.action === "select_existing" || decision?.action === "skip") {
+          entries.push(
+            report(
+              fact,
+              "equipment_assignment",
+              decision.action === "skip" ? "skipped" : "matched",
+              decision.action === "skip" ? "RECONCILED_SKIP" : "RECONCILED_SELECT_EXISTING",
+              decision.action === "select_existing" ? decision.canonicalEntityId : null,
+            ),
+          );
+          continue;
+        }
+        entries.push({
+          ...report(
             fact,
             "equipment_assignment",
             "conflicts",
@@ -188,7 +310,11 @@ export function planLegacyItemImport(
             inventoryItemId,
             true,
           ),
-        );
+          canonicalEntityId: null,
+          relatedIds: [existing?.inventoryItemId, occupant?.inventoryItemId]
+            .filter((value): value is string => value !== undefined)
+            .sort(),
+        });
       } else {
         equipment.push({
           inventoryItemId,
@@ -223,7 +349,7 @@ export function materializeItemDefinition(value: PlannedItemDefinitionInsert): I
     id: value.id,
     namePl: fact.namePl,
     normalizedNamePl: fact.normalizedNamePl,
-    nameEn: null,
+    nameEn: fact.nameEn,
     typePl: fact.typePl,
     slot: fact.slot,
     rarityPl: fact.rarityPl,
@@ -267,7 +393,7 @@ function definitionEquals(value: ItemDefinition, fact: NormalizedLegacyItem): bo
   return (
     value.namePl === fact.namePl &&
     value.normalizedNamePl === fact.normalizedNamePl &&
-    value.nameEn === null &&
+    value.nameEn === fact.nameEn &&
     value.typePl === fact.typePl &&
     value.slot === fact.slot &&
     value.rarityPl === fact.rarityPl &&
@@ -351,6 +477,9 @@ const messages: Readonly<Record<string, string>> = {
   EQUIPMENT_INSERT_PLANNED: "Przypisanie wyposażenia zostanie dodane.",
   EQUIPMENT_EXACT_MATCH: "Przypisanie wyposażenia jest już zgodne.",
   EQUIPMENT_SLOT_CONFLICT: "Docelowy slot wyposażenia jest zajęty albo przypisanie jest inne.",
+  RECONCILED_SELECT_EXISTING: "Rekonsyliacja wskazała istniejący rekord.",
+  RECONCILED_TREAT_AS_NEW: "Rekonsyliacja nakazała utworzyć nowy rekord.",
+  RECONCILED_SKIP: "Rekonsyliacja pominęła fakt źródłowy.",
 };
 function sortEntries(entries: readonly ImportReportEntry[]): readonly ImportReportEntry[] {
   return [...entries].sort(

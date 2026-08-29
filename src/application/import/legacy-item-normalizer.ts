@@ -44,7 +44,7 @@ export interface NormalizedLegacyItem {
   readonly source: ImportSourceLocation;
   readonly namePl: string;
   readonly normalizedNamePl: string;
-  readonly nameEn: null;
+  readonly nameEn: string | null;
   readonly unresolvedAliasEn: string | null;
   readonly typePl: string;
   readonly slot: ItemSlot | null;

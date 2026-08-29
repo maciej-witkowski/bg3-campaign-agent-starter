@@ -11,6 +11,7 @@ import {
 } from "../../../src/application/import/legacy-item-import-planner.js";
 import type { NormalizedLegacyItem } from "../../../src/application/import/legacy-item-normalizer.js";
 import { LEGACY_TRACKER_PROFILE } from "../../../src/application/import/legacy-tracker-stage.js";
+import { planningDecisionKey } from "../../../src/application/import/reconciliation-decisions.js";
 
 describe("legacy item import planner", () => {
   it("plans the complete item dependency closure for a clean campaign", () => {
@@ -88,6 +89,54 @@ describe("legacy item import planner", () => {
       category: "conflicts",
       reasonCode: "ITEM_DEFINITION_FACT_CONFLICT",
     });
+  });
+
+  it("applies select-existing, treat-as-new and skip decisions to an ambiguous definition", () => {
+    const definition = materializeItemDefinition(
+      planLegacyItemImport(campaign(), emptyState(), characterPlan(), ids()).itemDefinitions[0]!,
+    );
+    const state = {
+      ...emptyState(),
+      itemDefinitions: [{ ...definition, id: "candidate", fingerprint: "other" }],
+    };
+    const key = planningDecisionKey("item_definition", item().source, "ITEM_DEFINITION_AMBIGUOUS");
+
+    const selected = planLegacyItemImport(
+      campaign(),
+      state,
+      characterPlan(),
+      ids(),
+      new Map([[key, { action: "select_existing", canonicalEntityId: "candidate" }]]),
+    );
+    expect(selected.entries).toContainEqual(
+      expect.objectContaining({ category: "matched", reasonCode: "RECONCILED_SELECT_EXISTING" }),
+    );
+    expect(selected.inventoryItems).toHaveLength(1);
+
+    const inserted = planLegacyItemImport(
+      campaign(),
+      state,
+      characterPlan(),
+      ids(),
+      new Map([[key, { action: "treat_as_new" }]]),
+    );
+    expect(inserted.itemDefinitions).toHaveLength(1);
+    expect(inserted.entries).toContainEqual(
+      expect.objectContaining({ category: "inserted", reasonCode: "RECONCILED_TREAT_AS_NEW" }),
+    );
+
+    const skipped = planLegacyItemImport(
+      campaign(),
+      state,
+      characterPlan(),
+      ids(),
+      new Map([[key, { action: "skip" }]]),
+    );
+    expect(skipped.itemDefinitions).toEqual([]);
+    expect(skipped.inventoryItems).toEqual([]);
+    expect(skipped.entries).toEqual([
+      expect.objectContaining({ category: "skipped", reasonCode: "RECONCILED_SKIP" }),
+    ]);
   });
 });
 
