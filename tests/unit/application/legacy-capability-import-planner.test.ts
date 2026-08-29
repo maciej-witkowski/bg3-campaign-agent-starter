@@ -139,6 +139,52 @@ describe("legacy capability import planner", () => {
       }),
     );
   });
+
+  it("keeps distinct source rows for multiple conflicts of one assignment identity", () => {
+    const source = campaign();
+    const spell = source.spells[0]!;
+    const withTwoRows: NormalizedLegacyCampaign = {
+      ...source,
+      spells: [
+        {
+          ...spell,
+          assignments: [
+            spell.assignments[0]!,
+            {
+              ...spell.assignments[0]!,
+              prepared: true,
+              notes: "drugi wiersz",
+              location: { ...spell.assignments[0]!.location, row: 3 },
+            },
+          ],
+        },
+      ],
+    };
+    const definitionPlan = planLegacyCapabilityImport(source, emptyState(), characterPlan(), ids());
+    const definition = materializeSpell(definitionPlan.spells[0]!);
+    const state: CampaignImportState = {
+      ...emptyState(),
+      spells: [definition],
+      characterSpells: [
+        {
+          characterId: "character-1",
+          spellId: definition.id,
+          source: "INVOCATION",
+          known: true,
+          prepared: true,
+          alwaysPrepared: false,
+          notes: "stan bazy",
+        },
+      ],
+    };
+
+    const plan = planLegacyCapabilityImport(withTwoRows, state, characterPlan(), ids());
+    expect(
+      plan.entries
+        .filter((entry) => entry.reasonCode === "CAPABILITY_ASSIGNMENT_FACT_CONFLICT")
+        .map((entry) => entry.source.row),
+    ).toEqual([2, 3]);
+  });
 });
 
 function campaign(): NormalizedLegacyCampaign {

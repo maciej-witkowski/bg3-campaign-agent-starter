@@ -271,3 +271,6 @@ review.
 - 2026-08-29 — Added review regression coverage for conflicting composite assignments
   already pending in one plan, classifying them before persistence instead of relying
   on a SQLite constraint failure.
+- 2026-08-29 — Preserved each aggregated assignment's original row in reports and
+  reconciliation decisions, matched illithid prerequisites by their full composite
+  identity and mapped sold legacy inventory to an ownerless placement.

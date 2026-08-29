@@ -42,4 +42,6 @@ Sanitized unit and integration tests cover workbook structure and archive limits
 
 Review regressions additionally cover rejection of copied or mutated import plans, conflicting assignments within one pending plan and a 1,000-record canonical XLSX round trip that exceeds the legacy tracker row bound.
 
+Further planner regressions preserve distinct source rows for repeated assignment conflicts, allow multiple different illithid prerequisite relations and verify that sold inventory never receives an owner.
+
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.
