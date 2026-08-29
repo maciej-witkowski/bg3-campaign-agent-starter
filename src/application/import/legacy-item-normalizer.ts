@@ -357,6 +357,7 @@ function resolveOwner(
   characters: ReadonlyMap<string, NormalizedLegacyCharacter>,
   issues: LegacyNormalizationIssue[],
 ): string | null {
+  if (status === "SOLD") return null;
   if (status === "CHEST" && locationPl === "Skrzynia podróżna") return null;
   const direct = characters.get(locationPl);
   if (direct !== undefined) return direct.canonicalName;

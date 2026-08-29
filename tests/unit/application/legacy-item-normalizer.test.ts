@@ -81,6 +81,19 @@ describe("legacy item and equipment normalization", () => {
     });
   });
 
+  it("normalizes sold inventory as ownerless regardless of its location text", () => {
+    const result = normalizeLegacyItems(
+      stage([itemRow({ Status: "SPRZEDANY", "Lokalizacja / właściciel": "Kupiec" })]),
+      [laezel()],
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.items[0]?.placement).toMatchObject({
+      status: "SOLD",
+      ownerCharacterCanonicalName: null,
+    });
+  });
+
   it("blocks disagreement between equipped item and equipment views", () => {
     const missingView = normalizeLegacyItems(stage([itemRow()]), [laezel()]);
     expect(missingView.items).toEqual([]);
