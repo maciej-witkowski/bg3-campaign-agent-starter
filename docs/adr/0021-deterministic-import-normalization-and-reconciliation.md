@@ -268,3 +268,6 @@ review.
 - 2026-08-29 — Applied review hardening: strictly validated digest-bound decisions now
   transform only their staged source field or conservative planner outcome, and
   inapplicable, stale, fabricated-target or unrelated decisions are rejected.
+- 2026-08-29 — Added review regression coverage for conflicting composite assignments
+  already pending in one plan, classifying them before persistence instead of relying
+  on a SQLite constraint failure.

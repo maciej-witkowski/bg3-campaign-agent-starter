@@ -6,6 +6,7 @@
 - Added deterministic import reports and digest-bound reconciliation documents for skipped, ambiguous and conflicting source facts.
 - Applied validated reconciliation decisions to staged values and conservative import plans, including explicit alias attestation, candidate selection, treating a fact as new and skipping a source fact.
 - Hardened M2 review boundaries by validating campaign state before export and checking import-plan freshness inside the mutation transaction.
+- Hardened issued import plans against copying or mutation, classified conflicting pending capability assignments before persistence and separated canonical-export XLSX limits from legacy-tracker limits.
 - Added versioned current-state JSON and normalized XLSX exports with literal campaign text, strict validation, SHA-256 integrity and verified atomic publication.
 - Added stable-ID JSON/XLSX round-trip import into empty databases, idempotent re-import and refusal to overwrite a different non-empty campaign.
 - Added a private real-tracker acceptance harness and database review report covering integrity, collection counts, character statistics, equipment, travel-chest contents and unresolved issues.

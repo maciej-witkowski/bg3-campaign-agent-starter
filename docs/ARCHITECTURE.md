@@ -66,6 +66,10 @@ The legacy XLSX adapter stages an exact, bounded workbook profile without databa
 
 Only an unblocked plan reaches the M1 mutation coordinator. Plan freshness is checked again inside the same SQLite transaction before any import write. All imported rows, validation and the single `CAMPAIGN_IMPORTED` audit event commit or roll back together. A repeated semantic import is a no-op with no new event.
 
+Import plans are in-memory capabilities issued by one application-service instance. The service records a digest of each issued plan and refuses copied or modified structural objects before mutation. Planners also compare new assignments with rows already pending in the same plan, so conflicting composite identities become reconciliation conflicts rather than database constraint failures.
+
 Current-state export captures and validates one transactionally consistent read snapshot before serializing JSON or XLSX. Invalid canonical state is refused rather than published as a portable campaign artifact.
+
+The current-state XLSX profile has its own symmetric serialization/deserialization limits. These bounds are intentionally independent from the smaller legacy-tracker input profile and allow up to 100,000 data rows per canonical collection.
 
 Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M15 scope.

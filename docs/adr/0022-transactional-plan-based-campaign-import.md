@@ -257,3 +257,5 @@ explicit approval are required before adding a migration.
 - 2026-08-29 — Moved the final state-digest precondition into the mutation transaction
   so no concurrent state change can occur between the freshness check and imported
   writes.
+- 2026-08-29 — Authenticated in-memory plans by service instance and operation digest;
+  copied or modified structural plan objects are rejected before any write.

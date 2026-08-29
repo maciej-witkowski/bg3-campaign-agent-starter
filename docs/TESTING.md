@@ -40,4 +40,6 @@ Every campaign-state bug discovered in real use should become a regression test 
 
 Sanitized unit and integration tests cover workbook structure and archive limits, exact Polish normalization, closed mappings, duplicate/collision planning, bounded reconciliation application, rollback, transactional stale-plan rejection, idempotency, strict report/reconciliation contracts, refusal to export invalid state, formula-safe XLSX output and stable-ID current-state imports.
 
+Review regressions additionally cover rejection of copied or mutated import plans, conflicting assignments within one pending plan and a 1,000-record canonical XLSX round trip that exceeds the legacy tracker row bound.
+
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.

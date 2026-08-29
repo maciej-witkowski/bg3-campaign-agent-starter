@@ -234,3 +234,6 @@ contract or import authority.
   and XLSX round trips matched the source database's canonical state digest.
 - 2026-08-29 — Added review hardening that validates the transactionally captured
   campaign state before any current-state export artifact can be serialized.
+- 2026-08-29 — Split canonical-export XLSX limits from the legacy tracker profile and
+  applied the same bounds before serialization and during verification; canonical
+  sheets support up to 100,000 data rows.
