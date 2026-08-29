@@ -85,6 +85,17 @@ describe("current-state import service", () => {
     expect(() => service.applyImport(plan)).toThrow(/pustej albo identycznej/u);
     expect(eventCount(targetConnection)).toBe(0);
   });
+
+  it("rejects a copied current-state import plan", () => {
+    const campaignExport = createCampaignExport(
+      new SqliteCampaignExportSource(sourceConnection.database).captureCurrentState(instant),
+    );
+    const service = serviceFor(targetConnection);
+    const plan = service.planImport(campaignExport);
+
+    expect(() => service.applyImport({ ...plan })).toThrow(/nie został wydany/u);
+    expect(eventCount(targetConnection)).toBe(0);
+  });
 });
 
 function serviceFor(connection: SqliteConnection): CurrentStateImportService {

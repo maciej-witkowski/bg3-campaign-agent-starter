@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { CampaignExportSourcePort } from "../export/campaign-export-service.js";
 import {
   createCampaignExport,
@@ -19,6 +21,8 @@ export interface CurrentStateImportPlan {
 }
 
 export class CurrentStateImportService {
+  private readonly issuedPlanDigests = new WeakMap<CurrentStateImportPlan, string>();
+
   public constructor(
     private readonly source: CampaignExportSourcePort,
     private readonly coordinator: CampaignMutationCoordinatorPort,
@@ -29,15 +33,18 @@ export class CurrentStateImportService {
     const current = currentExport(this.source, campaignExport.exportedAt);
     const currentIsEmpty = Object.values(current.state).every((rows) => rows.length === 0);
     const identical = current.stateSha256 === campaignExport.stateSha256;
-    return {
+    const plan: CurrentStateImportPlan = {
       campaignExport,
       currentStateSha256: current.stateSha256,
       changed: currentIsEmpty && !identical,
       blocked: !currentIsEmpty && !identical,
     };
+    this.issuedPlanDigests.set(plan, currentStatePlanDigest(plan));
+    return plan;
   }
 
   public applyImport(plan: CurrentStateImportPlan): CampaignMutationResult {
+    this.assertIssuedPlan(plan);
     if (plan.blocked) {
       throw new CampaignDomainError(
         "Import znormalizowanego eksportu wymaga pustej albo identycznej kampanii.",
@@ -82,6 +89,18 @@ export class CurrentStateImportService {
       throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
     }
   }
+
+  private assertIssuedPlan(plan: CurrentStateImportPlan): void {
+    const expectedDigest = this.issuedPlanDigests.get(plan);
+    if (expectedDigest === undefined || expectedDigest !== currentStatePlanDigest(plan))
+      throw new CampaignDomainError(
+        "Plan importu nie został wydany przez tę usługę albo został zmodyfikowany.",
+      );
+  }
+}
+
+function currentStatePlanDigest(plan: CurrentStateImportPlan): string {
+  return createHash("sha256").update(JSON.stringify(plan), "utf8").digest("hex");
 }
 
 function currentExport(source: CampaignExportSourcePort, instant: string): CampaignExportV1 {
