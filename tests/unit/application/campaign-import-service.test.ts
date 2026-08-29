@@ -142,6 +142,21 @@ describe("CampaignImportService", () => {
       }),
     ).toThrow(CampaignDomainError);
   });
+
+  it("rejects copied and modified plans that were not issued intact by the service", () => {
+    const service = createService();
+    const plan = service.planImport(campaign());
+
+    expect(() => service.applyImport({ ...plan })).toThrow(/nie został wydany/u);
+
+    const mutableCharacters = plan.characters.characters as unknown as Array<
+      (typeof plan.characters.characters)[number]
+    >;
+    mutableCharacters.pop();
+    expect(() => service.applyImport(plan)).toThrow(/został zmodyfikowany/u);
+    expect(connection.database.select().from(characters).all()).toHaveLength(0);
+    expect(connection.database.select().from(changeEvents).all()).toHaveLength(0);
+  });
 });
 
 function createService(): CampaignImportService {

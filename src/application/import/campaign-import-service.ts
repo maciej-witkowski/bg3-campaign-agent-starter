@@ -58,6 +58,8 @@ export interface CampaignImportPlan {
 export type CampaignImportApplyResult = CampaignMutationResult & { readonly report: ImportReport };
 
 export class CampaignImportService {
+  private readonly issuedPlanDigests = new WeakMap<CampaignImportPlan, string>();
+
   public constructor(
     private readonly stateReader: CampaignImportStateReadPort,
     private readonly coordinator: CampaignMutationCoordinatorPort,
@@ -89,7 +91,7 @@ export class CampaignImportService {
       ...capabilities.entries,
     ]);
     assertPlanningDecisionsApplied(campaign, reconciliation, report.entries);
-    return {
+    const plan: CampaignImportPlan = {
       campaign,
       stateSha256: stateDigest(state),
       characters,
@@ -99,9 +101,12 @@ export class CampaignImportService {
       reconciliation,
       blocked: characters.blocked || items.blocked || capabilities.blocked,
     };
+    this.issuedPlanDigests.set(plan, importPlanDigest(plan));
+    return plan;
   }
 
   public applyImport(plan: CampaignImportPlan): CampaignImportApplyResult {
+    this.assertIssuedPlan(plan);
     if (plan.blocked)
       throw new CampaignDomainError("Plan importu zawiera konflikty blokujące zapis kampanii.");
     if (!hasWrites(plan)) {
@@ -150,6 +155,25 @@ export class CampaignImportService {
     if (stateDigest(this.stateReader.readImportState()) !== expectedSha256)
       throw new CampaignDomainError("Stan kampanii zmienił się od utworzenia planu importu.");
   }
+
+  private assertIssuedPlan(plan: CampaignImportPlan): void {
+    const expectedDigest = this.issuedPlanDigests.get(plan);
+    if (expectedDigest === undefined || expectedDigest !== importPlanDigest(plan))
+      throw new CampaignDomainError(
+        "Plan importu nie został wydany przez tę usługę albo został zmodyfikowany.",
+      );
+  }
+}
+
+function importPlanDigest(plan: CampaignImportPlan): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify(plan, (_key, value: unknown) =>
+        value instanceof Map ? [...value.entries()] : value,
+      ),
+      "utf8",
+    )
+    .digest("hex");
 }
 
 function createPlans(
