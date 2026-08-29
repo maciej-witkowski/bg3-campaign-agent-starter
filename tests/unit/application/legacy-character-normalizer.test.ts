@@ -83,6 +83,23 @@ describe("legacy character normalization", () => {
       source: { sheet: "Postacie", row: 3, field: "ID" },
     });
   });
+
+  it("rejects duplicate display names before dependent references can be resolved", () => {
+    const result = normalizeLegacyCharacters(
+      stage([characterRow(), characterRow({ ID: "SHADOWHEART" }, 3)]),
+    );
+
+    expect(result.characters).toHaveLength(1);
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]).toMatchObject({
+      category: "ambiguous",
+      reasonCode: "DUPLICATE_CHARACTER_DISPLAY_NAME",
+      blocking: true,
+      sourceKey: "character:SHADOWHEART",
+      source: { sheet: "Postacie", row: 3, field: "Postać" },
+      rawFacts: { value: "Lae'zel", duplicateRow: 2 },
+    });
+  });
 });
 
 function stage(characters: readonly LegacyCharacterRow[]): LegacyTrackerStage {

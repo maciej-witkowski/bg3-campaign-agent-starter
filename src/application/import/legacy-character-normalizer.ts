@@ -68,6 +68,7 @@ export function normalizeLegacyCharacters(
   const characters: NormalizedLegacyCharacter[] = [];
   const issues: LegacyNormalizationIssue[] = [];
   const seenCanonicalNames = new Map<string, LegacyCharacterRow>();
+  const seenDisplayNames = new Map<string, LegacyCharacterRow>();
   for (const row of stage.characters) {
     const normalized = normalizeCharacterRow(stage, row, issues);
     if (normalized === null) continue;
@@ -81,7 +82,18 @@ export function normalizeLegacyCharacters(
       );
       continue;
     }
+    const duplicateDisplayName = seenDisplayNames.get(normalized.displayNamePl);
+    if (duplicateDisplayName !== undefined) {
+      issues.push(
+        issue(stage, row, "Postać", "ambiguous", "DUPLICATE_CHARACTER_DISPLAY_NAME", true, {
+          value: normalized.displayNamePl,
+          duplicateRow: duplicateDisplayName.row,
+        }),
+      );
+      continue;
+    }
     seenCanonicalNames.set(normalized.canonicalName, row);
+    seenDisplayNames.set(normalized.displayNamePl, row);
     characters.push(normalized);
   }
   return { characters, issues: sortIssues(issues) };
@@ -332,6 +344,8 @@ function issueMessage(reasonCode: string): string {
     PERMANENT_STRENGTH_SOURCE_INVALID: "Stała premia SIŁ nie ma jednoznacznego źródła w notatce.",
     EFFECTIVE_STRENGTH_MISMATCH: "Aktualna SIŁ nie zgadza się z bazą i stałą premią.",
     DUPLICATE_CHARACTER_ID: "Identyfikator postaci powtarza się w trackerze.",
+    DUPLICATE_CHARACTER_DISPLAY_NAME:
+      "Nazwa wyświetlana postaci powtarza się w trackerze i nie pozwala rozstrzygnąć odwołań.",
   };
   return messages[reasonCode] ?? "Dane źródłowe wymagają uzgodnienia.";
 }
