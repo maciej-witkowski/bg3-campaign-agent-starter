@@ -175,6 +175,24 @@ voice or desktop layers.
   no implicit overwrite and cleanup after publication failure.
 - The production CLI is exercised as a child process, not only by direct function calls.
 
+## Implementation evidence
+
+- `openReadOnlySqliteConnection()` requires an existing file, rejects the in-memory
+  sentinel, opens `better-sqlite3` with `readonly` and `fileMustExist`, enables
+  connection-local `query_only`, foreign keys and the bounded busy timeout, and never
+  selects WAL or invokes the migrator.
+- `assertLatestCampaignSchema()` reads the committed migration bundle, compares every
+  applied migration hash and timestamp in order, rejects missing/older/newer/mismatched
+  ledgers and verifies all 16 canonical M1 tables without writing metadata.
+- `CampaignValidationService` is a read-only application boundary around the existing
+  deterministic validator and returns violations without repair.
+- Focused tests prove missing files are not created, a direct insert is refused, database
+  bytes remain unchanged, old schemas are not upgraded, newer/tampered histories and
+  missing tables are rejected, and validation leaves its source unchanged.
+- Final M3 composition wiring, consistent compound query transactions and export
+  exposure are completed with the ADR-0027 inspection service because the composition
+  must expose that concrete typed service rather than a raw or generic database hook.
+
 ## Consequences and trade-offs
 
 - Capability separation makes the no-write promise enforceable and reviewable.
@@ -212,3 +230,6 @@ requires a new proposed ADR rather than weakening the tests.
 
 - 2026-08-30 — Initial M3 proposal.
 - 2026-08-30 — Accepted after explicit repository-owner approval.
+- 2026-08-30 — Implemented and tested the enforced read-only connection, exact schema
+  compatibility verifier and read-only validation application boundary; recorded the
+  typed composition integration point for ADR-0027.

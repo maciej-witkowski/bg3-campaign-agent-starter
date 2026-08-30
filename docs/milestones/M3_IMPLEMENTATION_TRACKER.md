@@ -28,30 +28,35 @@ context from chat history.
 
 | ADR | Decision | Approval | Implementation status |
 | --- | --- | --- | --- |
-| ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | In progress |
-| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Pending |
+| ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Core complete; composition integration pending ADR-0027 |
+| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | In progress |
 | ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Pending |
 
 ## Session ledger
 
 ### Session ADR-0026 — read-only persistence and composition
 
-Status: In progress
+Status: Complete — pending focused commit
 
-Planned:
+Implemented:
 
-- existing-file-only SQLite read connection with query-only defence;
-- non-mutating latest-schema compatibility verification;
-- read-only M3 composition exposing inspection, validation and export only;
-- focused tests proving write attempts, migration gaps and canonical state changes fail;
-- implementation evidence and one focused commit.
+- existing-file-only SQLite read connection with `readonly`, `fileMustExist` and
+  query-only defence;
+- exact non-mutating migration hash/timestamp and required-table compatibility checks;
+- read-only application validation service;
+- focused tests proving write attempts, migration gaps and canonical file changes fail;
+- ADR implementation evidence.
 
-Handoff: complete and validate this session before starting ADR-0027. Do not add query
-presentation semantics beyond the minimal typed integration boundary.
+Validation: scoped formatting and strict typecheck passed; 3 focused files / 13 tests
+passed outside the sandbox after its process-spawn restriction blocked Vitest workers.
+
+Handoff: ADR-0027 must add the concrete typed inspection service and then close the
+composition integration point with inspection, validation and M2 export only. It must
+not expose the raw database or add process parsing/rendering.
 
 ### Session ADR-0027 — query semantics and projections
 
-Status: Pending
+Status: In progress
 
 Planned:
 
@@ -90,7 +95,17 @@ PR, CI/security and Codex review workflow. Do not start M4.
 
 ### Modified
 
-- None yet outside the accepted ADR records.
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+
+### Created in ADR-0026 session
+
+- `src/persistence/sqlite/read-only-connection.ts`
+- `src/persistence/sqlite/schema-compatibility.ts`
+- `src/application/inspection/campaign-validation-service.ts`
+- `tests/unit/persistence/read-only-connection.test.ts`
+- `tests/unit/persistence/schema-compatibility.test.ts`
+- `tests/unit/application/campaign-validation-service.test.ts`
 
 ## Validation ledger
 
@@ -99,10 +114,13 @@ PR, CI/security and Codex review workflow. Do not start M4.
 | 2026-08-30 | ADR required-section/trailing-whitespace check | Passed | Three proposed ADRs before approval |
 | 2026-08-30 | `git pull --ff-only` | Passed | `main` already current before branch creation |
 | 2026-08-30 | scoped Prettier check | Blocked | Dependencies are not installed; no formatting mutation attempted |
+| 2026-08-30 | `pnpm install --frozen-lockfile` | Passed | Existing lockfile dependencies became available; no lockfile change |
+| 2026-08-30 | scoped Prettier plus `tsc --noEmit` | Passed | ADR-0026 source, tests, ADRs and tracker |
+| 2026-08-30 | scoped ADR-0026 Vitest | Passed | 3 files / 13 tests; sandbox spawn was blocked, approved outside-sandbox rerun passed |
 
 ## Commits and remote state
 
-- No M3 commit yet.
+- `3ba504a` — `docs: accept M3 CLI architecture`.
 - Branch is local; no PR exists yet.
 
 ## Known risks and watch points
@@ -117,7 +135,7 @@ PR, CI/security and Codex review workflow. Do not start M4.
 
 ## Exact resume point
 
-ADR-0026, ADR-0027 and ADR-0028 are accepted. Start ADR-0026 implementation by adding
-the existing-file-only read connection and schema verifier, then wire a minimal M3
-composition that exposes no write services. Update this tracker before and after the
-focused ADR-0026 commit.
+ADR-0026 core implementation and focused tests are complete and ready for its scoped
+commit. After committing, begin ADR-0027 with typed inspection DTOs/service and SQLite
+projections. Finish the M3 composition by exposing only inspection, validation, export
+and close. Do not add argv parsing/renderers until ADR-0028 and do not start M4.
