@@ -36,6 +36,27 @@ describe("runCli", () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it("derives an error command only from the parsed command position", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const invalidArity = await runCli(["--db", "x", "--json", "character", "party", "extra"], {
+      openApplication: open,
+    });
+    const unknownWithCommandNamedDatabase = await runCli(["--db", "party", "--json", "unknown"], {
+      openApplication: open,
+    });
+
+    expect(JSON.parse(invalidArity.stdout)).toMatchObject({
+      command: "character",
+      ok: false,
+    });
+    expect(JSON.parse(unknownWithCommandNamedDatabase.stdout)).toMatchObject({
+      command: null,
+      ok: false,
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it("keeps human failures on stderr and closes the application", async () => {
     const application = fakeApplication();
     const close = vi.spyOn(application, "close");

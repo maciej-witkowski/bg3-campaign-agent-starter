@@ -64,6 +64,17 @@ export function parseCliArguments(args: readonly string[]): CliRequest {
   };
 }
 
+export function inferCliCommandName(args: readonly string[]): CliCommandName | null {
+  try {
+    const [rawCommand] = parseNativeArguments(args).positionals;
+    return rawCommand !== undefined && commandNames.has(rawCommand as CliCommandName)
+      ? (rawCommand as CliCommandName)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function commandFor(
   name: CliCommandName,
   positionals: readonly string[],

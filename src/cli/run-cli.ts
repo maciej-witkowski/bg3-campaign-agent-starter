@@ -20,7 +20,7 @@ import {
   type CliProcessResult,
 } from "./cli-contract.js";
 import { renderHumanFailure, renderHumanSuccess } from "./human-renderer.js";
-import { parseCliArguments } from "./parse-cli-arguments.js";
+import { inferCliCommandName, parseCliArguments } from "./parse-cli-arguments.js";
 
 const HELP = `BG3 Campaign Agent — read-only CLI
 
@@ -52,7 +52,7 @@ export async function runCli(
   options: RunCliOptions = {},
 ): Promise<CliProcessResult> {
   const json = args.includes("--json");
-  const commandHint = inferCommand(args);
+  const commandHint = inferCliCommandName(args);
   let request: ReturnType<typeof parseCliArguments>;
   try {
     request = parseCliArguments(args);
@@ -186,21 +186,6 @@ function mapped(
   exitCode: number,
 ): { readonly error: CliErrorPayload; readonly exitCode: number } {
   return { error: { code, messagePl, details }, exitCode };
-}
-
-function inferCommand(args: readonly string[]): CliCommandName | null {
-  const names: readonly CliCommandName[] = [
-    "party",
-    "character",
-    "equipment",
-    "inventory",
-    "spells",
-    "illithid",
-    "changes",
-    "validate",
-    "export",
-  ];
-  return names.find((name) => args.includes(name)) ?? null;
 }
 
 function packageVersion(): string {
