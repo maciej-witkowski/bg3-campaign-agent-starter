@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: PR #6 open; CI/security and Codex review pending
+Overall status: Approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -114,6 +114,31 @@ Stabilization: cumulative scope/state/security/ADR review found no local impleme
 finding. No schema, migration, runtime dependency, canonical campaign data or later-
 milestone feature is present in the diff.
 
+### Session PR review remediation — approved P1/P2
+
+Status: Implementation committed as `be207a9`; documentation and full revalidation
+complete
+
+Review findings on `078efe5`:
+
+- P1: an overwrite export target could alias the campaign database or a SQLite companion;
+- P2: standalone validation reads did not share one SQLite snapshot.
+
+Approval: both remediations explicitly approved by the repository owner in the Codex
+task on 2026-08-30.
+
+Implemented:
+
+- pre-open export target protection for resolved source paths, canonical filesystem
+  aliases and `-wal`, `-shm`, `-journal` companions;
+- one transaction-scoped validation read port around the complete deterministic validator;
+- focused filesystem-alias, CLI mapping, production-process and concurrent-WAL snapshot
+  regressions;
+- ADR-0026/0028 implementation evidence and operational documentation updates.
+
+ADR impact: no new or changed architectural decision. Both fixes enforce the already
+accepted ADR-0026 transactional-read and isolated-export boundary.
+
 ## Change inventory
 
 ### Created
@@ -190,6 +215,30 @@ milestone feature is present in the diff.
 - `docs/TESTING.md`
 - `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
 
+### Created in PR review remediation session
+
+- `src/cli/campaign-export-target.ts`
+- `src/persistence/sqlite/campaign-validation-read-port.ts`
+- `tests/unit/cli/campaign-export-target.test.ts`
+- `tests/unit/persistence/campaign-validation-read-port.test.ts`
+
+### Modified in PR review remediation session
+
+- `CHANGELOG.md`
+- `docs/CLI.md`
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `scripts/smoke-production.mjs`
+- `src/application/inspection/campaign-validation-service.ts`
+- `src/cli/run-cli.ts`
+- `src/composition/m3-campaign-application.ts`
+- `src/index.ts`
+- `tests/unit/application/campaign-validation-service.test.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -208,6 +257,9 @@ milestone feature is present in the diff.
 | 2026-08-30 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 36 files / 223 tests, production build and real-process smoke |
 | 2026-08-30 | `pnpm audit --audit-level high` | Passed | No high/critical findings; two inherited moderate advisories in unchanged dependency graph |
 | 2026-08-30 | cumulative M3 stabilization review | Passed | Scope, state safety, ADR alignment, failure paths, docs and generated/private-file sweep |
+| 2026-08-30 | focused approved P1/P2 remediation tests | Passed | 5 files / 16 tests including export aliases and concurrent WAL snapshot |
+| 2026-08-30 | remediation production build and smoke | Passed | Protected DB/WAL/SHM targets rejected; SQLite hash unchanged |
+| 2026-08-30 | post-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and protected-target production smoke |
 
 ## Commits and remote state
 
@@ -216,6 +268,8 @@ milestone feature is present in the diff.
 - `c63d236` — `feat: add M3 campaign inspection queries`.
 - `ffc2707` — `feat: add M3 read-only CLI process`.
 - `de216ed` — `docs: document M3 read-only CLI`.
+- `078efe5` — `docs: track M3 pull request`.
+- `be207a9` — `fix: protect M3 read-only boundaries`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -235,8 +289,7 @@ milestone feature is present in the diff.
 
 ## Exact resume point
 
-All three ADR implementation sessions, milestone documentation, the full local gate and
-the cumulative stabilization review are complete. PR #6 is open. Resume by waiting for
-CI/security checks on the latest head and requesting Codex review. Verify any findings,
-present a remediation plan and do not edit files in response without explicit user
-approval. Do not merge and do not start M4.
+Both Codex findings on reviewed head `078efe5` were verified, approved by the repository
+owner, implemented in `be207a9` and passed the full post-remediation gate. Resume by
+finishing the diff/security sweep, committing and pushing documentation evidence, then
+request Codex re-review on the latest material head. Do not merge and do not start M4.

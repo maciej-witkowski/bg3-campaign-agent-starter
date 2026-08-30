@@ -74,4 +74,9 @@ separation, human output, exit categories, safe internal errors and JSON/XLSX di
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
 nine commands. Every JSON envelope and the export artifact are parsed, and the SQLite
-SHA-256 before/after all commands must match.
+SHA-256 before/after all commands must match. The smoke also attempts overwrite exports
+against the database, WAL and SHM paths and requires a safe exit-5 refusal.
+
+Validation-port regression uses two SQLite connections in WAL mode. A writer commits
+between two reads inside the validation callback; both reads must observe the original
+snapshot, while a later transaction observes the committed row.

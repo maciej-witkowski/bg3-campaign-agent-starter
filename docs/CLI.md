@@ -19,6 +19,8 @@ The installed executable name is `bg3-campaign`. Repository examples use
   migrations.
 - No command creates an audit event or checkpoint.
 - `export` writes only its explicit output file; SQLite remains unchanged.
+- Export targets resolving to the database, an existing filesystem alias or its
+  `-wal`, `-shm` and `-journal` companions are rejected even with `--overwrite`.
 - No command uses AI, web research, fuzzy name resolution or mutation tools.
 
 SQLite databases and exports contain private campaign state. Keep them outside source

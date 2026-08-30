@@ -13,4 +13,6 @@
 - CLI errors omit SQL, stack traces and full audit snapshots; JSON mode reserves stdout
   for one versioned result document.
 - CLI exports require an explicit local target and refuse overwrite unless the operator
-  supplies `--overwrite`; exported campaign state remains private local data.
+  supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
+  remain protected even with that flag; exported campaign state remains private local
+  data.

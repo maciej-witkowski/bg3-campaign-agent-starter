@@ -185,7 +185,8 @@ voice or desktop layers.
   applied migration hash and timestamp in order, rejects missing/older/newer/mismatched
   ledgers and verifies all 16 canonical M1 tables without writing metadata.
 - `CampaignValidationService` is a read-only application boundary around the existing
-  deterministic validator and returns violations without repair.
+  deterministic validator. Its SQLite port runs the complete multi-query validation in
+  one transactionally consistent snapshot and returns violations without repair.
 - Focused tests prove missing files are not created, a direct insert is refused, database
   bytes remain unchanged, old schemas are not upgraded, newer/tampered histories and
   missing tables are rejected, and validation leaves its source unchanged.
@@ -193,6 +194,10 @@ voice or desktop layers.
   the existing M2 exporter over the same enforced read-only connection. Its public
   surface contains exactly those three capabilities plus `close()` and exposes no raw
   database, import service, mutation coordinator or write repository.
+- The CLI rejects export targets that resolve to the campaign database, an existing
+  filesystem alias or the database's `-wal`, `-shm` and `-journal` companions before
+  opening the M3 application. Production smoke proves these targets cannot replace
+  canonical SQLite bytes even with explicit `--overwrite`.
 
 ## Consequences and trade-offs
 
@@ -237,3 +242,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-30 — Completed composition integration with the typed ADR-0027 inspection
   service and existing M2 exporter; integration coverage proves SQLite bytes remain
   unchanged while an explicit export artifact is published.
+- 2026-08-30 — After approved PR review remediation, guarded the canonical database and
+  SQLite companion paths from export publication and moved complete validation into one
+  SQLite snapshot; added filesystem-alias, process and concurrent-WAL regressions.

@@ -13,6 +13,8 @@
 - Added the `bg3-campaign` production executable, JSON/XLSX export dispatch and
   child-process smoke coverage proving all M3 commands leave canonical SQLite bytes
   unchanged.
+- Protected the campaign database, filesystem aliases and SQLite companion files from
+  export overwrite, and made complete CLI validation observe one transactional snapshot.
 - Recorded the approved M3 architecture in ADRs 0026–0028 and added a durable
   per-ADR implementation tracker.
 - Added M15 Campaign Initialization and Onboarding after the core product workflows, with clean-start and mid-campaign entry modes; moved Reliability / Evals / Long-Term Operations to M16.

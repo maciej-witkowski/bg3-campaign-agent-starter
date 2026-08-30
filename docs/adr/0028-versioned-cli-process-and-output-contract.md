@@ -254,7 +254,8 @@ broad categories.
   JSON/XLSX dispatch and database/export/internal error mapping.
 - The production smoke creates a sanitized latest-schema file, launches the built CLI
   as a child process for all nine commands, parses every V1 envelope, verifies the JSON
-  export artifact and proves the canonical SQLite SHA-256 is unchanged.
+  export artifact, rejects database/companion overwrite targets and proves the canonical
+  SQLite SHA-256 is unchanged.
 
 ## Consequences and trade-offs
 
@@ -297,3 +298,6 @@ tests must not require color.
 - 2026-08-30 — Implemented the strict native parser, process dispatcher/lifecycle,
   Polish and V1 JSON renderers, stable exit/error mapping, package executable and
   production child-process smoke coverage.
+- 2026-08-30 — After approved PR review remediation, added pre-open export target
+  collision checks and process coverage for protected SQLite paths without changing the
+  V1 envelope or exit-status contract.
