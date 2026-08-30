@@ -29,8 +29,8 @@ context from chat history.
 | ADR | Decision | Approval | Implementation status |
 | --- | --- | --- | --- |
 | ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Complete: `362a10f` plus ADR-0027 composition integration |
-| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete — pending focused commit |
-| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | In progress |
+| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete: `c63d236` |
+| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Complete — pending focused commit |
 
 ## Session ledger
 
@@ -56,7 +56,7 @@ not expose the raw database or add process parsing/rendering.
 
 ### Session ADR-0027 — query semantics and projections
 
-Status: Complete — pending focused commit
+Status: Complete — committed as `c63d236`
 
 Implemented:
 
@@ -76,18 +76,25 @@ surface. Do not alter approved query semantics or add M4 tools.
 
 ### Session ADR-0028 — process contract and renderers
 
-Status: In progress
+Status: Complete — pending focused commit
 
-Planned:
+Implemented:
 
-- strict native Node argument parser and `bg3-campaign` executable;
+- strict native Node argument parser with command option scopes and pre-open failures;
 - human Polish and `BG3_CLI_RESULT` V1 JSON renderers;
-- stdout/stderr discipline and stable exit codes;
-- child-process integration tests for all nine commands;
-- implementation evidence and one focused commit.
+- stdout/stderr discipline, safe error mapping and stable exit codes;
+- JSON/XLSX export dispatch with metadata-only command results;
+- package executable, convenience script and version update to 0.3.0;
+- production child-process smoke for all nine commands and focused contract tests;
+- implementation evidence.
 
-Handoff: after this session, run milestone-wide documentation, validation, stabilization,
-PR, CI/security and Codex review workflow. Do not start M4.
+Validation: scoped Prettier, ESLint and strict typecheck passed; 3 focused files / 34
+tests passed; production build and child-process smoke passed for all commands with an
+unchanged SQLite SHA-256.
+
+Handoff: after the focused ADR-0028 commit, update README/architecture/testing/operations
+and CHANGELOG, run the complete local gate and milestone stabilization sweep, then push
+and open the M3 PR. Do not start M4.
 
 ## Change inventory
 
@@ -131,6 +138,26 @@ PR, CI/security and Codex review workflow. Do not start M4.
 - `docs/adr/0027-m3-cli-query-semantics.md`
 - `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
 
+### Created in ADR-0028 session
+
+- `src/cli/cli-contract.ts`
+- `src/cli/parse-cli-arguments.ts`
+- `src/cli/cli-envelope.ts`
+- `src/cli/human-renderer.ts`
+- `src/cli/run-cli.ts`
+- `src/cli/main.ts`
+- `tests/unit/cli/parse-cli-arguments.test.ts`
+- `tests/unit/cli/cli-envelope.test.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
+### Modified in ADR-0028 session
+
+- `package.json`
+- `scripts/smoke-production.mjs`
+- `src/index.ts`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -143,11 +170,15 @@ PR, CI/security and Codex review workflow. Do not start M4.
 | 2026-08-30 | scoped ADR-0026 Vitest | Passed | 3 files / 13 tests; sandbox spawn was blocked, approved outside-sandbox rerun passed |
 | 2026-08-30 | scoped ADR-0027 Prettier, ESLint and `tsc --noEmit` | Passed | Query contracts/service, SQLite port, composition, fixture and tests |
 | 2026-08-30 | scoped ADR-0027 Vitest | Passed | 2 files / 12 tests including all projections, negative paths and export isolation |
+| 2026-08-30 | scoped ADR-0028 Prettier, ESLint and `tsc --noEmit` | Passed | Parser, contracts, renderers, runner, entry point and tests |
+| 2026-08-30 | scoped ADR-0028 Vitest | Passed | 3 files / 34 tests covering grammar, V1 envelopes, streams, errors and export dispatch |
+| 2026-08-30 | production build plus `scripts/smoke-production.mjs` | Passed | Built executable spawned for all nine commands; export valid; SQLite hash unchanged |
 
 ## Commits and remote state
 
 - `3ba504a` — `docs: accept M3 CLI architecture`.
 - `362a10f` — `feat: enforce M3 read-only persistence`.
+- `c63d236` — `feat: add M3 campaign inspection queries`.
 - Branch is local; no PR exists yet.
 
 ## Known risks and watch points
@@ -162,8 +193,7 @@ PR, CI/security and Codex review workflow. Do not start M4.
 
 ## Exact resume point
 
-ADR-0027 implementation and focused tests are complete and ready for its scoped commit.
-After committing, implement ADR-0028 over `openM3CampaignApplication`: strict native argv
-parsing, human/JSON rendering, exit categories and the built `bg3-campaign` entry point.
-Use the existing M3 fixture for child-process tests. Do not change query semantics or
-start M4.
+ADR-0028 implementation and focused tests are complete and ready for its scoped commit.
+After committing, update milestone-facing documentation and CHANGELOG, then run the full
+`pnpm check`, focused no-write matrix, audit/diff review and cumulative M3 stabilization
+sweep before push/PR. Do not change approved behavior or start M4.

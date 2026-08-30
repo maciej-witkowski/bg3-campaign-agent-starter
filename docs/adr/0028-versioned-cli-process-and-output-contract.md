@@ -231,6 +231,31 @@ broad categories.
 - Package/build smoke tests prove the declared executable resolves from production
   output on supported Node versions.
 
+## Implementation evidence
+
+- `parseCliArguments()` uses Node's strict native parser with an explicit option schema,
+  command-level option allowlists, duplicate single-value rejection, typed enums,
+  bounded limits and exact positional arity before any database is opened.
+- `runCli()` owns application lifecycle, typed dispatch, safe error mapping and the
+  approved exit categories. Every opened application is closed in `finally`, including
+  failure paths.
+- `BG3_CLI_RESULT` V1 success/failure constructors emit the documented key shapes and
+  exactly one pretty UTF-8 JSON document plus one newline. Dates serialize as canonical
+  ISO UTC strings and failures never include `data`.
+- Human renderers provide compact Polish sections and the consistent empty/unknown
+  markers. Human failures use stderr; JSON-mode failures use stdout only.
+- Export dispatch calls the approved M2 JSON/XLSX writers, reports only bounded artifact
+  metadata and keeps the campaign export body in the explicit output file.
+- `package.json` declares `bg3-campaign` at `dist/cli/main.js`, the ESM entry retains a
+  Node shebang and `pnpm cli -- ...` invokes the production build output. No CLI runtime
+  dependency was added.
+- Parser/envelope/runner coverage passed 3 files / 34 tests, including help/version,
+  all command grammars, negative arguments, stream separation, validation exit 4,
+  JSON/XLSX dispatch and database/export/internal error mapping.
+- The production smoke creates a sanitized latest-schema file, launches the built CLI
+  as a child process for all nine commands, parses every V1 envelope, verifies the JSON
+  export artifact and proves the canonical SQLite SHA-256 is unchanged.
+
 ## Consequences and trade-offs
 
 - Scripts receive a small explicit versioned contract while humans get localized output.
@@ -269,3 +294,6 @@ tests must not require color.
 
 - 2026-08-30 — Initial M3 proposal.
 - 2026-08-30 — Accepted after explicit repository-owner approval.
+- 2026-08-30 — Implemented the strict native parser, process dispatcher/lifecycle,
+  Polish and V1 JSON renderers, stable exit/error mapping, package executable and
+  production child-process smoke coverage.

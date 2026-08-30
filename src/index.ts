@@ -98,3 +98,21 @@ export type {
   M3CampaignApplication,
   OpenM3CampaignApplicationOptions,
 } from "./composition/m3-campaign-application.js";
+
+export { CLI_RESULT_FORMAT, CLI_RESULT_VERSION, CliUsageError } from "./cli/cli-contract.js";
+export type {
+  CliCommand,
+  CliCommandName,
+  CliCommandRequest,
+  CliEnvelope,
+  CliErrorPayload,
+  CliFailureEnvelope,
+  CliProcessResult,
+  CliRequest,
+  CliSuccessEnvelope,
+  CliUsageErrorCode,
+} from "./cli/cli-contract.js";
+export { cliFailure, cliSuccess, serializeCliEnvelope } from "./cli/cli-envelope.js";
+export { parseCliArguments } from "./cli/parse-cli-arguments.js";
+export { runCli } from "./cli/run-cli.js";
+export type { RunCliOptions } from "./cli/run-cli.js";
