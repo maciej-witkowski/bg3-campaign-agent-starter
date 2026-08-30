@@ -95,6 +95,11 @@ describe("CampaignInspectionService", () => {
 
   it("matches tag facets exactly without searching prose or inferring M14 tags", () => {
     expect(service.findInventory({ tags: ["  PROMIENNE "] }).items).toHaveLength(2);
+    expect(
+      service
+        .findInventory({ tags: ["BONUS", "AURA"] })
+        .items.map((value) => value.inventoryItem.id),
+    ).toEqual(["inventory-ring", "inventory-armor"]);
     expect(service.findInventory({ tags: ["koncentracja"] }).items).toEqual([]);
     expect(service.findInventory({ tags: ["otrzymanie obrażeń"] }).items[0]?.inventoryItem.id).toBe(
       "inventory-armor",

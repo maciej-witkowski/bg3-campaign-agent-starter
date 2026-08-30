@@ -322,7 +322,7 @@ function matchesInventory(
         .map(normalizePolishMatchingKey),
     ),
   );
-  return filters.tags.every((tag) => facets.has(tag));
+  return filters.tags.some((tag) => facets.has(tag));
 }
 
 function compareByDisplayName(left: CharacterIdentityView, right: CharacterIdentityView): number {
