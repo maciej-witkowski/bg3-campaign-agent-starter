@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: Local implementation and validation complete; PR delivery in progress
+Overall status: PR #6 open; CI/security and Codex review pending
 
 ## Purpose
 
@@ -215,7 +215,9 @@ milestone feature is present in the diff.
 - `362a10f` — `feat: enforce M3 read-only persistence`.
 - `c63d236` — `feat: add M3 campaign inspection queries`.
 - `ffc2707` — `feat: add M3 read-only CLI process`.
-- Branch is local; no PR exists yet.
+- `de216ed` — `docs: document M3 read-only CLI`.
+- Branch is published as `origin/codex/m3-read-only-cli`.
+- Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
 ## Known risks and watch points
 
@@ -234,7 +236,7 @@ milestone feature is present in the diff.
 ## Exact resume point
 
 All three ADR implementation sessions, milestone documentation, the full local gate and
-the cumulative stabilization review are complete. Resume by committing the documentation,
-then push `codex/m3-read-only-cli`, open the PR, wait for CI/security checks and request
-Codex review. Do not remediate review findings without explicit user approval, and do
-not start M4.
+the cumulative stabilization review are complete. PR #6 is open. Resume by waiting for
+CI/security checks on the latest head and requesting Codex review. Verify any findings,
+present a remediation plan and do not edit files in response without explicit user
+approval. Do not merge and do not start M4.
