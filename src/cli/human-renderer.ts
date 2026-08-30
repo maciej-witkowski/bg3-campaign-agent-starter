@@ -32,9 +32,18 @@ function renderParty(value: PartyView): string {
     "Aktywna drużyna",
     value.characters.map(
       (character) =>
-        `${character.displayNamePl} — ${character.classPl} ${character.level} — ${character.roleSummary}`,
+        `${character.displayNamePl} — ${character.classPl} ${character.level} — ${character.roleSummary} — Atrybuty: ${formatAttributes(character.attributes)}`,
     ),
   );
+}
+
+function formatAttributes(attributes: PartyView["characters"][number]["attributes"]): string {
+  if (attributes.length === 0) return "— brak —";
+  return attributes
+    .map(
+      (attribute) => `${attribute.attribute} ${attribute.baseValue} → ${attribute.effectiveValue}`,
+    )
+    .join(", ");
 }
 
 function renderCharacter(value: CharacterView): string {
