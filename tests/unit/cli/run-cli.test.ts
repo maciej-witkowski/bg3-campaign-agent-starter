@@ -120,6 +120,31 @@ describe("runCli", () => {
     });
   });
 
+  it("rejects an export target that aliases the campaign database before opening it", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const result = await runCli(
+      [
+        "--db",
+        "campaign.sqlite",
+        "--json",
+        "export",
+        "--format",
+        "json",
+        "--output",
+        "campaign.sqlite",
+        "--overwrite",
+      ],
+      { openApplication: open },
+    );
+
+    expect(result.exitCode).toBe(5);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      error: { code: "ARTIFACT_WRITE_FAILED" },
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it("maps database, export and unexpected failures to stable broad exit categories", async () => {
     const schema = await runCli(["--db", "old.sqlite", "--json", "party"], {
       openApplication: () => {

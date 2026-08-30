@@ -7,7 +7,7 @@ import { CampaignInspectionService } from "../application/inspection/campaign-in
 import { CampaignValidationService } from "../application/inspection/campaign-validation-service.js";
 import { SqliteCampaignExportSource } from "../persistence/sqlite/campaign-export-source.js";
 import { SqliteCampaignInspectionReadPort } from "../persistence/sqlite/campaign-inspection-read-port.js";
-import { SqliteCampaignValidationStateReader } from "../persistence/sqlite/campaign-validation-state-reader.js";
+import { SqliteCampaignValidationReadPort } from "../persistence/sqlite/campaign-validation-read-port.js";
 import { openReadOnlySqliteConnection } from "../persistence/sqlite/read-only-connection.js";
 import { assertLatestCampaignSchema } from "../persistence/sqlite/schema-compatibility.js";
 
@@ -35,7 +35,7 @@ export function openM3CampaignApplication(
         new SqliteCampaignInspectionReadPort(connection.database),
       ),
       validation: new CampaignValidationService(
-        new SqliteCampaignValidationStateReader(connection.database),
+        new SqliteCampaignValidationReadPort(connection.database),
       ),
       campaignExport: new CampaignExportService(
         new SqliteCampaignExportSource(connection.database),

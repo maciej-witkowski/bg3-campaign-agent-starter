@@ -47,6 +47,24 @@ try {
       throw new Error(`Production CLI returned an invalid envelope for ${command[0]}.`);
     }
   }
+  for (const protectedPath of [databasePath, `${databasePath}-wal`, `${databasePath}-shm`]) {
+    const rejected = runCli(databasePath, [
+      "export",
+      "--format",
+      "json",
+      "--output",
+      protectedPath,
+      "--overwrite",
+    ]);
+    const parsed = JSON.parse(rejected.stdout);
+    if (
+      rejected.status !== 5 ||
+      parsed.ok !== false ||
+      parsed.error?.code !== "ARTIFACT_WRITE_FAILED"
+    ) {
+      throw new Error(`Production CLI accepted protected export target: ${protectedPath}.`);
+    }
+  }
   if (sha256(databasePath) !== before) {
     throw new Error("Production CLI changed canonical SQLite bytes.");
   }

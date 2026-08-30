@@ -92,7 +92,10 @@ export type {
 } from "./application/inspection/campaign-inspection.js";
 export { CampaignInspectionService } from "./application/inspection/campaign-inspection-service.js";
 export { CampaignValidationService } from "./application/inspection/campaign-validation-service.js";
-export type { CampaignValidationResult } from "./application/inspection/campaign-validation-service.js";
+export type {
+  CampaignValidationReadPort,
+  CampaignValidationResult,
+} from "./application/inspection/campaign-validation-service.js";
 export { openM3CampaignApplication } from "./composition/m3-campaign-application.js";
 export type {
   M3CampaignApplication,

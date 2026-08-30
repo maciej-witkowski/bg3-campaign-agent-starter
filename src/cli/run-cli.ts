@@ -11,6 +11,7 @@ import { CampaignValidationError } from "../domain/validation/campaign-validatio
 import { ReadOnlySqliteConnectionError } from "../persistence/sqlite/read-only-connection.js";
 import { SchemaCompatibilityError } from "../persistence/sqlite/schema-compatibility.js";
 import { cliFailure, cliSuccess, serializeCliEnvelope } from "./cli-envelope.js";
+import { assertSafeCampaignExportTarget } from "./campaign-export-target.js";
 import {
   CliUsageError,
   type CliCommand,
@@ -66,6 +67,9 @@ export async function runCli(
 
   let application: M3CampaignApplication | undefined;
   try {
+    if (request.command.name === "export") {
+      assertSafeCampaignExportTarget(request.databasePath, request.command.outputPath);
+    }
     application = (
       options.openApplication ?? ((filename) => openM3CampaignApplication({ filename }))
     )(request.databasePath);
