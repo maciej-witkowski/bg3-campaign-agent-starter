@@ -50,4 +50,8 @@ Normalization regressions reject duplicate character display names before depend
 reference lookup and allow one illithid power to appear for different characters with
 different availability/acquisition statuses.
 
+Reconciliation regressions also refuse changing or skipping only one duplicated
+character row, preventing unchanged dependent references from resolving to the first
+same-named character.
+
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.

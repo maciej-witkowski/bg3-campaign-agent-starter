@@ -12,6 +12,11 @@ Normalization preserves exact Polish display strings, maps only allow-listed leg
 
 `BG3_IMPORT_REPORT` contains the complete classification. `BG3_IMPORT_RECONCILIATION` contains digest-bound uncertain decisions with a closed resolution schema; neither artifact is canonical state.
 
+Duplicate character display names must be corrected directly in the source tracker
+together with every dependent owner, equipment and capability reference. A row-local
+reconciliation value or skip is refused because it cannot identify which character
+the unchanged references describe.
+
 ## Current-state exchange
 
 `BG3_CAMPAIGN_EXPORT` JSON and `BG3_CAMPAIGN_XLSX` XLSX version 1 encode the same 14 canonical current-state collections and stable IDs as the M1 snapshot boundary. The XLSX workbook contains `Metadane` followed by one fixed normalized sheet per collection. Campaign strings are written as literal cell values, never formulas or hyperlinks.

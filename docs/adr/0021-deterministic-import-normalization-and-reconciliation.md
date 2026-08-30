@@ -169,6 +169,11 @@ change unrelated fields. Reconciliation input only resolves the staged source fa
 it still passes the same domain validation and transactional service as automatic
 facts.
 
+A duplicate character display name cannot be resolved by patching or skipping only
+one staged character row. The ambiguity also affects owner and capability references
+elsewhere in the workbook, so the source tracker and all dependent references must be
+corrected together before a new digest-bound import is planned.
+
 ## Boundaries and dependency direction
 
 - Pure normalization, mapping, fingerprint and reconciliation-schema functions live
@@ -286,3 +291,6 @@ review.
 - 2026-08-29 — Rejected duplicate character display names before reference lookup and
   moved legacy illithid status from shared definition identity to acquired-character
   assignment semantics.
+- 2026-08-30 — Refused row-local reconciliation of duplicate character display names;
+  this ambiguity requires a consistent source-workbook correction including dependent
+  owner and capability references.

@@ -68,7 +68,7 @@ Only an unblocked plan reaches the M1 mutation coordinator. Plan freshness is ch
 
 Import plans are in-memory capabilities issued by one application-service instance. Issued plans are recursively frozen, and the service records a digest computed from a structured clone that cannot honor caller-supplied JSON serialization hooks. Copied or modified structural objects are refused before mutation. Planners also compare new assignments and equipment slots with rows already pending in the same plan, so conflicting composite identities become reconciliation conflicts rather than database constraint failures.
 
-Legacy character display names must be unique within one staged import before item-owner or capability references are resolved. Illithid availability status remains a per-character source fact: only `WYKUPIONA` creates a canonical assignment, while the shared power definition is independent of another character's available or blocked status.
+Legacy character display names must be unique within one staged import before item-owner or capability references are resolved. A duplicate cannot be reconciled by changing or skipping only its character row because dependent workbook references would remain ambiguous; it requires a consistent source-workbook correction. Illithid availability status remains a per-character source fact: only `WYKUPIONA` creates a canonical assignment, while the shared power definition is independent of another character's available or blocked status.
 
 Current-state export captures and validates one transactionally consistent read snapshot before serializing JSON or XLSX. Invalid canonical state is refused rather than published as a portable campaign artifact.
 
