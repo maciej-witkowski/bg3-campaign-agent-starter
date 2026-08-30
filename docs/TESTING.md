@@ -55,3 +55,23 @@ character row, preventing unchanged dependent references from resolving to the f
 same-named character.
 
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.
+
+## M3 read-only CLI evidence
+
+Sanitized unit/integration coverage verifies the existing-file-only SQLite connection,
+query-only write refusal, byte-identical database files, exact migration hash/timestamp
+compatibility and refusal of missing, old, new, tampered or incomplete schemas.
+
+Application tests cover active-party projection, base/effective attributes, canonical
+and Polish/NFC character resolution, ambiguity/not-found, equipment joins, inventory
+filter AND/OR behavior, exact effect facets, spell flags, illithid non-inference,
+summary-only audit limits/order, validation and explicit export isolation.
+
+CLI contract tests cover every command grammar, help/version, duplicate/unknown/missing
+arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout/stderr
+separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
+
+After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
+latest-schema database and launches the actual `dist/cli/main.js` child process for all
+nine commands. Every JSON envelope and the export artifact are parsed, and the SQLite
+SHA-256 before/after all commands must match.

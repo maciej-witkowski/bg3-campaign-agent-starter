@@ -10,13 +10,26 @@ Recommended rotation:
 ## Exports
 Support JSON and XLSX exports. Exports are read-only views and never become canonical writable state.
 
+M3 command examples:
+
+```sh
+pnpm cli -- --db campaign/current.sqlite export --format json --output campaign/exports/state.json
+pnpm cli -- --db campaign/current.sqlite export --format xlsx --output campaign/exports/state.xlsx
+```
+
+Existing targets are refused unless `--overwrite` is explicit. Export validates one
+consistent current-state snapshot and creates no audit event or checkpoint.
+
 ## Recovery
-Provide CLI commands to:
-- validate DB;
-- list checkpoints;
-- restore checkpoint into a new DB file first;
-- compare current versus restored state;
-- explicitly replace active DB only after validation.
+M3 provides read-only validation:
+
+```sh
+pnpm cli -- --db campaign/current.sqlite validate
+```
+
+The CLI returns exit 4 when violations are present and never repairs them. Checkpoint
+listing, restore into a new file, comparison and explicit active-database replacement
+remain M16 scope.
 
 ## Diagnostics
 A support bundle may include schema version, app logs, validation output and redacted state summary, but never API keys.

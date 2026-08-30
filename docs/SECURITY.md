@@ -8,3 +8,9 @@
 - Models cannot execute arbitrary SQL or shell commands through campaign tools.
 - Screenshot capture is explicit-hotkey only in initial implementation.
 - Raw audio persistence is opt-in.
+- The M3 CLI requires an explicit existing database path, opens it read-only with
+  query-only defence and refuses to apply migrations.
+- CLI errors omit SQL, stack traces and full audit snapshots; JSON mode reserves stdout
+  for one versioned result document.
+- CLI exports require an explicit local target and refuse overwrite unless the operator
+  supplies `--overwrite`; exported campaign state remains private local data.

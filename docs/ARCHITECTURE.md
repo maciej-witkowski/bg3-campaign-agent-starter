@@ -75,3 +75,27 @@ Current-state export captures and validates one transactionally consistent read 
 The current-state XLSX profile has its own symmetric serialization/deserialization limits. These bounds are intentionally independent from the smaller legacy-tracker input profile and allow up to 100,000 data rows per canonical collection.
 
 Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M16 scope.
+
+## Implemented M3 read-only CLI path
+
+M3 has a separate existing-file-only SQLite connection. It opens `better-sqlite3` with
+driver read-only mode and `fileMustExist`, enables connection-local `query_only`, does
+not select WAL and never invokes the migration runner. Before exposing commands it
+compares every migration hash/timestamp with the committed bundle and verifies all
+required M1 tables. Missing, older, newer or tampered schemas fail explicitly without
+repair.
+
+The CLI adapter parses a fixed command grammar into typed requests. A persistence-
+independent inspection service owns conservative Polish character resolution, effective
+attribute derivation, filter semantics, join checks and deterministic output ordering.
+Its SQLite read port supplies transaction-scoped typed queries; Drizzle rows and the raw
+connection do not cross the application boundary.
+
+The M3 composition exposes exactly inspection, validation, current-state export and
+close. It does not instantiate import/mutation services or the mutation coordinator.
+The `export` command reuses the M2 validated JSON/XLSX exporter and may write only the
+explicit artifact.
+
+Human and versioned JSON renderers consume the same DTOs. `BG3_CLI_RESULT` V1 is an
+inspection/process result contract, not a backup or import authority. M3 adds no model,
+tool registry, fuzzy resolver or synergy taxonomy.

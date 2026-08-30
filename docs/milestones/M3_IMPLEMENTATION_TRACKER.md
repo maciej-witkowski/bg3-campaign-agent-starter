@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: In progress
+Overall status: Local implementation and validation complete; PR delivery in progress
 
 ## Purpose
 
@@ -30,7 +30,7 @@ context from chat history.
 | --- | --- | --- | --- |
 | ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Complete: `362a10f` plus ADR-0027 composition integration |
 | ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete: `c63d236` |
-| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Complete — pending focused commit |
+| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Complete: `ffc2707` |
 
 ## Session ledger
 
@@ -76,7 +76,7 @@ surface. Do not alter approved query semantics or add M4 tools.
 
 ### Session ADR-0028 — process contract and renderers
 
-Status: Complete — pending focused commit
+Status: Complete — committed as `ffc2707`
 
 Implemented:
 
@@ -92,9 +92,27 @@ Validation: scoped Prettier, ESLint and strict typecheck passed; 3 focused files
 tests passed; production build and child-process smoke passed for all commands with an
 unchanged SQLite SHA-256.
 
-Handoff: after the focused ADR-0028 commit, update README/architecture/testing/operations
-and CHANGELOG, run the complete local gate and milestone stabilization sweep, then push
-and open the M3 PR. Do not start M4.
+Handoff: milestone-facing documentation and CHANGELOG are complete. The full local gate
+passed; finish the cumulative stabilization review, commit documentation, then push and
+open the M3 PR. Do not start M4.
+
+### Session milestone documentation and stabilization
+
+Status: Complete — ready for documentation commit
+
+Implemented:
+
+- dedicated CLI reference covering safety, grammar, lookup/filter semantics, envelopes
+  and exit statuses;
+- README, architecture, testing, security and operations guidance aligned with M3;
+- M3 changelog entry and durable delivery evidence.
+
+Validation: the full `pnpm check` gate passed with 36 test files / 223 tests, production
+build and real-process smoke for all nine commands.
+
+Stabilization: cumulative scope/state/security/ADR review found no local implementation
+finding. No schema, migration, runtime dependency, canonical campaign data or later-
+milestone feature is present in the diff.
 
 ## Change inventory
 
@@ -158,6 +176,20 @@ and open the M3 PR. Do not start M4.
 - `docs/adr/0028-versioned-cli-process-and-output-contract.md`
 - `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
 
+### Created in milestone documentation session
+
+- `docs/CLI.md`
+
+### Modified in milestone documentation session
+
+- `CHANGELOG.md`
+- `README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/OPERATIONS.md`
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -173,12 +205,16 @@ and open the M3 PR. Do not start M4.
 | 2026-08-30 | scoped ADR-0028 Prettier, ESLint and `tsc --noEmit` | Passed | Parser, contracts, renderers, runner, entry point and tests |
 | 2026-08-30 | scoped ADR-0028 Vitest | Passed | 3 files / 34 tests covering grammar, V1 envelopes, streams, errors and export dispatch |
 | 2026-08-30 | production build plus `scripts/smoke-production.mjs` | Passed | Built executable spawned for all nine commands; export valid; SQLite hash unchanged |
+| 2026-08-30 | `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 36 files / 223 tests, production build and real-process smoke |
+| 2026-08-30 | `pnpm audit --audit-level high` | Passed | No high/critical findings; two inherited moderate advisories in unchanged dependency graph |
+| 2026-08-30 | cumulative M3 stabilization review | Passed | Scope, state safety, ADR alignment, failure paths, docs and generated/private-file sweep |
 
 ## Commits and remote state
 
 - `3ba504a` — `docs: accept M3 CLI architecture`.
 - `362a10f` — `feat: enforce M3 read-only persistence`.
 - `c63d236` — `feat: add M3 campaign inspection queries`.
+- `ffc2707` — `feat: add M3 read-only CLI process`.
 - Branch is local; no PR exists yet.
 
 ## Known risks and watch points
@@ -190,10 +226,15 @@ and open the M3 PR. Do not start M4.
 - `inventory --tag` is deliberately limited to exact stored effect facets and must not
   drift into inferred M14 taxonomy.
 - The CLI envelope and M2 campaign export are separate versioned formats.
+- The unchanged dependency graph reports two moderate advisories: development-only
+  `esbuild` below 0.24.3 through `drizzle-kit`, and `uuid` below 11.1.1 through
+  `exceljs`. Neither is introduced by M3; dependency remediation remains separately
+  scoped.
 
 ## Exact resume point
 
-ADR-0028 implementation and focused tests are complete and ready for its scoped commit.
-After committing, update milestone-facing documentation and CHANGELOG, then run the full
-`pnpm check`, focused no-write matrix, audit/diff review and cumulative M3 stabilization
-sweep before push/PR. Do not change approved behavior or start M4.
+All three ADR implementation sessions, milestone documentation, the full local gate and
+the cumulative stabilization review are complete. Resume by committing the documentation,
+then push `codex/m3-read-only-cli`, open the PR, wait for CI/security checks and request
+Codex review. Do not remediate review findings without explicit user approval, and do
+not start M4.
