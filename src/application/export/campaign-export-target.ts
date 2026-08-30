@@ -2,7 +2,7 @@ import { realpathSync, statSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import process from "node:process";
 
-import { ArtifactWriteError } from "../application/export/atomic-artifact-writer.js";
+import { ArtifactWriteError } from "./atomic-artifact-writer.js";
 
 const SQLITE_COMPANION_SUFFIXES = ["", "-wal", "-shm", "-journal"] as const;
 

@@ -50,6 +50,16 @@ describe("openM3CampaignApplication", () => {
       ]);
       expect(application.inspection.getParty().characters).toHaveLength(2);
       expect(application.validation.validate()).toEqual({ valid: true, violations: [] });
+      await expect(
+        application.campaignExport.writeJson(filename, { overwrite: true }),
+      ).rejects.toThrowError(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
+      await expect(
+        application.campaignExport.writeXlsx(`${filename}-shm`, { overwrite: true }),
+      ).rejects.toThrowError(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
       const exported = await application.campaignExport.writeJson(target);
       expect(exported.state.characters).toHaveLength(5);
     } finally {

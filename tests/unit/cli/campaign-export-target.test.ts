@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { assertSafeCampaignExportTarget } from "../../../src/cli/campaign-export-target.js";
+import { assertSafeCampaignExportTarget } from "../../../src/application/export/campaign-export-target.js";
 
 const temporaryDirectories: string[] = [];
 

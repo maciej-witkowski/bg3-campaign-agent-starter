@@ -3,6 +3,7 @@ import {
   serializeCampaignExportWorkbook,
 } from "../adapters/xlsx/campaign-export-workbook.js";
 import { CampaignExportService } from "../application/export/campaign-export-service.js";
+import { assertSafeCampaignExportTarget } from "../application/export/campaign-export-target.js";
 import { CampaignInspectionService } from "../application/inspection/campaign-inspection-service.js";
 import { CampaignValidationService } from "../application/inspection/campaign-validation-service.js";
 import { SqliteCampaignExportSource } from "../persistence/sqlite/campaign-export-source.js";
@@ -43,6 +44,9 @@ export function openM3CampaignApplication(
         {
           serialize: serializeCampaignExportWorkbook,
           deserialize: deserializeCampaignExportWorkbook,
+        },
+        {
+          assertSafe: (targetPath) => assertSafeCampaignExportTarget(options.filename, targetPath),
         },
       ),
       close: () => connection.close(),

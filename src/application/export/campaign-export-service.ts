@@ -15,11 +15,16 @@ export interface CampaignXlsxCodec {
   deserialize(bytes: Uint8Array): Promise<CampaignExportV1>;
 }
 
+export interface CampaignExportTargetPolicy {
+  assertSafe(targetPath: string): void;
+}
+
 export class CampaignExportService {
   public constructor(
     private readonly source: CampaignExportSourcePort,
     private readonly clock: ExportClock,
     private readonly xlsx: CampaignXlsxCodec,
+    private readonly targetPolicy?: CampaignExportTargetPolicy,
   ) {}
 
   public capture(): CampaignExportV1 {
@@ -31,6 +36,7 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.targetPolicy?.assertSafe(targetPath);
     const value = this.capture();
     const bytes = new TextEncoder().encode(serializeCampaignExport(value));
     await writeVerifiedArtifact(
@@ -48,6 +54,7 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.targetPolicy?.assertSafe(targetPath);
     const value = this.capture();
     const bytes = await this.xlsx.serialize(value);
     await writeVerifiedArtifact(

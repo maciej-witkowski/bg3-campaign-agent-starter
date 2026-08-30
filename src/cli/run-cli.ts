@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { CampaignExportWorkbookError } from "../adapters/xlsx/campaign-export-workbook.js";
 import { ArtifactWriteError } from "../application/export/atomic-artifact-writer.js";
 import { CampaignExportError } from "../application/export/campaign-export.js";
+import { assertSafeCampaignExportTarget } from "../application/export/campaign-export-target.js";
 import { CampaignInspectionError } from "../application/inspection/campaign-inspection.js";
 import type { M3CampaignApplication } from "../composition/m3-campaign-application.js";
 import { openM3CampaignApplication } from "../composition/m3-campaign-application.js";
@@ -11,7 +12,6 @@ import { CampaignValidationError } from "../domain/validation/campaign-validatio
 import { ReadOnlySqliteConnectionError } from "../persistence/sqlite/read-only-connection.js";
 import { SchemaCompatibilityError } from "../persistence/sqlite/schema-compatibility.js";
 import { cliFailure, cliSuccess, serializeCliEnvelope } from "./cli-envelope.js";
-import { assertSafeCampaignExportTarget } from "./campaign-export-target.js";
 import {
   CliUsageError,
   type CliCommand,

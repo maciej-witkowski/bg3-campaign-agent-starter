@@ -194,10 +194,11 @@ voice or desktop layers.
   the existing M2 exporter over the same enforced read-only connection. Its public
   surface contains exactly those three capabilities plus `close()` and exposes no raw
   database, import service, mutation coordinator or write repository.
-- The CLI rejects export targets that resolve to the campaign database, an existing
-  filesystem alias or the database's `-wal`, `-shm` and `-journal` companions before
-  opening the M3 application. Production smoke proves these targets cannot replace
-  canonical SQLite bytes even with explicit `--overwrite`.
+- Both the pre-open CLI check and the public M3 export capability reject targets that
+  resolve to the campaign database, an existing filesystem alias or the database's
+  `-wal`, `-shm` and `-journal` companions. Direct composition and production-process
+  regressions prove these targets cannot replace canonical SQLite bytes even with
+  explicit `--overwrite`.
 
 ## Consequences and trade-offs
 
@@ -245,3 +246,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-30 — After approved PR review remediation, guarded the canonical database and
   SQLite companion paths from export publication and moved complete validation into one
   SQLite snapshot; added filesystem-alias, process and concurrent-WAL regressions.
+- 2026-08-30 — After approved final re-review remediation, enforced the same export
+  target policy inside the public M3 export capability so library consumers cannot
+  bypass the CLI adapter's pre-open protection.
