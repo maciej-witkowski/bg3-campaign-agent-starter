@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: Fourth approved PR review remediation validated; publish/re-review pending
+Overall status: Fifth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -202,6 +202,34 @@ Implemented:
 ADR impact: no new or changed decision; the fixes enforce ADR-0028 stream/envelope
 semantics and remove documentation drift from ADR-0027.
 
+### Session final re-review remediation — approved public export/equipment/human-output package
+
+Status: Implemented as three ADR-scoped commits; full local gate passed
+
+Final re-review findings on `0dc7796`:
+
+- P1: callers of the public M3 composition could bypass the CLI-only protected export
+  target check;
+- P2: the equipment projection rendered assignments despite contradictory required
+  inventory/definition facts;
+- P2: human `party` output omitted effective attributes present in the approved DTO.
+
+Approval: the combined three-finding remediation was explicitly approved by the
+repository owner in the Codex task on 2026-08-30.
+
+Implemented:
+
+- ADR-0026 (`1f1637d`): the public M3 export service now applies the database and SQLite
+  companion target policy to JSON and XLSX writes, while CLI pre-open rejection remains;
+- ADR-0027 (`93c1f4e`): equipment views require `EQUIPPED`, matching owner, quantity one
+  and a compatible known definition slot, reusing the validator's compatibility rule;
+- ADR-0028 (`0459085`): human party rows render every base/effective attribute pair;
+- regressions exercise direct public export calls, all four contradictory equipment
+  facts and exact human party output.
+
+ADR impact: no new or changed architectural decision. The package closes bypasses and
+output drift against the already accepted ADR-0026/0027/0028 contracts.
+
 ## Change inventory
 
 ### Created
@@ -326,6 +354,33 @@ semantics and remove documentation drift from ADR-0027.
 - `src/cli/run-cli.ts`
 - `tests/unit/cli/run-cli.test.ts`
 
+### Created in final re-review remediation session
+
+- `tests/unit/cli/human-renderer.test.ts`
+
+### Moved in final re-review remediation session
+
+- `src/cli/campaign-export-target.ts` to
+  `src/application/export/campaign-export-target.ts`
+
+### Modified in final re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/campaign-export-service.ts`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `src/cli/human-renderer.ts`
+- `src/cli/run-cli.ts`
+- `src/composition/m3-campaign-application.ts`
+- `src/domain/validation/campaign-validation.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+- `tests/unit/application/m3-campaign-application.test.ts`
+- `tests/unit/cli/campaign-export-target.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -353,6 +408,10 @@ semantics and remove documentation drift from ADR-0027.
 | 2026-08-30 | post-command-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 230 tests, build and production smoke |
 | 2026-08-30 | focused parser-context regressions | Passed | 2 files / 35 tests plus scoped lint and strict typecheck |
 | 2026-08-30 | post-parser-context `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 231 tests, build and production smoke |
+| 2026-08-30 | focused final re-review regressions | Passed | 5 files / 24 tests covering the public export boundary, equipment contradictions, shared slot logic and human attributes |
+| 2026-08-30 | post-final-re-review `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 236 tests, build and production smoke |
+| 2026-08-30 | post-final-re-review `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-30 | final re-review scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -369,6 +428,10 @@ semantics and remove documentation drift from ADR-0027.
 - `f220fab` — `fix: derive CLI error command from parser`.
 - `fb22d48` — `docs: record M3 command remediation`.
 - `83f73ff` — `fix: preserve CLI parser failure context`.
+- `0dc7796` — `docs: record M3 parser context remediation`.
+- `1f1637d` — `fix: enforce M3 export policy at public boundary`.
+- `93c1f4e` — `fix: reject contradictory equipment views`.
+- `0459085` — `fix: render party attributes in human CLI`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -388,7 +451,8 @@ semantics and remove documentation drift from ADR-0027.
 
 ## Exact resume point
 
-The three-finding parser-context package from review of `fb22d48` was verified, approved,
-implemented in `83f73ff` and passed the full gate. Resume by finishing the diff/security
-sweep, committing and pushing documentation evidence, then request Codex re-review on
-the latest material head. Do not merge and do not start M4.
+The three findings from review of `0dc7796` were verified, approved and implemented in
+the ADR-scoped commits `1f1637d`, `93c1f4e` and `0459085`. The full local gate passed at
+39 files / 236 tests. Resume by completing the diff/security sweep, committing this
+tracking evidence, pushing the four commits and requesting Codex re-review on the
+latest head. Do not merge and do not start M4.

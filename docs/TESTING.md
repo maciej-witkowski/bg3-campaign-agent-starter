@@ -65,17 +65,22 @@ compatibility and refusal of missing, old, new, tampered or incomplete schemas.
 Application tests cover active-party projection, base/effective attributes, canonical
 and Polish/NFC character resolution, ambiguity/not-found, equipment joins, inventory
 filter AND/OR behavior, exact effect facets, spell flags, illithid non-inference,
-summary-only audit limits/order, validation and explicit export isolation.
+summary-only audit limits/order, validation and explicit export isolation. Regressions
+also reject equipment rows with contradictory status, owner, quantity or known slot.
 
 CLI contract tests cover every command grammar, help/version, duplicate/unknown/missing
 arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout/stderr
 separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
+Human party-output coverage requires every base/effective attribute pair from the DTO.
 
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
 nine commands. Every JSON envelope and the export artifact are parsed, and the SQLite
 SHA-256 before/after all commands must match. The smoke also attempts overwrite exports
 against the database, WAL and SHM paths and requires a safe exit-5 refusal.
+
+Direct M3 composition coverage invokes both public export writers and proves the same
+database/SQLite-companion target policy cannot be bypassed outside the CLI adapter.
 
 Validation-port regression uses two SQLite connections in WAL mode. A writer commits
 between two reads inside the validation callback; both reads must observe the original
