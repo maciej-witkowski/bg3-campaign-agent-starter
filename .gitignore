@@ -18,5 +18,6 @@ campaign/logs/*.log
 campaign/snapshots/*.json
 campaign/exports/*.xlsx
 campaign/exports/*.json
+campaign/exports/*.md
 .DS_Store
 coverage/

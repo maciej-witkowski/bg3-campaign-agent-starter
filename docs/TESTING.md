@@ -35,3 +35,23 @@ Run curated cases to detect hallucinated item mapping, accidental state mutation
 
 ## Bug policy
 Every campaign-state bug discovered in real use should become a regression test before or together with the fix.
+
+## M2 import/export evidence
+
+Sanitized unit and integration tests cover workbook structure and archive limits, exact Polish normalization, closed mappings, duplicate/collision planning, bounded reconciliation application, rollback, transactional stale-plan rejection, idempotency, strict report/reconciliation contracts, refusal to export invalid state, formula-safe XLSX output and stable-ID current-state imports.
+
+Review regressions additionally cover rejection of copied or mutated import plans, conflicting assignments within one pending plan and a 1,000-record canonical XLSX round trip that exceeds the legacy tracker row bound.
+
+Further planner regressions preserve distinct source rows for repeated assignment conflicts, allow multiple different illithid prerequisite relations and verify that sold inventory never receives an owner.
+
+Issued-plan regressions reject copied objects, nested mutation and injected `toJSON` hooks. Equipment regressions detect collisions with assignments pending in the same plan and ensure a skipped new equipped item cannot leave ownerless invalid inventory behind.
+
+Normalization regressions reject duplicate character display names before dependent
+reference lookup and allow one illithid power to appear for different characters with
+different availability/acquisition statuses.
+
+Reconciliation regressions also refuse changing or skipping only one duplicated
+character row, preventing unchanged dependent references from resolving to the first
+same-named character.
+
+Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.

@@ -57,10 +57,12 @@ export type TransactionalMutation = (
   writes: CampaignStateWriteRepository,
   context: CampaignMutationContext,
 ) => boolean;
+export type TransactionalPrecondition = () => void;
 
 export interface CampaignMutationCoordinatorPort {
   execute(
     metadata: CampaignMutationMetadata,
     mutation: TransactionalMutation,
+    precondition?: TransactionalPrecondition,
   ): CampaignMutationResult;
 }

@@ -9,6 +9,7 @@ import type {
   Clock,
   IdSource,
   TransactionalMutation,
+  TransactionalPrecondition,
 } from "../../domain/mutations/campaign-mutation.js";
 import {
   CampaignDomainError,
@@ -46,12 +47,14 @@ export class CampaignMutationCoordinator implements CampaignMutationCoordinatorP
   public execute(
     metadata: CampaignMutationMetadata,
     mutation: TransactionalMutation,
+    precondition?: TransactionalPrecondition,
   ): CampaignMutationResult {
     const occurredAt = this.dependencies.clock.now();
     const changeEventId = this.dependencies.ids.nextId();
 
     try {
       return this.database.transaction((transaction) => {
+        precondition?.();
         const snapshotter =
           this.dependencies.snapshotter?.(transaction, occurredAt) ??
           createSqliteCampaignSnapshotPort(transaction, occurredAt);

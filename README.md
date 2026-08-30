@@ -2,7 +2,7 @@
 
 Persistent local-first Baldur's Gate 3 campaign manager with AI-assisted build, equipment, spell and item analysis.
 
-Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical SQLite persistence and typed campaign-state domain foundation; later milestones add imports, read-only tools and agent-facing behavior.
+Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical SQLite persistence and typed campaign-state domain foundation. M2 adds a conservative legacy-tracker import, reconciliation/report artifacts and lossless current-state JSON/XLSX exchange; later milestones add read-only tools and agent-facing behavior.
 
 ## Start here
 
@@ -46,6 +46,8 @@ Copying `.env.example` is optional because all current settings have safe develo
 | `pnpm test:watch` | Run Vitest interactively in watch mode. |
 | `pnpm typecheck` | Check strict TypeScript types without emitting files. |
 
-## Current repository contents
+## M2 import/export
 
-The repository contains the M1 canonical SQLite schema and migrations, typed read/write boundaries, campaign validation, append-only mutation audit, deterministic snapshots and checkpoints, plus the M0 TypeScript foundation and product documentation. M1 intentionally does not include campaign import, restore/undo, OpenAI integration, voice or UI implementation.
+The original tracker is parsed as private, untrusted input. Import is planned before one validated and audited transaction; the same source imported twice is a no-op. Generated reports, reconciliation documents, SQLite databases and exports under `campaign/exports/` are ignored by Git. See `docs/IMPORT_EXPORT.md` for the supported profiles and local acceptance command.
+
+The repository does not yet include the M3 read-only CLI, restore/undo, OpenAI integration, voice or UI implementation.
