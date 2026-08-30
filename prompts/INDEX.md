@@ -19,7 +19,8 @@ Use exactly one matching file under `milestones/`:
 - M12 `M12-desktop.md`
 - M13 `M13-vision.md`
 - M14 `M14-synergy.md`
-- M15 `M15-reliability.md`
+- M15 `M15-onboarding.md`
+- M16 `M16-reliability.md`
 
 ## Quality tasks
 

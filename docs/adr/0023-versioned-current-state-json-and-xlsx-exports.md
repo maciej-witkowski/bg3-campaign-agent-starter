@@ -15,7 +15,7 @@ be awkward for human inspection.
 M1 already provides a deterministic, versioned snapshot of current campaign state.
 It intentionally excludes audit events, checkpoints and migration metadata. M2 should
 reuse that semantic boundary while providing an inspectable spreadsheet projection.
-Complete backup/restore and forensic-history round trips remain M15 scope.
+Complete backup/restore and forensic-history round trips remain M16 scope.
 
 ## Decision drivers and invariants
 
@@ -54,7 +54,7 @@ This fails the XLSX deliverable and human-inspection goal.
 
 ### Option E — Include audit/checkpoint history and support restore in M2
 
-This expands M2 into the M15 backup/restore contract and requires compatibility and
+This expands M2 into the M16 backup/restore contract and requires compatibility and
 destructive-write decisions not yet approved.
 
 ## Proposed decision and rationale
@@ -148,7 +148,7 @@ but deterministic sheet/row ordering is required for reviewable diffs.
 - Future added fields/collections require a new export version or an explicitly
   backward-compatible optional-field rule. Unknown required versions fail explicitly.
 - This decision does not promise restore of `change_events`, checkpoints or database
-  file pragmas; those remain M15 concerns.
+  file pragmas; those remain M16 concerns.
 
 ## Transaction, validation, audit and rollback impact
 
@@ -199,7 +199,7 @@ but deterministic sheet/row ordering is required for reviewable diffs.
   add derived familiar views without making them import authority.
 - Stable IDs make round trips precise and expose opaque identifiers in export files.
 - Current-state export is intentionally not a full backup. Users must retain the
-  SQLite database and future M15 backups for complete history.
+  SQLite database and future M16 backups for complete history.
 - Literal-text protection may make values that resemble formulas look less magical in
   Excel, but avoids formula injection.
 
@@ -227,7 +227,8 @@ contract or import authority.
 ## Change log
 
 - 2026-08-28 — Initial M2 proposal using the M1 current-state snapshot boundary and
-  explicitly deferring complete backup/restore semantics to M15.
+  explicitly deferring complete backup/restore semantics to the future reliability
+  milestone.
 - 2026-08-28 — Accepted after explicit repository-owner approval.
 - 2026-08-29 — Implemented strict deterministic JSON, normalized formula-safe XLSX,
   verified atomic publication and stable-ID import into empty databases. Private JSON
@@ -237,3 +238,5 @@ contract or import authority.
 - 2026-08-29 — Split canonical-export XLSX limits from the legacy tracker profile and
   applied the same bounds before serialization and during verification; canonical
   sheets support up to 100,000 data rows.
+- 2026-08-30 — Updated the deferred reliability milestone reference from M15 to M16
+  after Campaign Initialization and Onboarding was inserted as the new M15.

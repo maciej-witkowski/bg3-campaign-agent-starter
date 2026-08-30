@@ -74,4 +74,4 @@ Current-state export captures and validates one transactionally consistent read 
 
 The current-state XLSX profile has its own symmetric serialization/deserialization limits. These bounds are intentionally independent from the smaller legacy-tracker input profile and allow up to 100,000 data rows per canonical collection.
 
-Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M15 scope.
+Current-state JSON and XLSX exporters capture the same 14 validated collections as M1 snapshots in a consistent read transaction. Export is read-only. The normalized exchange importer preserves stable IDs only in an empty database, treats an identical database as a no-op and refuses a different non-empty campaign. Complete audit/checkpoint backup and restore remain M16 scope.

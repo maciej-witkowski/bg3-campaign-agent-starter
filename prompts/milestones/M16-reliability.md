@@ -1,4 +1,4 @@
-# Codex Task — M15 — Reliability / Evals / Operations
+# Codex Task — M16 — Reliability / Evals / Operations
 
 ## Required reading
 
@@ -11,7 +11,7 @@ Read before changing code:
 
 ## Scope
 
-Dodaj eval runner, regression corpus workflow, backup rotation, checkpoint browser, restore verification, cost/token telemetry, model router i multi-campaign migration readiness.
+Dodaj eval runner, regression corpus workflow, backup rotation, checkpoint browser, restore verification, cost/token telemetry, model router oraz niezawodność i dokumentację odzyskiwania dla ścieżek onboardingu M15.
 
 ## Implementation rules
 
@@ -27,6 +27,7 @@ Dodaj eval runner, regression corpus workflow, backup rotation, checkpoint brows
 
 - backup restore test
 - export/import round-trip
+- onboarding recovery/runbook verification
 - model swap independent of domain
 
 ## Required final report

@@ -23,7 +23,7 @@ the unchanged references describe.
 
 Export captures a consistent validated read snapshot and creates no audit event. Artifacts are written to sibling temporary files, verified after serialization and published without overwriting an existing target unless explicitly requested.
 
-Importing a normalized export is intended for a fresh database. It preserves IDs, performs one validated audited transaction and becomes a no-op when repeated. A different non-empty target is refused. This exchanges current state only; audit/checkpoint backup and restore remain M15.
+Importing a normalized export is intended for a fresh database. It preserves IDs, performs one validated audited transaction and becomes a no-op when repeated. A different non-empty target is refused. This exchanges current state only; audit/checkpoint backup and restore remain M16.
 
 ## Private acceptance command
 
