@@ -301,3 +301,6 @@ tests must not require color.
 - 2026-08-30 — After approved PR review remediation, added pre-open export target
   collision checks and process coverage for protected SQLite paths without changing the
   V1 envelope or exit-status contract.
+- 2026-08-30 — After approved final-review remediation, derived failure-envelope command
+  identity only from the parser's command position and returned `null` when no known
+  command could be identified; added regressions for misleading option/argument values.

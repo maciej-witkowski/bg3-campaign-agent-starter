@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: Second approved PR review remediation validated; publish/re-review pending
+Overall status: Third approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -158,6 +158,26 @@ Implemented:
 ADR impact: no new or changed decision; this restores the already accepted ADR-0027
 filter contract.
 
+### Session final PR review remediation — approved command identity finding
+
+Status: Implementation committed as `f220fab`; full revalidation complete
+
+Final-review finding on `29e9a60`: the failure-envelope command hint scanned every argv
+value, so an option value or later positional could be reported as the command.
+
+Approval: remediation explicitly approved by the repository owner in the Codex task on
+2026-08-30.
+
+Implemented:
+
+- command hints now come from the first positional returned by the same strict native
+  parser used for dispatch;
+- unknown or unparseable command positions produce `command: null`;
+- regressions cover a command name in a later positional and in the `--db` value.
+
+ADR impact: no new or changed decision; this restores ADR-0028's known-command-only
+failure envelope.
+
 ## Change inventory
 
 ### Created
@@ -265,6 +285,14 @@ filter contract.
 - `src/application/inspection/campaign-inspection-service.ts`
 - `tests/unit/application/campaign-inspection-service.test.ts`
 
+### Modified in final PR review remediation session
+
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/cli/parse-cli-arguments.ts`
+- `src/cli/run-cli.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -288,6 +316,8 @@ filter contract.
 | 2026-08-30 | post-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and protected-target production smoke |
 | 2026-08-30 | focused repeated-tag OR regression | Passed | 1 file / 11 tests plus scoped lint and strict typecheck |
 | 2026-08-30 | post-tag-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and production smoke |
+| 2026-08-30 | focused JSON command-identity regression | Passed | 2 files / 34 tests plus scoped lint and strict typecheck |
+| 2026-08-30 | post-command-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 230 tests, build and production smoke |
 
 ## Commits and remote state
 
@@ -300,6 +330,8 @@ filter contract.
 - `be207a9` — `fix: protect M3 read-only boundaries`.
 - `748911f` — `docs: record M3 review remediation`.
 - `db0b15e` — `fix: combine repeated inventory tags with OR`.
+- `29e9a60` — `docs: record M3 tag remediation`.
+- `f220fab` — `fix: derive CLI error command from parser`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -319,7 +351,7 @@ filter contract.
 
 ## Exact resume point
 
-The repeated-tag finding from re-review of `748911f` was verified, approved, implemented
-in `db0b15e` and passed the full gate. Resume by finishing the diff/security sweep,
-committing and pushing documentation evidence, then request one final Codex re-review
-on the latest material head. Do not merge and do not start M4.
+The command-identity finding from review of `29e9a60` was verified, approved, implemented
+in `f220fab` and passed the full gate. Resume by finishing the diff/security sweep,
+committing and pushing documentation evidence, then request Codex re-review on the
+latest material head. Do not merge and do not start M4.
