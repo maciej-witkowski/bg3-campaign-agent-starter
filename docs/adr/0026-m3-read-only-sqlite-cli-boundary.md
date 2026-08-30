@@ -189,9 +189,10 @@ voice or desktop layers.
 - Focused tests prove missing files are not created, a direct insert is refused, database
   bytes remain unchanged, old schemas are not upgraded, newer/tampered histories and
   missing tables are rejected, and validation leaves its source unchanged.
-- Final M3 composition wiring, consistent compound query transactions and export
-  exposure are completed with the ADR-0027 inspection service because the composition
-  must expose that concrete typed service rather than a raw or generic database hook.
+- The completed M3 composition wires the ADR-0027 inspection service, validation and
+  the existing M2 exporter over the same enforced read-only connection. Its public
+  surface contains exactly those three capabilities plus `close()` and exposes no raw
+  database, import service, mutation coordinator or write repository.
 
 ## Consequences and trade-offs
 
@@ -233,3 +234,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-30 — Implemented and tested the enforced read-only connection, exact schema
   compatibility verifier and read-only validation application boundary; recorded the
   typed composition integration point for ADR-0027.
+- 2026-08-30 — Completed composition integration with the typed ADR-0027 inspection
+  service and existing M2 exporter; integration coverage proves SQLite bytes remain
+  unchanged while an explicit export artifact is published.

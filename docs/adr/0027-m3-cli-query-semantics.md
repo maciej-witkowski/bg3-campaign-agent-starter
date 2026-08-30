@@ -206,6 +206,28 @@ to refuse any invalid full state under ADR-0023.
 - Validation tests cover both valid and invalid state with unchanged database bytes/state.
 - Contract tests prove deterministic ordering and explicit `null` preservation.
 
+## Implementation evidence
+
+- `CampaignInspectionService` owns character resolution, effective-attribute derivation,
+  filter normalization, join integrity checks and deterministic result ordering over
+  persistence-independent immutable DTOs.
+- `SqliteCampaignInspectionReadPort` supplies a transaction-scoped typed read session;
+  each compound command view is assembled in one consistent read transaction without
+  exposing Drizzle or SQL to the application/CLI boundary.
+- Character resolution applies exact canonical precedence followed by conservative
+  NFC/Polish display-name matching and returns bounded not-found/ambiguity errors.
+- Inventory facets use exact normalized `effect_type`, `damage_type` and `trigger`
+  values, combine categories with AND and repeated values with OR, and never search
+  description prose or infer M14 taxonomy.
+- Change projections select summary columns only and apply the approved newest-first
+  order and 1–1000 bound; before/after snapshots never enter the DTO.
+- The M3 composition exposes inspection, validation, the existing M2 exporter and
+  `close()` only over the read-only ADR-0026 connection.
+- Sanitized SQLite integration coverage exercises all query projections, Polish/NFC
+  resolution, ambiguity/not-found, effective modifiers, join inconsistency, all filter
+  rules, spell flags, illithid non-inference, audit bounds/order and explicit export
+  isolation. The focused session passed 2 files / 12 tests plus strict typecheck/lint.
+
 ## Consequences and trade-offs
 
 - Purpose-built views give callers useful, bounded results while keeping persistence
@@ -246,3 +268,6 @@ without changing their exact stored-value matching semantics or the JSON contrac
 
 - 2026-08-30 — Initial M3 proposal.
 - 2026-08-30 — Accepted after explicit repository-owner approval.
+- 2026-08-30 — Implemented typed query DTOs/service, transaction-scoped SQLite read
+  projections, conservative Polish resolution, deterministic filtering/ordering and
+  the final read-only M3 composition.

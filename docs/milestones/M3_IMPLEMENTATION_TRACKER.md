@@ -28,15 +28,15 @@ context from chat history.
 
 | ADR | Decision | Approval | Implementation status |
 | --- | --- | --- | --- |
-| ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Core complete; composition integration pending ADR-0027 |
-| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | In progress |
-| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Pending |
+| ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Complete: `362a10f` plus ADR-0027 composition integration |
+| ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete — pending focused commit |
+| ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | In progress |
 
 ## Session ledger
 
 ### Session ADR-0026 — read-only persistence and composition
 
-Status: Complete — pending focused commit
+Status: Complete — committed as `362a10f`
 
 Implemented:
 
@@ -56,22 +56,27 @@ not expose the raw database or add process parsing/rendering.
 
 ### Session ADR-0027 — query semantics and projections
 
-Status: In progress
+Status: Complete — pending focused commit
 
-Planned:
+Implemented:
 
-- typed query requests/results and safe errors;
-- deterministic character resolution and all command-specific projections;
-- effective attribute calculation and exact inventory facet filters;
-- compound-read consistency and focused integration tests;
-- implementation evidence and one focused commit.
+- typed query requests/results, safe errors and root exports;
+- deterministic canonical/display-name resolution and all command-specific projections;
+- effective attribute calculation and exact inventory effect-facet filters;
+- summary-only bounded audit reads and explicit no-inference illithid output;
+- transaction-scoped SQLite read port and completed M3 composition;
+- focused SQLite/application integration tests and ADR evidence.
 
-Handoff: complete and validate this session before starting ADR-0028. Do not add process
-argument parsing or output rendering here.
+Validation: scoped Prettier, ESLint and strict typecheck passed; 2 focused files / 12
+tests passed outside the sandbox.
+
+Handoff: ADR-0028 must add only argv parsing, dispatch, renderers, process lifecycle,
+package executable metadata and child-process integration tests over this application
+surface. Do not alter approved query semantics or add M4 tools.
 
 ### Session ADR-0028 — process contract and renderers
 
-Status: Pending
+Status: In progress
 
 Planned:
 
@@ -107,6 +112,25 @@ PR, CI/security and Codex review workflow. Do not start M4.
 - `tests/unit/persistence/schema-compatibility.test.ts`
 - `tests/unit/application/campaign-validation-service.test.ts`
 
+### Created in ADR-0027 session
+
+- `src/domain/naming/polish-matching.ts`
+- `src/application/inspection/campaign-inspection.ts`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `src/persistence/sqlite/campaign-inspection-read-port.ts`
+- `src/composition/m3-campaign-application.ts`
+- `tests/unit/fixtures/m3-campaign-fixture.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+- `tests/unit/application/m3-campaign-application.test.ts`
+
+### Modified in ADR-0027 session
+
+- `src/application/import/legacy-normalization.ts`
+- `src/index.ts`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -117,10 +141,13 @@ PR, CI/security and Codex review workflow. Do not start M4.
 | 2026-08-30 | `pnpm install --frozen-lockfile` | Passed | Existing lockfile dependencies became available; no lockfile change |
 | 2026-08-30 | scoped Prettier plus `tsc --noEmit` | Passed | ADR-0026 source, tests, ADRs and tracker |
 | 2026-08-30 | scoped ADR-0026 Vitest | Passed | 3 files / 13 tests; sandbox spawn was blocked, approved outside-sandbox rerun passed |
+| 2026-08-30 | scoped ADR-0027 Prettier, ESLint and `tsc --noEmit` | Passed | Query contracts/service, SQLite port, composition, fixture and tests |
+| 2026-08-30 | scoped ADR-0027 Vitest | Passed | 2 files / 12 tests including all projections, negative paths and export isolation |
 
 ## Commits and remote state
 
 - `3ba504a` — `docs: accept M3 CLI architecture`.
+- `362a10f` — `feat: enforce M3 read-only persistence`.
 - Branch is local; no PR exists yet.
 
 ## Known risks and watch points
@@ -135,7 +162,8 @@ PR, CI/security and Codex review workflow. Do not start M4.
 
 ## Exact resume point
 
-ADR-0026 core implementation and focused tests are complete and ready for its scoped
-commit. After committing, begin ADR-0027 with typed inspection DTOs/service and SQLite
-projections. Finish the M3 composition by exposing only inspection, validation, export
-and close. Do not add argv parsing/renderers until ADR-0028 and do not start M4.
+ADR-0027 implementation and focused tests are complete and ready for its scoped commit.
+After committing, implement ADR-0028 over `openM3CampaignApplication`: strict native argv
+parsing, human/JSON rendering, exit categories and the built `bg3-campaign` entry point.
+Use the existing M3 fixture for child-process tests. Do not change query semantics or
+start M4.
