@@ -127,8 +127,8 @@ Canonical-name precedence is safe because it is unique by schema.
 For M3 only, a **tag facet** is an exact normalized non-null value already stored in an
 associated `item_effects.effect_type`, `item_effects.damage_type` or
 `item_effects.trigger` field. A supplied `--tag` is normalized with the same conservative
-Polish matching-key function, and every supplied tag must match at least one facet of
-the item definition. Description, notes and condition prose are not tokenized. M3 does
+Polish matching-key function, and at least one supplied tag must match a facet of the
+item definition. Description, notes and condition prose are not tokenized. M3 does
 not persist, infer or return a canonical tag taxonomy. This provides a deterministic
 filter over existing structured facts while leaving M14 free to introduce explicit
 synergy tags through its own ADR and migration if needed.

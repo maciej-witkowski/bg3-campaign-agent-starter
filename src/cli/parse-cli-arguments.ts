@@ -64,14 +64,24 @@ export function parseCliArguments(args: readonly string[]): CliRequest {
   };
 }
 
-export function inferCliCommandName(args: readonly string[]): CliCommandName | null {
+export interface CliArgumentContext {
+  readonly command: CliCommandName | null;
+  readonly json: boolean;
+}
+
+export function inspectCliArgumentContext(args: readonly string[]): CliArgumentContext {
   try {
-    const [rawCommand] = parseNativeArguments(args).positionals;
-    return rawCommand !== undefined && commandNames.has(rawCommand as CliCommandName)
-      ? (rawCommand as CliCommandName)
-      : null;
+    const parsed = parseLenientArguments(args);
+    const rawCommand = parsed.tokens.find((token) => token.kind === "positional")?.value;
+    return {
+      command:
+        rawCommand !== undefined && commandNames.has(rawCommand as CliCommandName)
+          ? (rawCommand as CliCommandName)
+          : null,
+      json: parsed.tokens.some((token) => token.kind === "option" && token.name === "json"),
+    };
   } catch {
-    return null;
+    return { command: null, json: false };
   }
 }
 
@@ -193,6 +203,16 @@ function parseNativeArguments(args: readonly string[]) {
     args: [...args],
     allowPositionals: true,
     strict: true,
+    tokens: true,
+    options: cliOptions,
+  });
+}
+
+function parseLenientArguments(args: readonly string[]) {
+  return parseArgs({
+    args: [...args],
+    allowPositionals: true,
+    strict: false,
     tokens: true,
     options: cliOptions,
   });

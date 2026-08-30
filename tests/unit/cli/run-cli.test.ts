@@ -57,6 +57,25 @@ describe("runCli", () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it("preserves parsed error context without treating positional data as JSON mode", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const laterInvalidOption = await runCli(["--db", "x", "--json", "party", "--unknown"], {
+      openApplication: open,
+    });
+    const positionalJson = await runCli(["--db", "x", "party", "--", "--json"], {
+      openApplication: open,
+    });
+
+    expect(JSON.parse(laterInvalidOption.stdout)).toMatchObject({
+      command: "party",
+      ok: false,
+    });
+    expect(positionalJson.stdout).toBe("");
+    expect(positionalJson.stderr).toContain("Błąd:");
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it("keeps human failures on stderr and closes the application", async () => {
     const application = fakeApplication();
     const close = vi.spyOn(application, "close");

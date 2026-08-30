@@ -20,7 +20,7 @@ import {
   type CliProcessResult,
 } from "./cli-contract.js";
 import { renderHumanFailure, renderHumanSuccess } from "./human-renderer.js";
-import { inferCliCommandName, parseCliArguments } from "./parse-cli-arguments.js";
+import { inspectCliArgumentContext, parseCliArguments } from "./parse-cli-arguments.js";
 
 const HELP = `BG3 Campaign Agent — read-only CLI
 
@@ -51,13 +51,12 @@ export async function runCli(
   args: readonly string[],
   options: RunCliOptions = {},
 ): Promise<CliProcessResult> {
-  const json = args.includes("--json");
-  const commandHint = inferCliCommandName(args);
+  const context = inspectCliArgumentContext(args);
   let request: ReturnType<typeof parseCliArguments>;
   try {
     request = parseCliArguments(args);
   } catch (error: unknown) {
-    return failureResult(error, json, commandHint);
+    return failureResult(error, context.json, context.command);
   }
 
   if (request.kind === "help") return { exitCode: 0, stdout: HELP, stderr: "" };
