@@ -356,7 +356,85 @@ Add deterministic pre-analysis features before LLM reasoning.
 
 ---
 
-## M15 — Reliability / Evals / Long-Term Operations
+## M15 — Campaign Initialization and Onboarding
+
+### Goal
+Provide a guided, validated way to begin a campaign from an empty database or adopt
+the application during an already-running campaign without fabricating history.
+
+### Scheduling rationale
+This milestone is intentionally placed after the core text, mutation, resolver,
+desktop and screenshot workflows because onboarding is useful but not a high-priority
+dependency for them. It remains before long-term reliability work so M16 can harden,
+back up and document the real onboarding paths. M14 is not a semantic prerequisite;
+the ordering reflects product priority and avoids delaying core campaign features.
+
+### Entry modes
+
+#### New campaign
+- default and recommended path;
+- initialize an empty latest-schema database;
+- capture the initial player/party characters and known baseline statistics;
+- allow inventory, equipment, spells, abilities and illithid state to begin empty and
+  grow through normal confirmed gameplay mutations;
+- preserve unknown optional facts as unknown rather than requiring guesses.
+
+#### Existing campaign
+- stage current facts in reviewable batches for characters, attributes and permanent
+  modifiers, owned/equipped items, travel-chest contents, spells, abilities and
+  illithid powers;
+- reuse M2 import/report concepts and the M7 resolver where applicable, without
+  requiring the legacy tracker format;
+- show inserted, matched, skipped, ambiguous and conflicting facts before commit;
+- commit only explicit accepted batches through typed transactional services with
+  validation and audit events;
+- record onboarding provenance, but never invent prior gameplay chronology or audit
+  events.
+
+### Deliverables
+- onboarding application workflow with explicit `NEW_CAMPAIGN` and
+  `EXISTING_CAMPAIGN` modes;
+- CLI and desktop entry points using the same application contract;
+- bounded batch templates/contracts for all M1 current-state aggregates;
+- preview, validation and reconciliation output before canonical writes;
+- safe interruption/retry behavior and duplicate-resistant repeated submissions;
+- completion summary and initial checkpoint after successful onboarding;
+- Polish-language operator guidance for both entry modes.
+
+### Rules
+- SQLite remains the only writable canonical source of truth.
+- Onboarding never overwrites a different non-empty campaign.
+- UI, model and import adapters never write arbitrary SQL.
+- Every accepted canonical batch is transactional, validated and audited.
+- Unknown facts remain unknown and unresolved identities block their dependent writes.
+- New-campaign onboarding must stay usable without AI, web research, screenshots or a
+  pre-existing workbook.
+- Existing-campaign onboarding may use item resolution or screenshot extraction only
+  through their established confidence and confirmation boundaries.
+
+### Explicit non-goals
+- general-purpose spreadsheet mapping;
+- automatic BG3 save-file or process-memory parsing;
+- reconstructing historical audit events from user recollection;
+- replacing or merging an unrelated non-empty canonical database;
+- cloud sync or multi-user/multi-campaign management;
+- backup/restore rotation, which remains M16 scope.
+
+### Exit criteria
+- a fresh database can be initialized with a minimal valid party and empty optional
+  collections, then updated through normal M6 mutations;
+- a sanitized mid-campaign fixture can be entered in multiple batches and produces
+  the expected characters, statistics, equipment and travel-chest state;
+- ambiguous identity, conflicting slot and invalid derived-stat scenarios produce no
+  partial canonical writes;
+- retrying an accepted batch does not duplicate canonical facts or audit mutations;
+- onboarding cannot fabricate past events or overwrite another campaign;
+- CLI and desktop paths yield the same validated canonical result;
+- onboarding documentation clearly recommends starting from zero when practical.
+
+---
+
+## M16 — Reliability / Evals / Long-Term Operations
 
 ### Goal
 Harden the project for a full campaign and future playthroughs.
@@ -370,7 +448,7 @@ Harden the project for a full campaign and future playthroughs.
 - DB integrity diagnostics;
 - token/cost telemetry;
 - model router by task class;
-- migration guide for new campaign.
+- onboarding recovery/runbook and migration guidance for future campaigns.
 
 ### Exit criteria
 - restore from backup tested;

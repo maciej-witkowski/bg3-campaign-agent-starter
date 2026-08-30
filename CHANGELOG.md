@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added M15 Campaign Initialization and Onboarding after the core product workflows, with clean-start and mid-campaign entry modes; moved Reliability / Evals / Long-Term Operations to M16.
 - Implemented M2 legacy XLSX staging, exact Polish normalization, entity-specific planning and one-transaction audited campaign import.
 - Added deterministic import reports and digest-bound reconciliation documents for skipped, ambiguous and conflicting source facts.
 - Applied validated reconciliation decisions to staged values and conservative import plans, including explicit alias attestation, candidate selection, treating a fact as new and skipping a source fact.
