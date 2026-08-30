@@ -171,6 +171,10 @@ function applyNormalizationResolution(
   aliases: { row: number; aliasEn: string }[],
 ): LegacyTrackerStage {
   const resolution = issue.resolution!;
+  if (issue.reasonCode === "DUPLICATE_CHARACTER_DISPLAY_NAME")
+    throw new CampaignDomainError(
+      "Duplikat nazwy postaci wymaga poprawienia źródłowego trackera i jego zależnych odwołań.",
+    );
   if (resolution.action === "attest_verified_alias") {
     if (
       issue.reasonCode !== "ENGLISH_ALIAS_UNATTESTED" ||

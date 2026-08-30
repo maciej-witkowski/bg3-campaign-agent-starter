@@ -7,11 +7,14 @@ import {
   type NormalizedLegacyCampaign,
 } from "../../../src/application/import/legacy-campaign-normalizer.js";
 import { parseImportReconciliation } from "../../../src/application/import/import-contracts.js";
+import { CampaignDomainError } from "../../../src/domain/mutations/campaign-mutation.js";
 import {
   LEGACY_CHANGE_LOG_HEADERS,
+  LEGACY_CHARACTER_HEADERS,
   LEGACY_ITEM_HEADERS,
   LEGACY_TRACKER_PROFILE,
   type LegacyChangeLogRow,
+  type LegacyCharacterRow,
   type LegacyItemRow,
   type LegacyScalar,
   type LegacyTrackerStage,
@@ -112,22 +115,97 @@ describe("legacy campaign normalization aggregate", () => {
       expect.arrayContaining([expect.objectContaining({ reasonCode: "RECONCILIATION_APPLIED" })]),
     );
   });
+
+  it("requires source correction for duplicate character display names", () => {
+    const source = stage(
+      [],
+      [],
+      [
+        characterRow({ ID: "FIRST", Postać: "Wspólna nazwa" }, 2),
+        characterRow({ ID: "SECOND", Postać: "Wspólna nazwa" }, 3),
+      ],
+    );
+    const initial = normalizeLegacyCampaign(source);
+    const document = createNormalizationReconciliation(initial);
+    const issue = document.issues.find(
+      (value) => value.reasonCode === "DUPLICATE_CHARACTER_DISPLAY_NAME",
+    )!;
+
+    for (const resolution of [
+      { action: "provide_canonical_value" as const, value: "Druga postać" },
+      { action: "skip" as const },
+    ]) {
+      const reconciliation = {
+        ...document,
+        issues: document.issues.map((value) =>
+          value.issueId === issue.issueId ? { ...value, resolution } : value,
+        ),
+      };
+
+      expect(() => normalizeLegacyCampaign(source, reconciliation)).toThrow(CampaignDomainError);
+      expect(() => normalizeLegacyCampaign(source, reconciliation)).toThrow(
+        "Duplikat nazwy postaci wymaga poprawienia źródłowego trackera",
+      );
+    }
+  });
 });
 
 function stage(
   legacyChangeLog: readonly LegacyChangeLogRow[],
   items: readonly LegacyItemRow[] = [],
+  characters: readonly LegacyCharacterRow[] = [],
 ): LegacyTrackerStage {
   return {
     profile: LEGACY_TRACKER_PROFILE,
     workbookSha256: "d".repeat(64),
-    characters: [],
+    characters,
     equipment: [],
     items,
     abilities: [],
     spells: [],
     illithidPowers: [],
     legacyChangeLog,
+  };
+}
+
+function characterRow(
+  overrides: Partial<Record<(typeof LEGACY_CHARACTER_HEADERS)[number], LegacyScalar>> = {},
+  row = 2,
+): LegacyCharacterRow {
+  const values: Record<(typeof LEGACY_CHARACTER_HEADERS)[number], LegacyScalar> = {
+    ID: "HERO",
+    Postać: "Bohater",
+    Aktywna: "TAK",
+    Poziom: 9,
+    Rasa: null,
+    Klasa: "Wojownik",
+    Podklasa: null,
+    "Pakt / wariant": null,
+    Rola: "Frontliner",
+    "SIŁ bazowa": 18,
+    "Stała premia SIŁ": 0,
+    "SIŁ aktualna": 18,
+    ZR: 14,
+    KON: 16,
+    INT: 8,
+    MĄD: 10,
+    CHA: 8,
+    Uwagi: null,
+    ...overrides,
+  };
+  return {
+    sheet: "Postacie",
+    row,
+    cells: Object.fromEntries(
+      LEGACY_CHARACTER_HEADERS.map((header, index) => [
+        header,
+        {
+          value: values[header],
+          formula: header === "SIŁ aktualna" ? "J2+K2" : null,
+          column: index + 1,
+        },
+      ]),
+    ) as unknown as LegacyCharacterRow["cells"],
   };
 }
 
