@@ -304,3 +304,6 @@ tests must not require color.
 - 2026-08-30 — After approved final-review remediation, derived failure-envelope command
   identity only from the parser's command position and returned `null` when no known
   command could be identified; added regressions for misleading option/argument values.
+- 2026-08-30 — After approved follow-up review remediation, made the lenient token
+  context preserve an earlier known command across later option errors and select JSON
+  mode only from an actual `--json` option token, including option-terminator coverage.

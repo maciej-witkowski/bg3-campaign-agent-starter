@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: Third approved PR review remediation validated; publish/re-review pending
+Overall status: Fourth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -178,6 +178,30 @@ Implemented:
 ADR impact: no new or changed decision; this restores ADR-0028's known-command-only
 failure envelope.
 
+### Session follow-up PR review remediation — approved parser context package
+
+Status: Implementation committed as `83f73ff`; full revalidation complete
+
+Follow-up review findings on `fb22d48`:
+
+- a known command was lost when a later option made strict parsing fail;
+- raw argv membership treated positional `--json` after `--` as JSON mode;
+- one ADR-0027 sentence still described tag AND semantics despite the accepted OR rule.
+
+Approval: the combined three-finding remediation was explicitly approved by the
+repository owner in the Codex task on 2026-08-30.
+
+Implemented:
+
+- a lenient native-parser token context extracts the first positional command and actual
+  JSON option independently from strict dispatch validation;
+- regressions cover a known command followed by an unknown option and positional
+  `--json` after the option terminator;
+- ADR-0027 now consistently states that at least one repeated tag must match.
+
+ADR impact: no new or changed decision; the fixes enforce ADR-0028 stream/envelope
+semantics and remove documentation drift from ADR-0027.
+
 ## Change inventory
 
 ### Created
@@ -293,6 +317,15 @@ failure envelope.
 - `src/cli/run-cli.ts`
 - `tests/unit/cli/run-cli.test.ts`
 
+### Modified in follow-up PR review remediation session
+
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/cli/parse-cli-arguments.ts`
+- `src/cli/run-cli.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -318,6 +351,8 @@ failure envelope.
 | 2026-08-30 | post-tag-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and production smoke |
 | 2026-08-30 | focused JSON command-identity regression | Passed | 2 files / 34 tests plus scoped lint and strict typecheck |
 | 2026-08-30 | post-command-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 230 tests, build and production smoke |
+| 2026-08-30 | focused parser-context regressions | Passed | 2 files / 35 tests plus scoped lint and strict typecheck |
+| 2026-08-30 | post-parser-context `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 231 tests, build and production smoke |
 
 ## Commits and remote state
 
@@ -332,6 +367,8 @@ failure envelope.
 - `db0b15e` — `fix: combine repeated inventory tags with OR`.
 - `29e9a60` — `docs: record M3 tag remediation`.
 - `f220fab` — `fix: derive CLI error command from parser`.
+- `fb22d48` — `docs: record M3 command remediation`.
+- `83f73ff` — `fix: preserve CLI parser failure context`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -351,7 +388,7 @@ failure envelope.
 
 ## Exact resume point
 
-The command-identity finding from review of `29e9a60` was verified, approved, implemented
-in `f220fab` and passed the full gate. Resume by finishing the diff/security sweep,
-committing and pushing documentation evidence, then request Codex re-review on the
-latest material head. Do not merge and do not start M4.
+The three-finding parser-context package from review of `fb22d48` was verified, approved,
+implemented in `83f73ff` and passed the full gate. Resume by finishing the diff/security
+sweep, committing and pushing documentation evidence, then request Codex re-review on
+the latest material head. Do not merge and do not start M4.
