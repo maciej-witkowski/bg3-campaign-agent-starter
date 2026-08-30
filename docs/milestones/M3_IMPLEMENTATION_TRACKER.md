@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-30
-Overall status: Approved PR review remediation validated; publish/re-review pending
+Overall status: Second approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -139,6 +139,25 @@ Implemented:
 ADR impact: no new or changed architectural decision. Both fixes enforce the already
 accepted ADR-0026 transactional-read and isolated-export boundary.
 
+### Session PR re-review remediation — approved tag OR finding
+
+Status: Implementation committed as `db0b15e`; full revalidation complete
+
+Re-review finding on `748911f`: repeated `inventory --tag` values were implemented with
+AND despite ADR-0027 requiring OR within a filter category.
+
+Approval: remediation explicitly approved by the repository owner in the Codex task on
+2026-08-30.
+
+Implemented:
+
+- exact tag-facet matching now accepts any repeated requested tag while retaining AND
+  between slot, status and tag categories;
+- a regression proves `BONUS` or `AURA` returns items matching either alternative.
+
+ADR impact: no new or changed decision; this restores the already accepted ADR-0027
+filter contract.
+
 ## Change inventory
 
 ### Created
@@ -239,6 +258,13 @@ accepted ADR-0026 transactional-read and isolated-export boundary.
 - `tests/unit/application/campaign-validation-service.test.ts`
 - `tests/unit/cli/run-cli.test.ts`
 
+### Modified in PR re-review remediation session
+
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -260,6 +286,8 @@ accepted ADR-0026 transactional-read and isolated-export boundary.
 | 2026-08-30 | focused approved P1/P2 remediation tests | Passed | 5 files / 16 tests including export aliases and concurrent WAL snapshot |
 | 2026-08-30 | remediation production build and smoke | Passed | Protected DB/WAL/SHM targets rejected; SQLite hash unchanged |
 | 2026-08-30 | post-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and protected-target production smoke |
+| 2026-08-30 | focused repeated-tag OR regression | Passed | 1 file / 11 tests plus scoped lint and strict typecheck |
+| 2026-08-30 | post-tag-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 38 files / 229 tests, build and production smoke |
 
 ## Commits and remote state
 
@@ -270,6 +298,8 @@ accepted ADR-0026 transactional-read and isolated-export boundary.
 - `de216ed` — `docs: document M3 read-only CLI`.
 - `078efe5` — `docs: track M3 pull request`.
 - `be207a9` — `fix: protect M3 read-only boundaries`.
+- `748911f` — `docs: record M3 review remediation`.
+- `db0b15e` — `fix: combine repeated inventory tags with OR`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -289,7 +319,7 @@ accepted ADR-0026 transactional-read and isolated-export boundary.
 
 ## Exact resume point
 
-Both Codex findings on reviewed head `078efe5` were verified, approved by the repository
-owner, implemented in `be207a9` and passed the full post-remediation gate. Resume by
-finishing the diff/security sweep, committing and pushing documentation evidence, then
-request Codex re-review on the latest material head. Do not merge and do not start M4.
+The repeated-tag finding from re-review of `748911f` was verified, approved, implemented
+in `db0b15e` and passed the full gate. Resume by finishing the diff/security sweep,
+committing and pushing documentation evidence, then request one final Codex re-review
+on the latest material head. Do not merge and do not start M4.

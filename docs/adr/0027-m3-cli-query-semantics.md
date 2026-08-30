@@ -271,3 +271,5 @@ without changing their exact stored-value matching semantics or the JSON contrac
 - 2026-08-30 — Implemented typed query DTOs/service, transaction-scoped SQLite read
   projections, conservative Polish resolution, deterministic filtering/ordering and
   the final read-only M3 composition.
+- 2026-08-30 — After approved PR re-review remediation, corrected repeated tag facets
+  to use the accepted OR-within-category rule and added a distinguishing regression.
