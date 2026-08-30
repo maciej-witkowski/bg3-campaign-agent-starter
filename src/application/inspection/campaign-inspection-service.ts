@@ -11,7 +11,10 @@ import {
   type PermanentModifier,
 } from "../../domain/model/campaign.js";
 import { normalizePolishMatchingKey } from "../../domain/naming/polish-matching.js";
-import { calculateEffectiveAttribute } from "../../domain/validation/campaign-validation.js";
+import {
+  calculateEffectiveAttribute,
+  isEquipmentSlotCompatible,
+} from "../../domain/validation/campaign-validation.js";
 import {
   CampaignInspectionError,
   DEFAULT_CHANGE_LIMIT,
@@ -97,6 +100,7 @@ export class CampaignInspectionService {
             inventoryItem.itemDefinitionId,
             "item definition",
           );
+          assertConsistentEquipmentView(assignment, inventoryItem, definition);
           return {
             assignment,
             inventoryItem,
@@ -218,6 +222,28 @@ export class CampaignInspectionService {
       changes: session.listRecentChanges(limit),
     }));
   }
+}
+
+function assertConsistentEquipmentView(
+  assignment: EquipmentView["items"][number]["assignment"],
+  inventoryItem: EquipmentView["items"][number]["inventoryItem"],
+  definition: EquipmentView["items"][number]["definition"],
+): void {
+  const consistent =
+    inventoryItem.status === "EQUIPPED" &&
+    inventoryItem.ownerCharacterId === assignment.characterId &&
+    inventoryItem.quantity === 1 &&
+    isEquipmentSlotCompatible(assignment.slot, definition.slot);
+  if (consistent) return;
+  throw new CampaignInspectionError(
+    "INCONSISTENT_STATE",
+    "Stan kampanii ma niespójne przypisanie wyposażenia.",
+    {
+      inventoryItemId: inventoryItem.id,
+      characterId: assignment.characterId,
+      equipmentSlot: assignment.slot,
+    },
+  );
 }
 
 function resolveCharacter(characters: readonly Character[], input: string): Character {

@@ -80,6 +80,22 @@ describe("CampaignInspectionService", () => {
     );
   });
 
+  it.each([
+    ["inventory status", "update inventory_items set status = 'CHEST' where id = 'inventory-ring'"],
+    [
+      "inventory owner",
+      "update inventory_items set owner_character_id = 'character-astarion' where id = 'inventory-ring'",
+    ],
+    ["inventory quantity", "update inventory_items set quantity = 2 where id = 'inventory-ring'"],
+    ["definition slot", "update item_definitions set slot = 'BODY' where id = 'definition-ring'"],
+  ])("rejects contradictory equipment %s", (_label, statement) => {
+    connection.database.$client.prepare(statement).run();
+
+    expect(() => service.getEquipment("laezel")).toThrowError(
+      expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+    );
+  });
+
   it("combines inventory filter categories with AND and repeated values with OR", () => {
     expect(
       service
