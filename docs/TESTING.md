@@ -77,6 +77,10 @@ separation, human output, exit categories, safe internal errors and JSON/XLSX di
 Human party-output coverage requires the optional subclass and every base/effective
 attribute pair from the DTO. Exact renderer regressions also require permanent modifier
 details/empty state, all independent spell flags and illithid prerequisite IDs.
+Error-context regressions require raw `--` to terminate option recovery even when a
+malformed preceding string option consumes it as a value. Lifecycle regressions require
+close failures to remain inside the safe envelope and never replace an earlier mapped
+command failure.
 
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all

@@ -11,7 +11,9 @@
 - The M3 CLI requires an explicit existing database path, opens it read-only with
   query-only defence and refuses to apply migrations.
 - CLI errors omit SQL, stack traces and full audit snapshots; JSON mode reserves stdout
-  for one versioned result document.
+  for one versioned result document. Errors raised while closing an opened M3
+  application are contained by the same mapping boundary and cannot expose a stack trace
+  or replace an earlier command failure.
 - CLI exports require an explicit local target and refuse overwrite unless the operator
   supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
   remain protected even with that flag. The public M3 export capability enforces the

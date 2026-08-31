@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Eleventh approved PR review remediation validated; tracking/publish/re-review pending
+Overall status: Twelfth approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -394,6 +394,32 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fix closes the remaining
 time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
 
+### Session parser/lifecycle re-review remediation — approved error-boundary package
+
+Status: Implemented as ADR-scoped commit `a77aefa`; full local gate passed
+
+Findings on `062c781`:
+
+- P2: lenient error-context recovery could treat `--json` after the raw `--` terminator
+  as an option when an earlier malformed string option consumed the terminator as its
+  value;
+- P2: an exception from `application.close()` in `finally` could replace a successful
+  result or an already mapped failure and escape the stable CLI error boundary.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0028 (`a77aefa`): context recovery considers only parsed tokens whose raw index is
+  before the first exact `--`; application close failures after successful execution map
+  to a safe `INTERNAL_ERROR`, while an earlier command failure retains precedence;
+- regressions cover a malformed `--output -- --json` invocation, close failure after a
+  successful command and close failure after an already mapped not-found result.
+
+ADR impact: no new or changed architectural decision. The fixes enforce ADR-0028's
+accepted option-terminator, stable-envelope and lifecycle error-boundary contracts.
+
 ## Change inventory
 
 ### Created
@@ -619,6 +645,16 @@ time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
 - `tests/unit/application/atomic-artifact-writer.test.ts`
 - `tests/unit/application/campaign-export-service.test.ts`
 
+### Modified in parser/lifecycle re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/cli/parse-cli-arguments.ts`
+- `src/cli/run-cli.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -675,6 +711,10 @@ time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
 | 2026-08-31 | post-publication-identity `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 256 tests, build and production smoke |
 | 2026-08-31 | publication-identity `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | publication-identity scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused parser/lifecycle regressions | Passed | 2 files / 37 tests covering raw `--` recovery and close failures after success/failure |
+| 2026-08-31 | post-parser-lifecycle `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 257 tests, build and production smoke |
+| 2026-08-31 | parser/lifecycle `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | parser/lifecycle scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -711,6 +751,8 @@ time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
 - `7f0bbd4` — `fix: report anchored CLI export targets`.
 - `955ece5` — `docs: track canonical schema remediation`.
 - `e9052d7` — `fix: bind export publication to checked target`.
+- `062c781` — `docs: track stable export publication`.
+- `a77aefa` — `fix: contain CLI parser and close failures`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -730,8 +772,8 @@ time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
 
 ## Exact resume point
 
-The P1 finding from review of `955ece5` was verified, approved and implemented in
-ADR-scoped commit `e9052d7`. The full local gate passed at 40 files / 256 tests plus
+The two P2 findings from review of `062c781` were verified, approved and implemented in
+ADR-scoped commit `a77aefa`. The full local gate passed at 40 files / 257 tests plus
 production smoke, and the high-severity audit passed with only the two unchanged
 moderate transitive advisories. Resume by committing this tracking evidence, pushing
 the two local commits and requesting Codex re-review on the latest head. Do not merge
