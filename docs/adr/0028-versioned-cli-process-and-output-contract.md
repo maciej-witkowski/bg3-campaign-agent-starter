@@ -244,8 +244,9 @@ broad categories.
   ISO UTC strings and failures never include `data`.
 - Human renderers provide compact Polish sections and the consistent empty/unknown
   markers; the party view includes the recorded class, optional subclass and each
-  base/effective attribute pair. Human failures use stderr; JSON-mode failures use
-  stdout only.
+  base/effective attribute pair. Character output includes permanent modifier details,
+  spell rows expose all independent assignment flags and illithid rows include known
+  prerequisite IDs. Human failures use stderr; JSON-mode failures use stdout only.
 - Export dispatch calls the approved M2 JSON/XLSX writers, reports only bounded artifact
   metadata and keeps the campaign export body in the explicit output file.
 - `package.json` declares `bg3-campaign` at `dist/cli/main.js`, the ESM entry retains a
@@ -313,3 +314,6 @@ tests must not require color.
   base/effective attributes in human mode and added a focused output regression.
 - 2026-08-31 — After approved later re-review remediation, included a recorded subclass
   in the human party summary and extended the exact output regression.
+- 2026-08-31 — After approved subsequent re-review remediation, added localized
+  permanent-modifier details/empty state, all three independent spell flags and known
+  illithid prerequisite IDs to human output with exact regressions.

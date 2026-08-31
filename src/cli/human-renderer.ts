@@ -64,6 +64,13 @@ function renderCharacter(value: CharacterView): string {
             `${attribute.attribute}: ${attribute.baseValue} → ${attribute.effectiveValue}`,
         ),
       ),
+      "Modyfikatory trwałe:",
+      ...rows(
+        value.permanentModifiers.map(
+          (modifier) =>
+            `${modifier.targetKey}: ${signed(modifier.modifier)} — ${modifier.sourceNamePl} — pochodzenie: ${modifier.provenanceType} — aktywny: ${yesNo(modifier.active)}`,
+        ),
+      ),
       "Zdolności:",
       ...rows(
         value.abilities.map(
@@ -98,7 +105,7 @@ function renderSpells(value: SpellsView): string {
     `Czary: ${value.character.displayNamePl}`,
     value.spells.map(
       (spell) =>
-        `${spell.definition.level}: ${spell.definition.namePl} — ${spell.assignment.source}${spell.assignment.prepared ? " — przygotowany" : ""}`,
+        `${spell.definition.level}: ${spell.definition.namePl} — ${spell.assignment.source} — znany: ${yesNo(spell.assignment.known)} — przygotowany: ${yesNo(spell.assignment.prepared)} — zawsze przygotowany: ${yesNo(spell.assignment.alwaysPrepared)}`,
     ),
   );
 }
@@ -110,7 +117,7 @@ function renderIllithid(value: IllithidView): string {
       : `Moce illithidów: ${value.character.displayNamePl}`,
     value.powers.map(
       (power) =>
-        `${power.definition.namePl} — poziom ${unknown(power.definition.tier)}${power.acquisition === null ? "" : " — nabyta"}`,
+        `${power.definition.namePl} — poziom ${unknown(power.definition.tier)} — wymagania: ${power.prerequisitePowerIds.length === 0 ? "brak" : power.prerequisitePowerIds.join(", ")}${power.acquisition === null ? "" : " — nabyta"}`,
     ),
   );
 }
@@ -144,4 +151,12 @@ function rows(values: readonly string[]): readonly string[] {
 
 function unknown(value: unknown): string {
   return value === null || value === undefined ? "nieznane" : String(value);
+}
+
+function signed(value: number): string {
+  return value >= 0 ? `+${value}` : String(value);
+}
+
+function yesNo(value: boolean): string {
+  return value ? "tak" : "nie";
 }

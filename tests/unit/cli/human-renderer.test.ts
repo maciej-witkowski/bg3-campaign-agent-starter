@@ -26,4 +26,72 @@ describe("renderHumanSuccess", () => {
       "Aktywna drużyna\n- Lae'zel — Wojownik / Mistrz Bitewny 5 — Pierwsza linia — Atrybuty: STR 17 → 19, DEX 13 → 13\n",
     );
   });
+
+  it("renders permanent modifier details and an explicit empty marker", () => {
+    const data = {
+      character: {
+        displayNamePl: "Lae'zel",
+        canonicalName: "laezel",
+        classPl: "Wojownik",
+        subclassPl: null,
+        level: 5,
+      },
+      attributes: [],
+      permanentModifiers: [
+        {
+          targetKey: "STR",
+          modifier: 2,
+          sourceNamePl: "Lustro Utraty",
+          provenanceType: "USER_CONFIRMED",
+          active: true,
+        },
+      ],
+      abilities: [],
+    };
+
+    expect(renderHumanSuccess("character", data)).toContain(
+      "Modyfikatory trwałe:\n- STR: +2 — Lustro Utraty — pochodzenie: USER_CONFIRMED — aktywny: tak\n",
+    );
+    expect(renderHumanSuccess("character", { ...data, permanentModifiers: [] })).toContain(
+      "Modyfikatory trwałe:\n— brak —\n",
+    );
+  });
+
+  it("renders all spell assignment flags independently", () => {
+    const output = renderHumanSuccess("spells", {
+      character: { displayNamePl: "Lae'zel" },
+      spells: [
+        {
+          definition: { level: 1, namePl: "Skok" },
+          assignment: {
+            source: "ITEM",
+            known: false,
+            prepared: false,
+            alwaysPrepared: true,
+          },
+        },
+      ],
+    });
+
+    expect(output).toBe(
+      "Czary: Lae'zel\n- 1: Skok — ITEM — znany: nie — przygotowany: nie — zawsze przygotowany: tak\n",
+    );
+  });
+
+  it("renders known illithid prerequisite edges", () => {
+    const output = renderHumanSuccess("illithid", {
+      character: null,
+      powers: [
+        {
+          definition: { namePl: "Odpychający Wybuch", tier: 2 },
+          prerequisitePowerIds: ["power-tier-1"],
+          acquisition: null,
+        },
+      ],
+    });
+
+    expect(output).toBe(
+      "Moce illithidów\n- Odpychający Wybuch — poziom 2 — wymagania: power-tier-1\n",
+    );
+  });
 });
