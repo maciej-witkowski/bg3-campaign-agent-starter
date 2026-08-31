@@ -72,7 +72,8 @@ CLI contract tests cover every command grammar, help/version, duplicate/unknown/
 arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout/stderr
 separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
 Human party-output coverage requires the optional subclass and every base/effective
-attribute pair from the DTO.
+attribute pair from the DTO. Exact renderer regressions also require permanent modifier
+details/empty state, all independent spell flags and illithid prerequisite IDs.
 
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
@@ -84,6 +85,10 @@ Direct M3 composition coverage invokes both public export writers and proves the
 database/SQLite-companion target policy cannot be bypassed outside the CLI adapter. A
 relative-path regression changes the process working directory after opening and still
 requires the original database path to remain protected.
+
+A deferred XLSX codec regression changes the working directory while serialization is
+pending and proves policy evaluation and atomic publication retain the same absolute
+output target.
 
 Both equipment and inventory projections reject joined equipment facts with a
 contradictory status, owner, quantity or known definition slot. They also reject a

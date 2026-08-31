@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Eighth approved PR review remediation validated; publish/re-review pending
+Overall status: Ninth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -308,6 +308,35 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fixes enforce ADR-0027's
 required-join rule and ADR-0028's human rendering of the approved party DTO.
 
+### Session renderer/export re-review remediation — approved anchoring/human-detail package
+
+Status: Implemented as ADR-scoped commits `348090b` and `3e9234c`; full local gate passed
+
+Findings on `fc185d6`:
+
+- P1: a relative XLSX target could be re-resolved after asynchronous serialization if
+  another library consumer changed the process working directory;
+- P2: human character output omitted permanent modifiers and their empty state;
+- P2: human spell output did not expose `known`, `prepared` and `alwaysPrepared`
+  independently;
+- P2: human illithid output omitted prerequisite edges.
+
+Approval: all four remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0026 (`348090b`): explicit artifact targets resolve and validate once before the
+  policy check and any asynchronous serialization, and the absolute path is retained
+  through publication;
+- ADR-0028 (`3e9234c`): human output now includes localized permanent modifier
+  details/empty state, every spell assignment flag and prerequisite IDs;
+- regressions change the working directory during a deferred XLSX serialization and
+  assert exact human output for all three projections.
+
+ADR impact: no new or changed architectural decision. The fixes close a path-identity
+race in ADR-0026 and align ADR-0028 human output with existing approved DTO facts.
+
 ## Change inventory
 
 ### Created
@@ -492,6 +521,22 @@ required-join rule and ADR-0028's human rendering of the approved party DTO.
 - `tests/unit/application/campaign-inspection-service.test.ts`
 - `tests/unit/cli/human-renderer.test.ts`
 
+### Created in renderer/export re-review remediation session
+
+- `tests/unit/application/campaign-export-service.test.ts`
+
+### Modified in renderer/export re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/atomic-artifact-writer.ts`
+- `src/application/export/campaign-export-service.ts`
+- `src/cli/human-renderer.ts`
+- `tests/unit/cli/human-renderer.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -535,6 +580,10 @@ required-join rule and ADR-0028's human rendering of the approved party DTO.
 | 2026-08-31 | post-later-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 246 tests, build and production smoke |
 | 2026-08-31 | later `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | later scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused renderer/export regressions | Passed | 4 files / 17 tests covering deferred target anchoring and exact human details |
+| 2026-08-31 | post-renderer-export-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 250 tests, build and production smoke |
+| 2026-08-31 | renderer/export `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | renderer/export scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -563,6 +612,9 @@ required-join rule and ADR-0028's human rendering of the approved party DTO.
 - `5bcae33` — `docs: track scoped inventory remediation`.
 - `137a235` — `fix: reject dangling illithid joins`.
 - `889d8b0` — `fix: render party subclass in human CLI`.
+- `fc185d6` — `docs: track subclass and illithid remediation`.
+- `348090b` — `fix: anchor export targets before serialization`.
+- `3e9234c` — `fix: complete M3 human inspection output`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -582,7 +634,7 @@ required-join rule and ADR-0028's human rendering of the approved party DTO.
 
 ## Exact resume point
 
-The two findings from review of `5bcae33` were verified, approved and implemented in
-ADR-scoped commits `137a235` and `889d8b0`. The full local gate passed at 39 files / 246
+The four findings from review of `fc185d6` were verified, approved and implemented in
+ADR-scoped commits `348090b` and `3e9234c`. The full local gate passed at 40 files / 250
 tests. Resume by committing this tracking evidence, pushing three commits and requesting
 Codex re-review on the latest head. Do not merge and do not start M4.

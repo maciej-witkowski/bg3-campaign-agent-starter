@@ -16,5 +16,6 @@
   supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
   remain protected even with that flag. The public M3 export capability enforces the
   same target policy for non-CLI consumers and anchors protected resolved/canonical
-  identities when the application opens; exported campaign state remains private local
-  data.
+  identities when the application opens. Each output target is likewise resolved once
+  before policy evaluation and asynchronous serialization; exported campaign state
+  remains private local data.
