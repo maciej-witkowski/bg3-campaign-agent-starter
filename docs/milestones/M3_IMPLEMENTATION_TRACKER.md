@@ -3,8 +3,8 @@
 Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
-Last updated: 2026-08-30
-Overall status: Fifth approved PR review remediation validated; publish/re-review pending
+Last updated: 2026-08-31
+Overall status: Sixth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -230,6 +230,32 @@ Implemented:
 ADR impact: no new or changed architectural decision. The package closes bypasses and
 output drift against the already accepted ADR-0026/0027/0028 contracts.
 
+### Session follow-up final re-review remediation — approved path anchoring/inventory package
+
+Status: Implemented as two ADR-scoped commits; full local gate passed
+
+Follow-up findings on `418c8c0`:
+
+- P1: a relative database path was resolved again during a later export, so
+  `process.chdir()` could change which path the public policy protected;
+- P2: `inventory` returned contradictory equipment assignments even though equipment is
+  a required joined fact in that DTO.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0026 (`3ddfd27`): protected resolved and canonical database/companion identities
+  are captured when the application opens and retained by the export target policy;
+- ADR-0027 (`7bdf946`): inventory assignments reuse the equipment view's status, owner,
+  quantity and known-slot integrity check;
+- regressions change the working directory after opening a relative database and cover
+  all four contradictory equipment facts in both projections.
+
+ADR impact: no new or changed architectural decision. Both fixes enforce the accepted
+path-isolation and required-join-consistency rules.
+
 ## Change inventory
 
 ### Created
@@ -381,6 +407,20 @@ output drift against the already accepted ADR-0026/0027/0028 contracts.
 - `tests/unit/application/m3-campaign-application.test.ts`
 - `tests/unit/cli/campaign-export-target.test.ts`
 
+### Modified in follow-up final re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/campaign-export-service.ts`
+- `src/application/export/campaign-export-target.ts`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `src/composition/m3-campaign-application.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+- `tests/unit/application/m3-campaign-application.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -412,6 +452,10 @@ output drift against the already accepted ADR-0026/0027/0028 contracts.
 | 2026-08-30 | post-final-re-review `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 236 tests, build and production smoke |
 | 2026-08-30 | post-final-re-review `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-30 | final re-review scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused follow-up final re-review regressions | Passed | 4 files / 28 tests covering anchored relative paths and equipment integrity in both projections |
+| 2026-08-31 | post-follow-up-final-re-review `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 241 tests, build and production smoke |
+| 2026-08-31 | follow-up `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | follow-up scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -432,6 +476,9 @@ output drift against the already accepted ADR-0026/0027/0028 contracts.
 - `1f1637d` — `fix: enforce M3 export policy at public boundary`.
 - `93c1f4e` — `fix: reject contradictory equipment views`.
 - `0459085` — `fix: render party attributes in human CLI`.
+- `418c8c0` — `docs: track final M3 review remediation`.
+- `3ddfd27` — `fix: anchor M3 protected export paths`.
+- `7bdf946` — `fix: validate inventory equipment joins`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -451,8 +498,8 @@ output drift against the already accepted ADR-0026/0027/0028 contracts.
 
 ## Exact resume point
 
-The three findings from review of `0dc7796` were verified, approved and implemented in
-the ADR-scoped commits `1f1637d`, `93c1f4e` and `0459085`. The full local gate passed at
-39 files / 236 tests. Resume by completing the diff/security sweep, committing this
-tracking evidence, pushing the four commits and requesting Codex re-review on the
-latest head. Do not merge and do not start M4.
+The two findings from review of `418c8c0` were verified, approved and implemented in the
+ADR-scoped commits `3ddfd27` and `7bdf946`. The full local gate passed at 39 files / 241
+tests. Resume by completing the diff/security sweep, committing this tracking evidence,
+pushing the three commits and requesting Codex re-review on the latest head. Do not
+merge and do not start M4.

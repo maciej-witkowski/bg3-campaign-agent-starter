@@ -15,5 +15,6 @@
 - CLI exports require an explicit local target and refuse overwrite unless the operator
   supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
   remain protected even with that flag. The public M3 export capability enforces the
-  same target policy for non-CLI consumers; exported campaign state remains private
-  local data.
+  same target policy for non-CLI consumers and anchors protected resolved/canonical
+  identities when the application opens; exported campaign state remains private local
+  data.

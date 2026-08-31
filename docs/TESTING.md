@@ -80,7 +80,12 @@ SHA-256 before/after all commands must match. The smoke also attempts overwrite 
 against the database, WAL and SHM paths and requires a safe exit-5 refusal.
 
 Direct M3 composition coverage invokes both public export writers and proves the same
-database/SQLite-companion target policy cannot be bypassed outside the CLI adapter.
+database/SQLite-companion target policy cannot be bypassed outside the CLI adapter. A
+relative-path regression changes the process working directory after opening and still
+requires the original database path to remain protected.
+
+Both equipment and inventory projections reject joined equipment facts with a
+contradictory status, owner, quantity or known definition slot.
 
 Validation-port regression uses two SQLite connections in WAL mode. A writer commits
 between two reads inside the validation callback; both reads must observe the original
