@@ -248,7 +248,9 @@ broad categories.
   spell rows expose all independent assignment flags and illithid rows include known
   prerequisite IDs. Human failures use stderr; JSON-mode failures use stdout only.
 - Export dispatch calls the approved M2 JSON/XLSX writers, reports only bounded artifact
-  metadata and keeps the campaign export body in the explicit output file.
+  metadata and keeps the campaign export body in the explicit output file. The reported
+  output path is the same resolved/canonical target passed to policy evaluation and
+  publication, retained before asynchronous work.
 - `package.json` declares `bg3-campaign` at `dist/cli/main.js`, the ESM entry retains a
   Node shebang and `pnpm cli -- ...` invokes the production build output. No CLI runtime
   dependency was added.
@@ -317,3 +319,6 @@ tests must not require color.
 - 2026-08-31 — After approved subsequent re-review remediation, added localized
   permanent-modifier details/empty state, all three independent spell flags and known
   illithid prerequisite IDs to human output with exact regressions.
+- 2026-08-31 — After approved subsequent output-contract remediation, retained one
+  resolved export target before asynchronous dispatch and returned that exact path in
+  the success envelope.

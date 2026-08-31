@@ -1,9 +1,17 @@
+import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import process from "node:process";
+
 import { describe, expect, it, vi } from "vitest";
 
 import type { M3CampaignApplication } from "../../../src/composition/m3-campaign-application.js";
 import { runCli } from "../../../src/cli/run-cli.js";
 import { CampaignInspectionError } from "../../../src/application/inspection/campaign-inspection.js";
-import { ArtifactWriteError } from "../../../src/application/export/atomic-artifact-writer.js";
+import {
+  ArtifactWriteError,
+  resolveArtifactTarget,
+} from "../../../src/application/export/atomic-artifact-writer.js";
 import { SchemaCompatibilityError } from "../../../src/persistence/sqlite/schema-compatibility.js";
 
 describe("runCli", () => {
@@ -139,7 +147,9 @@ describe("runCli", () => {
       exportVersion: 1,
     });
     expect(parsed.data).not.toHaveProperty("state");
-    expect(writeJson).toHaveBeenCalledWith("state.json", { overwrite: false });
+    expect(writeJson).toHaveBeenCalledWith(resolveArtifactTarget("state.json"), {
+      overwrite: false,
+    });
 
     const xlsx = await runCli(
       [
@@ -155,9 +165,52 @@ describe("runCli", () => {
       { openApplication: () => application },
     );
     expect(xlsx.exitCode).toBe(0);
-    expect(application.campaignExport.writeXlsx).toHaveBeenCalledWith("state.xlsx", {
-      overwrite: true,
+    expect(application.campaignExport.writeXlsx).toHaveBeenCalledWith(
+      resolveArtifactTarget("state.xlsx"),
+      { overwrite: true },
+    );
+  });
+
+  it("reports the export target anchored before asynchronous work", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-cli-output-target-"));
+    const initialDirectory = join(directory, "initial");
+    const changedDirectory = join(directory, "changed");
+    mkdirSync(initialDirectory);
+    mkdirSync(changedDirectory);
+    const previousDirectory = process.cwd();
+    const application = fakeApplication();
+    let receivedTarget: string | undefined;
+    vi.spyOn(application.campaignExport, "writeXlsx").mockImplementation(async (targetPath) => {
+      receivedTarget = targetPath;
+      process.chdir(changedDirectory);
+      return exportValue();
     });
+
+    try {
+      process.chdir(initialDirectory);
+      const result = await runCli(
+        [
+          "--db",
+          "campaign.sqlite",
+          "--json",
+          "export",
+          "--format",
+          "xlsx",
+          "--output",
+          "campaign.xlsx",
+        ],
+        { openApplication: () => application },
+      );
+      const expectedTarget = join(realpathSync.native(initialDirectory), "campaign.xlsx");
+
+      expect(receivedTarget).toBe(expectedTarget);
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        data: { outputPath: expectedTarget },
+      });
+    } finally {
+      process.chdir(previousDirectory);
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it("rejects an export target that aliases the campaign database before opening it", async () => {

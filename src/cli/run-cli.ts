@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
 import { CampaignExportWorkbookError } from "../adapters/xlsx/campaign-export-workbook.js";
-import { ArtifactWriteError } from "../application/export/atomic-artifact-writer.js";
+import {
+  ArtifactWriteError,
+  resolveArtifactTarget,
+} from "../application/export/atomic-artifact-writer.js";
 import { CampaignExportError } from "../application/export/campaign-export.js";
 import { assertSafeCampaignExportTarget } from "../application/export/campaign-export-target.js";
 import { CampaignInspectionError } from "../application/inspection/campaign-inspection.js";
@@ -110,17 +111,18 @@ async function execute(
     const data = application.validation.validate();
     return { data, exitCode: data.valid ? 0 : 4 };
   }
+  const outputPath = resolveArtifactTarget(command.outputPath);
   const exported =
     command.artifactFormat === "json"
-      ? await application.campaignExport.writeJson(command.outputPath, {
+      ? await application.campaignExport.writeJson(outputPath, {
           overwrite: command.overwrite,
         })
-      : await application.campaignExport.writeXlsx(command.outputPath, {
+      : await application.campaignExport.writeXlsx(outputPath, {
           overwrite: command.overwrite,
         });
   return success({
     artifactFormat: command.artifactFormat,
-    outputPath: resolve(command.outputPath),
+    outputPath,
     exportFormat: exported.format,
     exportVersion: exported.version,
     schemaVersion: exported.schemaVersion,
