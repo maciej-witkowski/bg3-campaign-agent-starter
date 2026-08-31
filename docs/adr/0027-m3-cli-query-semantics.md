@@ -223,7 +223,8 @@ to refuse any invalid full state under ADR-0023.
   order and 1–1000 bound; before/after snapshots never enter the DTO.
 - Equipment projections reject assignments whose owned instance is not singly
   `EQUIPPED` by the assigned character or whose known definition slot is incompatible;
-  slot compatibility is shared with the campaign validator.
+  slot compatibility is shared with the campaign validator. Inventory projections
+  apply the same checks whenever they include an equipment assignment.
 - The M3 composition exposes inspection, validation, the existing M2 exporter and
   `close()` only over the read-only ADR-0026 connection.
 - Sanitized SQLite integration coverage exercises all query projections, Polish/NFC
@@ -279,3 +280,5 @@ without changing their exact stored-value matching semantics or the JSON contrac
 - 2026-08-30 — After approved final re-review remediation, expanded equipment join
   integrity checks to reject contradictory status, owner, quantity and definition-slot
   facts with `INCONSISTENT_STATE` rather than rendering a misleading row.
+- 2026-08-31 — After approved follow-up re-review remediation, applied the same required
+  equipment-fact checks to assignments included by the inventory projection.

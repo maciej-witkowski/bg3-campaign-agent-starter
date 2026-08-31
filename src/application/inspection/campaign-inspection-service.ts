@@ -140,12 +140,16 @@ export class CampaignInspectionService {
             inventoryItem.ownerCharacterId === null
               ? null
               : identity(required(characters, inventoryItem.ownerCharacterId, "character"));
+          const assignment = equipment.get(inventoryItem.id) ?? null;
+          if (assignment !== null) {
+            assertConsistentEquipmentView(assignment, inventoryItem, definition);
+          }
           return {
             inventoryItem,
             definition,
             effects: itemEffects,
             owner,
-            equipment: equipment.get(inventoryItem.id) ?? null,
+            equipment: assignment,
           };
         })
         .filter((item) =>

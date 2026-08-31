@@ -14,6 +14,16 @@ import { seedM3CampaignFixture } from "../fixtures/m3-campaign-fixture.js";
 let connection: SqliteConnection;
 let service: CampaignInspectionService;
 
+const EQUIPMENT_CONTRADICTIONS = [
+  ["inventory status", "update inventory_items set status = 'CHEST' where id = 'inventory-ring'"],
+  [
+    "inventory owner",
+    "update inventory_items set owner_character_id = 'character-astarion' where id = 'inventory-ring'",
+  ],
+  ["inventory quantity", "update inventory_items set quantity = 2 where id = 'inventory-ring'"],
+  ["definition slot", "update item_definitions set slot = 'BODY' where id = 'definition-ring'"],
+] as const;
+
 beforeEach(() => {
   connection = openMigratedSqliteConnection({ filename: SQLITE_MEMORY_FILENAME });
   seedM3CampaignFixture(connection.database);
@@ -80,21 +90,24 @@ describe("CampaignInspectionService", () => {
     );
   });
 
-  it.each([
-    ["inventory status", "update inventory_items set status = 'CHEST' where id = 'inventory-ring'"],
-    [
-      "inventory owner",
-      "update inventory_items set owner_character_id = 'character-astarion' where id = 'inventory-ring'",
-    ],
-    ["inventory quantity", "update inventory_items set quantity = 2 where id = 'inventory-ring'"],
-    ["definition slot", "update item_definitions set slot = 'BODY' where id = 'definition-ring'"],
-  ])("rejects contradictory equipment %s", (_label, statement) => {
+  it.each(EQUIPMENT_CONTRADICTIONS)("rejects contradictory equipment %s", (_label, statement) => {
     connection.database.$client.prepare(statement).run();
 
     expect(() => service.getEquipment("laezel")).toThrowError(
       expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
     );
   });
+
+  it.each(EQUIPMENT_CONTRADICTIONS)(
+    "rejects contradictory inventory equipment %s",
+    (_label, statement) => {
+      connection.database.$client.prepare(statement).run();
+
+      expect(() => service.findInventory()).toThrowError(
+        expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+      );
+    },
+  );
 
   it("combines inventory filter categories with AND and repeated values with OR", () => {
     expect(
