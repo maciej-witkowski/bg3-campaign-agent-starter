@@ -199,6 +199,9 @@ voice or desktop layers.
   `-wal`, `-shm` and `-journal` companions. Direct composition and production-process
   regressions prove these targets cannot replace canonical SQLite bytes even with
   explicit `--overwrite`.
+- The public capability captures the database's resolved and canonical protected paths
+  when the application opens, so a later working-directory change or symlink pivot
+  cannot reinterpret which SQLite identity is protected.
 
 ## Consequences and trade-offs
 
@@ -249,3 +252,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-30 — After approved final re-review remediation, enforced the same export
   target policy inside the public M3 export capability so library consumers cannot
   bypass the CLI adapter's pre-open protection.
+- 2026-08-31 — After approved follow-up re-review remediation, anchored resolved and
+  canonical protected database identities when the M3 application opens; added a
+  relative-path regression that changes the process working directory before export.

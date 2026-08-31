@@ -1,5 +1,6 @@
 import { deserializeCampaignExport, serializeCampaignExport } from "./campaign-export.js";
 import { createCampaignExport, type CampaignExportV1 } from "./campaign-export.js";
+import type { CampaignExportTargetPolicy } from "./campaign-export-target.js";
 import { writeVerifiedArtifact, type ArtifactWriteOptions } from "./atomic-artifact-writer.js";
 
 export interface CampaignExportSourcePort {
@@ -13,10 +14,6 @@ export interface ExportClock {
 export interface CampaignXlsxCodec {
   serialize(value: CampaignExportV1): Promise<Uint8Array>;
   deserialize(bytes: Uint8Array): Promise<CampaignExportV1>;
-}
-
-export interface CampaignExportTargetPolicy {
-  assertSafe(targetPath: string): void;
 }
 
 export class CampaignExportService {

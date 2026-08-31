@@ -6,11 +6,17 @@ import { ArtifactWriteError } from "./atomic-artifact-writer.js";
 
 const SQLITE_COMPANION_SUFFIXES = ["", "-wal", "-shm", "-journal"] as const;
 
+export interface CampaignExportTargetPolicy {
+  assertSafe(targetPath: string): void;
+}
+
 export function assertSafeCampaignExportTarget(databasePath: string, outputPath: string): void {
+  createCampaignExportTargetPolicy(databasePath).assertSafe(outputPath);
+}
+
+export function createCampaignExportTargetPolicy(databasePath: string): CampaignExportTargetPolicy {
   const source = resolve(databasePath);
   const sourceCanonical = canonicalPath(source);
-  const target = resolve(outputPath);
-  const targetCanonical = canonicalPath(target);
   const protectedPaths = new Set<string>();
 
   for (const suffix of SQLITE_COMPANION_SUFFIXES) {
@@ -18,17 +24,23 @@ export function assertSafeCampaignExportTarget(databasePath: string, outputPath:
     protectedPaths.add(`${sourceCanonical}${suffix}`);
   }
 
-  for (const protectedPath of protectedPaths) {
-    if (
-      samePath(target, protectedPath) ||
-      samePath(targetCanonical, canonicalPath(protectedPath)) ||
-      sameExistingFile(target, protectedPath)
-    ) {
-      throw new ArtifactWriteError(
-        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
-      );
-    }
-  }
+  return {
+    assertSafe: (outputPath) => {
+      const target = resolve(outputPath);
+      const targetCanonical = canonicalPath(target);
+      for (const protectedPath of protectedPaths) {
+        if (
+          samePath(target, protectedPath) ||
+          samePath(targetCanonical, canonicalPath(protectedPath)) ||
+          sameExistingFile(target, protectedPath)
+        ) {
+          throw new ArtifactWriteError(
+            "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+          );
+        }
+      }
+    },
+  };
 }
 
 function canonicalPath(filename: string): string {

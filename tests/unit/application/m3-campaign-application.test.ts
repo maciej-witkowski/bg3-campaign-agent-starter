@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import process from "node:process";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -71,5 +72,39 @@ describe("openM3CampaignApplication", () => {
       format: "BG3_CAMPAIGN_EXPORT",
       version: 1,
     });
+  });
+
+  it("anchors a relative protected database path when the application opens", async () => {
+    const directory = createTemporaryDirectory();
+    const databaseDirectory = join(directory, "database");
+    const changedDirectory = join(directory, "changed");
+    mkdirSync(databaseDirectory);
+    mkdirSync(changedDirectory);
+    const filename = join(databaseDirectory, "campaign.sqlite");
+    const writable = openMigratedSqliteConnection({ filename });
+    seedM3CampaignFixture(writable.database);
+    writable.close();
+    const before = sha256(filename);
+    const previousDirectory = process.cwd();
+    let application: ReturnType<typeof openM3CampaignApplication> | undefined;
+
+    try {
+      process.chdir(directory);
+      application = openM3CampaignApplication({
+        filename: join("database", "campaign.sqlite"),
+      });
+      process.chdir(changedDirectory);
+
+      await expect(
+        application.campaignExport.writeJson(filename, { overwrite: true }),
+      ).rejects.toThrowError(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
+    } finally {
+      application?.close();
+      process.chdir(previousDirectory);
+    }
+
+    expect(sha256(filename)).toBe(before);
   });
 });
