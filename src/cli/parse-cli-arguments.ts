@@ -77,7 +77,7 @@ export function inspectCliArgumentContext(args: readonly string[]): CliArgumentC
       terminatorIndex === -1
         ? parsed.tokens
         : parsed.tokens.filter((token) => token.index < terminatorIndex);
-    const rawCommand = contextTokens.find((token) => token.kind === "positional")?.value;
+    const rawCommand = parsed.tokens.find((token) => token.kind === "positional")?.value;
     return {
       command:
         rawCommand !== undefined && commandNames.has(rawCommand as CliCommandName)

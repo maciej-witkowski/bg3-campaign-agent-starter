@@ -235,7 +235,9 @@ broad categories.
 
 - `parseCliArguments()` uses Node's strict native parser with an explicit option schema,
   command-level option allowlists, duplicate single-value rejection, typed enums,
-  bounded limits and exact positional arity before any database is opened.
+  bounded limits and exact positional arity before any database is opened. Failure
+  context recovers the first parsed command positional even after `--`, while detecting
+  JSON mode only from actual option tokens before that raw terminator.
 - `runCli()` owns application lifecycle, typed dispatch, safe error mapping and the
   approved exit categories. Every opened application is closed on success and failure;
   close failures after successful execution become a safe `INTERNAL_ERROR`, while a
@@ -323,6 +325,9 @@ tests must not require color.
 - 2026-08-31 — After approved subsequent output-contract remediation, retained one
   resolved export target before asynchronous dispatch and returned that exact path in
   the success envelope.
-- 2026-08-31 — After approved parser/lifecycle remediation, bounded lenient error-context
-  recovery to tokens before the raw `--` terminator and contained application close
-  failures inside stable error mapping without replacing an earlier command failure.
+- 2026-08-31 — After approved parser/lifecycle remediation, bounded lenient JSON-mode
+  recovery to option tokens before the raw `--` terminator and contained application
+  close failures inside stable error mapping without replacing an earlier command failure.
+- 2026-08-31 — After approved command-recovery remediation, retained post-terminator
+  positionals for command identity while continuing to exclude them from JSON-option
+  detection; added regressions for both sides of the terminator contract.

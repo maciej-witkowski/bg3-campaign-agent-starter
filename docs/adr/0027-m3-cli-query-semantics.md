@@ -228,8 +228,9 @@ to refuse any invalid full state under ADR-0023.
   `EQUIPPED` by the assigned character or whose known definition slot is incompatible;
   slot compatibility is shared with the campaign validator. Inventory projections
   apply the same checks after filters whenever they include an equipment assignment,
-  and reject a returned `EQUIPPED` instance with no assignment. Character equipment
-  also rejects an owned `EQUIPPED` instance missing its assignment.
+  reject a returned `EQUIPPED` instance with no assignment, and reject returned `CHEST`
+  or `SOLD` instances that retain an owner. Character equipment also rejects an owned
+  `EQUIPPED` instance missing its assignment.
 - The M3 composition exposes inspection, validation, the existing M2 exporter and
   `close()` only over the read-only ADR-0026 connection.
 - Sanitized SQLite integration coverage exercises all query projections, Polish/NFC
@@ -292,3 +293,6 @@ without changing their exact stored-value matching semantics or the JSON contrac
   validation after filters so unrelated excluded inconsistencies do not fail a query.
 - 2026-08-31 — After approved later re-review remediation, rejected dangling illithid
   acquisition definitions and missing source/target definitions in prerequisite edges.
+- 2026-08-31 — After approved inventory-owner remediation, rejected returned `CHEST`
+  and `SOLD` rows with a non-null owner after applying inventory filters, while leaving
+  excluded contradictory rows outside the requested projection.

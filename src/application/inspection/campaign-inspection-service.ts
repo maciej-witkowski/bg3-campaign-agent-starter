@@ -156,6 +156,7 @@ export class CampaignInspectionService {
           matchesInventory(item.definition, item.effects, item.inventoryItem.status, normalized),
         )
         .map(({ inventoryItem, definition, effects: itemEffects }) => {
+          assertConsistentInventoryOwner(inventoryItem);
           const owner =
             inventoryItem.ownerCharacterId === null
               ? null
@@ -272,6 +273,25 @@ function assertConsistentInventoryEquipmentView(
   }
   if (inventoryItem.status === "EQUIPPED") {
     inconsistentEquipment(inventoryItem.id, inventoryItem.ownerCharacterId, null);
+  }
+}
+
+function assertConsistentInventoryOwner(
+  inventoryItem: EquipmentView["items"][number]["inventoryItem"],
+): void {
+  if (
+    (inventoryItem.status === "CHEST" || inventoryItem.status === "SOLD") &&
+    inventoryItem.ownerCharacterId !== null
+  ) {
+    throw new CampaignInspectionError(
+      "INCONSISTENT_STATE",
+      "Stan kampanii ma niespójnego właściciela przedmiotu.",
+      {
+        inventoryItemId: inventoryItem.id,
+        ownerCharacterId: inventoryItem.ownerCharacterId,
+        status: inventoryItem.status,
+      },
+    );
   }
 }
 

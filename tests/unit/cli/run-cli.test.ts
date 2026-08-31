@@ -78,6 +78,9 @@ describe("runCli", () => {
       ["--db", "x", "party", "--output", "--", "--json"],
       { openApplication: open },
     );
+    const commandAfterTerminator = await runCli(["--json", "--db", "x", "--", "party", "extra"], {
+      openApplication: open,
+    });
 
     expect(JSON.parse(laterInvalidOption.stdout)).toMatchObject({
       command: "party",
@@ -87,6 +90,10 @@ describe("runCli", () => {
     expect(positionalJson.stderr).toContain("Błąd:");
     expect(malformedBeforeTerminator.stdout).toBe("");
     expect(malformedBeforeTerminator.stderr).toContain("Błąd:");
+    expect(JSON.parse(commandAfterTerminator.stdout)).toMatchObject({
+      command: "party",
+      ok: false,
+    });
     expect(open).not.toHaveBeenCalled();
   });
 

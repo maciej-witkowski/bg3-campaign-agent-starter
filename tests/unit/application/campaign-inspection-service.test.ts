@@ -130,6 +130,23 @@ describe("CampaignInspectionService", () => {
     expect(service.findInventory({ statuses: ["SOLD"] }).items).toEqual([]);
   });
 
+  it.each(["CHEST", "SOLD"] as const)(
+    "rejects a returned %s inventory instance with an owner",
+    (status) => {
+      connection.database.$client
+        .prepare(
+          "update inventory_items set status = ?, owner_character_id = 'character-laezel' where id = 'inventory-armor'",
+        )
+        .run(status);
+
+      expect(() => service.findInventory({ statuses: [status] })).toThrowError(
+        expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+      );
+      const excludedStatus = status === "CHEST" ? "SOLD" : "CHEST";
+      expect(service.findInventory({ statuses: [excludedStatus] }).items).toEqual([]);
+    },
+  );
+
   it("combines inventory filter categories with AND and repeated values with OR", () => {
     expect(
       service
