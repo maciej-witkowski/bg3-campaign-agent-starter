@@ -66,6 +66,8 @@ export async function runCli(
   }
 
   let application: M3CampaignApplication | undefined;
+  let commandFailed = false;
+  let result: CliProcessResult;
   try {
     if (request.command.name === "export") {
       assertSafeCampaignExportTarget(request.databasePath, request.command.outputPath);
@@ -77,12 +79,19 @@ export async function runCli(
     const stdout = request.json
       ? serializeCliEnvelope(cliSuccess(request.command.name, executed.data))
       : renderHumanSuccess(request.command.name, executed.data);
-    return { exitCode: executed.exitCode, stdout, stderr: "" };
+    result = { exitCode: executed.exitCode, stdout, stderr: "" };
   } catch (error: unknown) {
-    return failureResult(error, request.json, request.command.name);
-  } finally {
-    application?.close();
+    commandFailed = true;
+    result = failureResult(error, request.json, request.command.name);
   }
+  if (application !== undefined) {
+    try {
+      application.close();
+    } catch (error: unknown) {
+      if (!commandFailed) result = failureResult(error, request.json, request.command.name);
+    }
+  }
+  return result;
 }
 
 async function execute(

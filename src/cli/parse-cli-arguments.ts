@@ -72,13 +72,18 @@ export interface CliArgumentContext {
 export function inspectCliArgumentContext(args: readonly string[]): CliArgumentContext {
   try {
     const parsed = parseLenientArguments(args);
-    const rawCommand = parsed.tokens.find((token) => token.kind === "positional")?.value;
+    const terminatorIndex = args.indexOf("--");
+    const contextTokens =
+      terminatorIndex === -1
+        ? parsed.tokens
+        : parsed.tokens.filter((token) => token.index < terminatorIndex);
+    const rawCommand = contextTokens.find((token) => token.kind === "positional")?.value;
     return {
       command:
         rawCommand !== undefined && commandNames.has(rawCommand as CliCommandName)
           ? (rawCommand as CliCommandName)
           : null,
-      json: parsed.tokens.some((token) => token.kind === "option" && token.name === "json"),
+      json: contextTokens.some((token) => token.kind === "option" && token.name === "json"),
     };
   } catch {
     return { command: null, json: false };

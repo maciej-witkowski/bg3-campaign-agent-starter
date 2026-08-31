@@ -74,6 +74,10 @@ describe("runCli", () => {
     const positionalJson = await runCli(["--db", "x", "party", "--", "--json"], {
       openApplication: open,
     });
+    const malformedBeforeTerminator = await runCli(
+      ["--db", "x", "party", "--output", "--", "--json"],
+      { openApplication: open },
+    );
 
     expect(JSON.parse(laterInvalidOption.stdout)).toMatchObject({
       command: "party",
@@ -81,6 +85,8 @@ describe("runCli", () => {
     });
     expect(positionalJson.stdout).toBe("");
     expect(positionalJson.stderr).toContain("Błąd:");
+    expect(malformedBeforeTerminator.stdout).toBe("");
+    expect(malformedBeforeTerminator.stderr).toContain("Błąd:");
     expect(open).not.toHaveBeenCalled();
   });
 
@@ -98,6 +104,36 @@ describe("runCli", () => {
       stderr: "Błąd: Nie znaleziono postaci.\n",
     });
     expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("contains close failures without replacing an earlier command failure", async () => {
+    const successfulApplication = fakeApplication();
+    vi.mocked(successfulApplication.close).mockImplementation(() => {
+      throw new Error("sekret zamknięcia");
+    });
+    const closeAfterSuccess = await runCli(["--db", "campaign.sqlite", "--json", "party"], {
+      openApplication: () => successfulApplication,
+    });
+
+    const failedApplication = fakeApplication();
+    vi.mocked(failedApplication.close).mockImplementation(() => {
+      throw new Error("drugi sekret zamknięcia");
+    });
+    const closeAfterFailure = await runCli(
+      ["--db", "campaign.sqlite", "--json", "character", "Brak"],
+      { openApplication: () => failedApplication },
+    );
+
+    expect(closeAfterSuccess.exitCode).toBe(1);
+    expect(closeAfterSuccess.stdout).not.toContain("sekret zamknięcia");
+    expect(JSON.parse(closeAfterSuccess.stdout)).toMatchObject({
+      error: { code: "INTERNAL_ERROR" },
+    });
+    expect(closeAfterFailure.exitCode).toBe(3);
+    expect(closeAfterFailure.stdout).not.toContain("drugi sekret zamknięcia");
+    expect(JSON.parse(closeAfterFailure.stdout)).toMatchObject({
+      error: { code: "CHARACTER_NOT_FOUND" },
+    });
   });
 
   it("returns a complete validation report with exit 4 for invalid state", async () => {

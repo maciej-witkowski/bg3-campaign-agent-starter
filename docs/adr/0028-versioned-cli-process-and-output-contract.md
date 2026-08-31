@@ -237,8 +237,9 @@ broad categories.
   command-level option allowlists, duplicate single-value rejection, typed enums,
   bounded limits and exact positional arity before any database is opened.
 - `runCli()` owns application lifecycle, typed dispatch, safe error mapping and the
-  approved exit categories. Every opened application is closed in `finally`, including
-  failure paths.
+  approved exit categories. Every opened application is closed on success and failure;
+  close failures after successful execution become a safe `INTERNAL_ERROR`, while a
+  close failure cannot replace an earlier mapped command failure.
 - `BG3_CLI_RESULT` V1 success/failure constructors emit the documented key shapes and
   exactly one pretty UTF-8 JSON document plus one newline. Dates serialize as canonical
   ISO UTC strings and failures never include `data`.
@@ -322,3 +323,6 @@ tests must not require color.
 - 2026-08-31 — After approved subsequent output-contract remediation, retained one
   resolved export target before asynchronous dispatch and returned that exact path in
   the success envelope.
+- 2026-08-31 — After approved parser/lifecycle remediation, bounded lenient error-context
+  recovery to tokens before the raw `--` terminator and contained application close
+  failures inside stable error mapping without replacing an earlier command failure.
