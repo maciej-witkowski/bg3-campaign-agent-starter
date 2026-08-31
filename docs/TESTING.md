@@ -61,6 +61,9 @@ Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm bui
 Sanitized unit/integration coverage verifies the existing-file-only SQLite connection,
 query-only write refusal, byte-identical database files, exact migration hash/timestamp
 compatibility and refusal of missing, old, new, tampered or incomplete schemas.
+Compatibility regressions additionally remove a required index and rename a required
+column while preserving the migration ledger; both must fail the full schema manifest
+comparison.
 
 Application tests cover active-party projection, base/effective attributes, canonical
 and Polish/NFC character resolution, ambiguity/not-found, equipment joins, inventory
@@ -88,7 +91,9 @@ requires the original database path to remain protected.
 
 A deferred XLSX codec regression changes the working directory while serialization is
 pending and proves policy evaluation and atomic publication retain the same absolute
-output target.
+output target. A redirected directory-link regression likewise proves publication uses
+the canonical parent captured before serialization. CLI coverage verifies its success
+envelope reports that exact retained target even if the working directory changes.
 
 Both equipment and inventory projections reject joined equipment facts with a
 contradictory status, owner, quantity or known definition slot. They also reject a

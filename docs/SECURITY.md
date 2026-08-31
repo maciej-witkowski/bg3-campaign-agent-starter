@@ -17,5 +17,8 @@
   remain protected even with that flag. The public M3 export capability enforces the
   same target policy for non-CLI consumers and anchors protected resolved/canonical
   identities when the application opens. Each output target is likewise resolved once
-  before policy evaluation and asynchronous serialization; exported campaign state
-  remains private local data.
+  through its canonical existing parent directory before policy evaluation and
+  asynchronous serialization; exported campaign state remains private local data.
+- M3 compares the campaign's full sorted `sqlite_schema` manifest with an isolated
+  in-memory schema built from the committed migration bundle. Missing/changed columns,
+  indexes or other schema objects fail closed without modifying campaign state.

@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Ninth approved PR review remediation validated; publish/re-review pending
+Overall status: Tenth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -337,6 +337,37 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fixes close a path-identity
 race in ADR-0026 and align ADR-0028 human output with existing approved DTO facts.
 
+### Session canonical schema/path re-review remediation — approved manifest/target package
+
+Status: Implemented as ADR-scoped commits `38b4d87` and `7f0bbd4`; full local gate passed
+
+Findings on `0463d7b`:
+
+- P1: a directory symlink/junction could be redirected after target checking because
+  publication retained only a lexical absolute path;
+- P2: schema compatibility verified the migration ledger and table names but not changed
+  columns, indexes or other required schema objects;
+- P2: CLI export metadata re-resolved the target after asynchronous work and could report
+  a different path than the published artifact.
+
+Approval: all three remediations were explicitly approved by the repository owner in
+the Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0026 (`38b4d87`): artifact publication uses the existing canonical parent captured
+  before serialization, and the compatibility verifier compares a complete sorted
+  `sqlite_schema` manifest with an isolated migration-derived in-memory reference;
+- ADR-0028 (`7f0bbd4`): CLI resolves the output target once before dispatch and reports
+  the exact path passed to policy/publication;
+- regressions redirect a junction during deferred serialization, remove a required
+  index, rename a required column and change the process working directory during CLI
+  export.
+
+ADR impact: no new or changed architectural decision. The fixes enforce ADR-0026's
+exact structural compatibility and isolated export path, plus ADR-0028's truthful
+bounded export metadata.
+
 ## Change inventory
 
 ### Created
@@ -537,6 +568,20 @@ race in ADR-0026 and align ADR-0028 human output with existing approved DTO fact
 - `src/cli/human-renderer.ts`
 - `tests/unit/cli/human-renderer.test.ts`
 
+### Modified in canonical schema/path re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/atomic-artifact-writer.ts`
+- `src/cli/run-cli.ts`
+- `src/persistence/sqlite/schema-compatibility.ts`
+- `tests/unit/application/campaign-export-service.test.ts`
+- `tests/unit/cli/run-cli.test.ts`
+- `tests/unit/persistence/schema-compatibility.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -584,6 +629,11 @@ race in ADR-0026 and align ADR-0028 human output with existing approved DTO fact
 | 2026-08-31 | post-renderer-export-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 250 tests, build and production smoke |
 | 2026-08-31 | renderer/export `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | renderer/export scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused canonical path/schema regressions | Passed | 5 files / 24 tests including redirected junction, full schema manifest and anchored CLI metadata |
+| 2026-08-31 | post-canonical-schema-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 254 tests and build |
+| 2026-08-31 | standalone post-remediation production smoke | Passed | All nine built commands and protected export targets completed successfully |
+| 2026-08-31 | canonical-schema `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | canonical-schema scope/security sweep | Passed | No migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -615,6 +665,9 @@ race in ADR-0026 and align ADR-0028 human output with existing approved DTO fact
 - `fc185d6` — `docs: track subclass and illithid remediation`.
 - `348090b` — `fix: anchor export targets before serialization`.
 - `3e9234c` — `fix: complete M3 human inspection output`.
+- `0463d7b` — `docs: track export and renderer remediation`.
+- `38b4d87` — `fix: verify canonical M3 paths and schema`.
+- `7f0bbd4` — `fix: report anchored CLI export targets`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -634,7 +687,8 @@ race in ADR-0026 and align ADR-0028 human output with existing approved DTO fact
 
 ## Exact resume point
 
-The four findings from review of `fc185d6` were verified, approved and implemented in
-ADR-scoped commits `348090b` and `3e9234c`. The full local gate passed at 40 files / 250
-tests. Resume by committing this tracking evidence, pushing three commits and requesting
-Codex re-review on the latest head. Do not merge and do not start M4.
+The three findings from review of `0463d7b` were verified, approved and implemented in
+ADR-scoped commits `38b4d87` and `7f0bbd4`. The full local gate passed at 40 files / 254
+tests plus standalone production smoke. Resume by committing this tracking evidence,
+pushing three commits and requesting Codex re-review on the latest head. Do not merge
+and do not start M4.
