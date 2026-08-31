@@ -32,9 +32,15 @@ function renderParty(value: PartyView): string {
     "Aktywna drużyna",
     value.characters.map(
       (character) =>
-        `${character.displayNamePl} — ${character.classPl} ${character.level} — ${character.roleSummary} — Atrybuty: ${formatAttributes(character.attributes)}`,
+        `${character.displayNamePl} — ${classAndSubclass(character)} ${character.level} — ${character.roleSummary} — Atrybuty: ${formatAttributes(character.attributes)}`,
     ),
   );
+}
+
+function classAndSubclass(character: PartyView["characters"][number]): string {
+  return character.subclassPl === null
+    ? character.classPl
+    : `${character.classPl} / ${character.subclassPl}`;
 }
 
 function formatAttributes(attributes: PartyView["characters"][number]["attributes"]): string {

@@ -11,7 +11,7 @@ describe("renderHumanSuccess", () => {
           canonicalName: "laezel",
           displayNamePl: "Lae'zel",
           classPl: "Wojownik",
-          subclassPl: null,
+          subclassPl: "Mistrz Bitewny",
           level: 5,
           roleSummary: "Pierwsza linia",
           attributes: [
@@ -23,7 +23,7 @@ describe("renderHumanSuccess", () => {
     });
 
     expect(output).toBe(
-      "Aktywna drużyna\n- Lae'zel — Wojownik 5 — Pierwsza linia — Atrybuty: STR 17 → 19, DEX 13 → 13\n",
+      "Aktywna drużyna\n- Lae'zel — Wojownik / Mistrz Bitewny 5 — Pierwsza linia — Atrybuty: STR 17 → 19, DEX 13 → 13\n",
     );
   });
 });

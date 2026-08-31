@@ -243,8 +243,9 @@ broad categories.
   exactly one pretty UTF-8 JSON document plus one newline. Dates serialize as canonical
   ISO UTC strings and failures never include `data`.
 - Human renderers provide compact Polish sections and the consistent empty/unknown
-  markers; the party view includes each recorded base/effective attribute pair. Human
-  failures use stderr; JSON-mode failures use stdout only.
+  markers; the party view includes the recorded class, optional subclass and each
+  base/effective attribute pair. Human failures use stderr; JSON-mode failures use
+  stdout only.
 - Export dispatch calls the approved M2 JSON/XLSX writers, reports only bounded artifact
   metadata and keeps the campaign export body in the explicit output file.
 - `package.json` declares `bg3-campaign` at `dist/cli/main.js`, the ESM entry retains a
@@ -310,3 +311,5 @@ tests must not require color.
   mode only from an actual `--json` option token, including option-terminator coverage.
 - 2026-08-30 — After approved final re-review remediation, rendered the party DTO's
   base/effective attributes in human mode and added a focused output regression.
+- 2026-08-31 — After approved later re-review remediation, included a recorded subclass
+  in the human party summary and extended the exact output regression.
