@@ -2,10 +2,13 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
+  renameSync,
   rmSync,
   symlinkSync,
   unlinkSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -15,6 +18,7 @@ import { describe, expect, it } from "vitest";
 
 import { createCampaignExport } from "../../../src/application/export/campaign-export.js";
 import { CampaignExportService } from "../../../src/application/export/campaign-export-service.js";
+import { ArtifactWriteError } from "../../../src/application/export/atomic-artifact-writer.js";
 import {
   CAMPAIGN_SNAPSHOT_FORMAT,
   CAMPAIGN_SNAPSHOT_VERSION,
@@ -109,6 +113,53 @@ describe("CampaignExportService", () => {
       expect(existsSync(join(redirectedDirectory, "campaign.xlsx"))).toBe(false);
     } finally {
       if (existsSync(linkedDirectory)) unlinkSync(linkedDirectory);
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects publication when the checked canonical directory is replaced", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-replaced-directory-"));
+    const initialDirectory = join(directory, "initial");
+    const movedDirectory = join(directory, "moved");
+    const databaseDirectory = join(directory, "database");
+    const databasePath = join(databaseDirectory, "campaign.sqlite");
+    mkdirSync(initialDirectory);
+    mkdirSync(databaseDirectory);
+    writeFileSync(databasePath, "database");
+    let releaseSerialization: ((bytes: Uint8Array) => void) | undefined;
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: () =>
+          new Promise((resolve) => {
+            releaseSerialization = resolve;
+          }),
+        deserialize: async () => createCampaignExport(emptySnapshot()),
+      },
+    );
+
+    try {
+      const write = service.writeXlsx(join(initialDirectory, "campaign.sqlite"), {
+        overwrite: true,
+      });
+      expect(releaseSerialization).toBeDefined();
+      renameSync(initialDirectory, movedDirectory);
+      symlinkSync(
+        databaseDirectory,
+        initialDirectory,
+        process.platform === "win32" ? "junction" : "dir",
+      );
+      releaseSerialization!(new TextEncoder().encode("xlsx"));
+
+      await expect(write).rejects.toMatchObject({
+        name: new ArtifactWriteError("").name,
+        message: expect.stringContaining("zmienił tożsamość"),
+      });
+      expect(readFileSync(databasePath, "utf8")).toBe("database");
+      expect(existsSync(join(movedDirectory, "campaign.sqlite"))).toBe(false);
+    } finally {
+      if (existsSync(initialDirectory)) unlinkSync(initialDirectory);
       rmSync(directory, { recursive: true, force: true });
     }
   });

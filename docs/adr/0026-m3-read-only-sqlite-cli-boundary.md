@@ -205,9 +205,10 @@ voice or desktop layers.
   when the application opens, so a later working-directory change or symlink pivot
   cannot reinterpret which SQLite identity is protected.
 - Each export resolves and validates its target once before the policy check and before
-  any asynchronous serialization; the same absolute path is retained through atomic
-  publication. Its existing parent directory is canonicalized at that point, preventing
-  both working-directory and redirected directory-link races.
+  any asynchronous serialization; the same absolute path and parent filesystem identity
+  are retained through atomic publication. The writer revalidates that identity before
+  creating its temporary file and immediately before dispatching the final rename or
+  link, preventing working-directory, redirected-link and replaced-directory races.
 
 ## Consequences and trade-offs
 
@@ -268,3 +269,7 @@ requires a new proposed ADR rather than weakening the tests.
   canonical parent directory captured before serialization and compared the full schema
   manifest with an isolated migration-derived reference; added redirected-junction,
   missing-index and changed-column regressions.
+- 2026-08-31 — After approved publication-identity remediation, bound export writes to
+  the canonical parent device/inode captured before serialization and revalidated it
+  before temporary-file creation and immediately before final publication; added
+  pending-serialization and verification-time directory-replacement regressions.
