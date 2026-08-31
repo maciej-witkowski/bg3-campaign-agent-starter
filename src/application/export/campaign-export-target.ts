@@ -18,16 +18,25 @@ export function createCampaignExportTargetPolicy(databasePath: string): Campaign
   const source = resolve(databasePath);
   const sourceCanonical = canonicalPath(source);
   const protectedPaths = new Set<string>();
+  const protectedIdentities = new Set<string>();
 
   for (const suffix of SQLITE_COMPANION_SUFFIXES) {
-    protectedPaths.add(`${source}${suffix}`);
-    protectedPaths.add(`${sourceCanonical}${suffix}`);
+    for (const protectedPath of [`${source}${suffix}`, `${sourceCanonical}${suffix}`]) {
+      protectedPaths.add(protectedPath);
+      const identity = existingFileIdentity(protectedPath);
+      if (identity !== null) protectedIdentities.add(identity);
+    }
   }
 
   return {
     assertSafe: (outputPath) => {
       const target = resolve(outputPath);
       const targetCanonical = canonicalPath(target);
+      if (isProtectedExistingFile(target, protectedIdentities)) {
+        throw new ArtifactWriteError(
+          "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+        );
+      }
       for (const protectedPath of protectedPaths) {
         if (
           samePath(target, protectedPath) ||
@@ -41,6 +50,23 @@ export function createCampaignExportTargetPolicy(databasePath: string): Campaign
       }
     },
   };
+}
+
+function isProtectedExistingFile(
+  filename: string,
+  protectedIdentities: ReadonlySet<string>,
+): boolean {
+  const identity = existingFileIdentity(filename);
+  return identity !== null && protectedIdentities.has(identity);
+}
+
+function existingFileIdentity(filename: string): string | null {
+  try {
+    const stat = statSync(filename, { bigint: true });
+    return `${stat.dev}:${stat.ino}`;
+  } catch {
+    return null;
+  }
 }
 
 function canonicalPath(filename: string): string {
@@ -62,11 +88,6 @@ function samePath(left: string, right: string): boolean {
 }
 
 function sameExistingFile(left: string, right: string): boolean {
-  try {
-    const leftStat = statSync(left, { bigint: true });
-    const rightStat = statSync(right, { bigint: true });
-    return leftStat.dev === rightStat.dev && leftStat.ino === rightStat.ino;
-  } catch {
-    return false;
-  }
+  const leftIdentity = existingFileIdentity(left);
+  return leftIdentity !== null && leftIdentity === existingFileIdentity(right);
 }

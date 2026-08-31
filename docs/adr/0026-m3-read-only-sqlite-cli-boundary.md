@@ -202,8 +202,9 @@ voice or desktop layers.
   regressions prove these targets cannot replace canonical SQLite bytes even with
   explicit `--overwrite`.
 - The public capability captures the database's resolved and canonical protected paths
-  when the application opens, so a later working-directory change or symlink pivot
-  cannot reinterpret which SQLite identity is protected.
+  plus the filesystem device/inode identities of the database and existing SQLite
+  companions when the application opens. A later working-directory change, symlink
+  pivot or protected-file rename cannot reinterpret which SQLite identity is protected.
 - Each export resolves and validates its target once before the policy check and before
   any asynchronous serialization; the same absolute path and parent filesystem identity
   are retained through atomic publication. The writer revalidates that identity before
@@ -273,3 +274,6 @@ requires a new proposed ADR rather than weakening the tests.
   the canonical parent device/inode captured before serialization and revalidated it
   before temporary-file creation and immediately before final publication; added
   pending-serialization and verification-time directory-replacement regressions.
+- 2026-08-31 — After approved source-identity remediation, captured the database and
+  existing SQLite companion device/inode identities when constructing the export policy;
+  renamed protected files remain blocked even after their original paths disappear.

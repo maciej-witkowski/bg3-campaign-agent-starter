@@ -1,10 +1,13 @@
-import { linkSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { linkSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { assertSafeCampaignExportTarget } from "../../../src/application/export/campaign-export-target.js";
+import {
+  assertSafeCampaignExportTarget,
+  createCampaignExportTargetPolicy,
+} from "../../../src/application/export/campaign-export-target.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -50,13 +53,34 @@ describe("assertSafeCampaignExportTarget", () => {
     );
   });
 
+  it.each(["", "-wal"] as const)(
+    "rejects a renamed protected SQLite file%s by its captured identity",
+    (suffix) => {
+      const directory = temporaryDirectory();
+      const databasePath = join(directory, "campaign.sqlite");
+      const protectedPath = `${databasePath}${suffix}`;
+      const renamedPath = join(directory, `renamed.sqlite${suffix}`);
+      writeFileSync(databasePath, "database");
+      if (suffix !== "") writeFileSync(protectedPath, "companion");
+      const expected = readFileSync(protectedPath, "utf8");
+      const policy = createCampaignExportTargetPolicy(databasePath);
+
+      renameSync(protectedPath, renamedPath);
+
+      expect(() => policy.assertSafe(renamedPath)).toThrowError(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
+      expect(readFileSync(renamedPath, "utf8")).toBe(expected);
+    },
+  );
+
   it("allows a distinct explicit export target", () => {
     const directory = temporaryDirectory();
     const databasePath = join(directory, "campaign.sqlite");
+    const outputPath = join(directory, "campaign.json");
     writeFileSync(databasePath, "database");
+    writeFileSync(outputPath, "existing export");
 
-    expect(() =>
-      assertSafeCampaignExportTarget(databasePath, join(directory, "campaign.json")),
-    ).not.toThrow();
+    expect(() => assertSafeCampaignExportTarget(databasePath, outputPath)).not.toThrow();
   });
 });

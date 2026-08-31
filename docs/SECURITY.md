@@ -18,12 +18,13 @@
   supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
   remain protected even with that flag. The public M3 export capability enforces the
   same target policy for non-CLI consumers and anchors protected resolved/canonical
-  identities when the application opens. Each output target is likewise resolved once
-  through its canonical existing parent directory before policy evaluation and
-  asynchronous serialization. The parent device/inode is retained and revalidated
-  before temporary-file creation and immediately before final publication, so replacing
-  the checked directory with a symlink or junction fails closed. Exported campaign state
-  remains private local data.
+  paths plus the database and existing SQLite-companion file identities when the
+  application opens, so renaming a protected file does not make its new path exportable.
+  Each output target is likewise resolved once through its canonical existing parent
+  directory before policy evaluation and asynchronous serialization. The parent
+  device/inode is retained and revalidated before temporary-file creation and
+  immediately before final publication, so replacing the checked directory with a
+  symlink or junction fails closed. Exported campaign state remains private local data.
 - M3 compares the campaign's full sorted `sqlite_schema` manifest with an isolated
   in-memory schema built from the committed migration bundle. Missing/changed columns,
   indexes or other schema objects fail closed without modifying campaign state.
