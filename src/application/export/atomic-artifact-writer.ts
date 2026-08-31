@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { realpathSync } from "node:fs";
 import { link, open, readFile, rename, unlink } from "node:fs/promises";
-import { basename, dirname, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 
 export interface ArtifactWriteOptions {
   readonly overwrite?: boolean;
@@ -55,7 +56,12 @@ export function resolveArtifactTarget(targetPath: string): string {
   if (targetPath.trim() === "" || basename(targetPath) === "." || basename(targetPath) === "..") {
     throw new ArtifactWriteError("Wymagana jest jawna ścieżka pliku docelowego.");
   }
-  return resolve(targetPath);
+  const target = resolve(targetPath);
+  try {
+    return join(realpathSync.native(dirname(target)), basename(target));
+  } catch {
+    return target;
+  }
 }
 
 function isExistingTarget(error: unknown): boolean {

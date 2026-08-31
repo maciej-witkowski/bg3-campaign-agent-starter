@@ -183,7 +183,9 @@ voice or desktop layers.
   selects WAL or invokes the migrator.
 - `assertLatestCampaignSchema()` reads the committed migration bundle, compares every
   applied migration hash and timestamp in order, rejects missing/older/newer/mismatched
-  ledgers and verifies all 16 canonical M1 tables without writing metadata.
+  ledgers and verifies all 16 canonical M1 tables without writing metadata. It also
+  builds an isolated in-memory schema from that bundle and compares the complete sorted
+  `sqlite_schema` manifest, detecting changed columns, indexes and other objects.
 - `CampaignValidationService` is a read-only application boundary around the existing
   deterministic validator. Its SQLite port runs the complete multi-query validation in
   one transactionally consistent snapshot and returns violations without repair.
@@ -204,7 +206,8 @@ voice or desktop layers.
   cannot reinterpret which SQLite identity is protected.
 - Each export resolves and validates its target once before the policy check and before
   any asynchronous serialization; the same absolute path is retained through atomic
-  publication, preventing working-directory races.
+  publication. Its existing parent directory is canonicalized at that point, preventing
+  both working-directory and redirected directory-link races.
 
 ## Consequences and trade-offs
 
@@ -261,3 +264,7 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-31 — After approved later re-review remediation, anchored each explicit export
   target before policy evaluation and asynchronous XLSX serialization; a deferred-codec
   regression changes the working directory while serialization is pending.
+- 2026-08-31 — After approved subsequent re-review remediation, published through the
+  canonical parent directory captured before serialization and compared the full schema
+  manifest with an isolated migration-derived reference; added redirected-junction,
+  missing-index and changed-column regressions.

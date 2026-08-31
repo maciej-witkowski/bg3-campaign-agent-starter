@@ -157,4 +157,28 @@ describe("assertLatestCampaignSchema", () => {
       connection.close();
     }
   });
+
+  it.each([
+    ["index", "drop index equipment_character_slot_unique"],
+    ["column", "alter table characters rename column notes to notes_missing"],
+  ])("rejects a changed required schema %s with a matching ledger", (_kind, statement) => {
+    const directory = createTemporaryDirectory();
+    const migrationsFolder = join(directory, "migrations");
+    const filename = join(directory, "campaign.sqlite");
+    writeMigrationFixture(migrationsFolder, committedMigrations);
+    const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
+
+    try {
+      connection.database.$client.prepare(statement).run();
+      expect(() =>
+        assertLatestCampaignSchema(connection.database, { migrationsFolder }),
+      ).toThrowError(
+        expect.objectContaining<Partial<SchemaCompatibilityError>>({
+          code: "SCHEMA_STRUCTURE_MISMATCH",
+        }),
+      );
+    } finally {
+      connection.close();
+    }
+  });
 });

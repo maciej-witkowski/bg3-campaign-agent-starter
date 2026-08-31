@@ -1,14 +1,17 @@
 import { readMigrationFiles } from "drizzle-orm/migrator";
 
 import type { SqliteDatabase } from "./connection.js";
+import { SQLITE_MEMORY_FILENAME } from "./connection.js";
 import { DEFAULT_MIGRATIONS_FOLDER } from "./migrations.js";
+import { openMigratedSqliteConnection } from "./migrations.js";
 
 export type SchemaCompatibilityErrorCode =
   | "MIGRATION_LEDGER_MISSING"
   | "SCHEMA_OLDER"
   | "SCHEMA_NEWER"
   | "MIGRATION_HISTORY_MISMATCH"
-  | "SCHEMA_OBJECT_MISSING";
+  | "SCHEMA_OBJECT_MISSING"
+  | "SCHEMA_STRUCTURE_MISMATCH";
 
 export class SchemaCompatibilityError extends Error {
   public override readonly name = "SchemaCompatibilityError";
@@ -28,6 +31,13 @@ export interface SchemaCompatibilityOptions {
 interface AppliedMigration {
   readonly hash: string;
   readonly createdAt: number;
+}
+
+interface SchemaObject {
+  readonly type: string;
+  readonly name: string;
+  readonly tableName: string;
+  readonly sql: string | null;
 }
 
 const REQUIRED_TABLES = [
@@ -66,8 +76,9 @@ export function assertLatestCampaignSchema(
     );
   }
 
+  const migrationsFolder = options.migrationsFolder ?? DEFAULT_MIGRATIONS_FOLDER;
   const expected = readMigrationFiles({
-    migrationsFolder: options.migrationsFolder ?? DEFAULT_MIGRATIONS_FOLDER,
+    migrationsFolder,
   }).map((migration) => ({ hash: migration.hash, createdAt: migration.folderMillis }));
   const applied = client
     .prepare(
@@ -113,4 +124,37 @@ export function assertLatestCampaignSchema(
       `Baza nie zawiera wymaganego obiektu schematu: ${missing}.`,
     );
   }
+
+  const expectedManifest = expectedSchemaManifest(migrationsFolder);
+  const actualManifest = schemaManifest(database);
+  if (JSON.stringify(actualManifest) !== JSON.stringify(expectedManifest)) {
+    throw new SchemaCompatibilityError(
+      "SCHEMA_STRUCTURE_MISMATCH",
+      "Struktura bazy nie zgadza się z zatwierdzonym schematem aplikacji.",
+    );
+  }
+}
+
+function expectedSchemaManifest(migrationsFolder: string): readonly SchemaObject[] {
+  const connection = openMigratedSqliteConnection({
+    filename: SQLITE_MEMORY_FILENAME,
+    migrationsFolder,
+  });
+  try {
+    return schemaManifest(connection.database);
+  } finally {
+    connection.close();
+  }
+}
+
+function schemaManifest(database: SqliteDatabase): readonly SchemaObject[] {
+  return database.$client
+    .prepare(
+      `select type, name, tbl_name as tableName, sql
+       from sqlite_schema
+       where name not like 'sqlite_%'
+         and name <> '__drizzle_migrations'
+       order by type asc, name asc`,
+    )
+    .all() as SchemaObject[];
 }

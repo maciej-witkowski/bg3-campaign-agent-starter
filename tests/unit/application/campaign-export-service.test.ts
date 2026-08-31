@@ -1,4 +1,12 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  unlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -47,11 +55,60 @@ describe("CampaignExportService", () => {
       releaseSerialization!(new TextEncoder().encode("xlsx"));
       await write;
 
-      expect(checkedTargets).toEqual([join(initialDirectory, "campaign.xlsx")]);
+      expect(checkedTargets).toEqual([
+        join(realpathSync.native(initialDirectory), "campaign.xlsx"),
+      ]);
       expect(existsSync(join(initialDirectory, "campaign.xlsx"))).toBe(true);
       expect(existsSync(join(changedDirectory, "campaign.xlsx"))).toBe(false);
     } finally {
       process.chdir(previousDirectory);
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("publishes through the canonical directory captured before serialization", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-symlink-"));
+    const initialDirectory = join(directory, "initial");
+    const redirectedDirectory = join(directory, "redirected");
+    const linkedDirectory = join(directory, "linked");
+    mkdirSync(initialDirectory);
+    mkdirSync(redirectedDirectory);
+    symlinkSync(
+      initialDirectory,
+      linkedDirectory,
+      process.platform === "win32" ? "junction" : "dir",
+    );
+    let releaseSerialization: ((bytes: Uint8Array) => void) | undefined;
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: () =>
+          new Promise((resolve) => {
+            releaseSerialization = resolve;
+          }),
+        deserialize: async () => createCampaignExport(emptySnapshot()),
+      },
+    );
+
+    try {
+      const write = service.writeXlsx(join(linkedDirectory, "campaign.xlsx"), {
+        overwrite: true,
+      });
+      expect(releaseSerialization).toBeDefined();
+      unlinkSync(linkedDirectory);
+      symlinkSync(
+        redirectedDirectory,
+        linkedDirectory,
+        process.platform === "win32" ? "junction" : "dir",
+      );
+      releaseSerialization!(new TextEncoder().encode("xlsx"));
+      await write;
+
+      expect(existsSync(join(initialDirectory, "campaign.xlsx"))).toBe(true);
+      expect(existsSync(join(redirectedDirectory, "campaign.xlsx"))).toBe(false);
+    } finally {
+      if (existsSync(linkedDirectory)) unlinkSync(linkedDirectory);
       rmSync(directory, { recursive: true, force: true });
     }
   });
