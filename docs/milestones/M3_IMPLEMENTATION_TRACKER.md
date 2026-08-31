@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Thirteenth approved PR review remediation validated; tracking/publish/re-review pending
+Overall status: Fourteenth approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -446,6 +446,32 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fixes complete ADR-0028's
 failure-context contract and ADR-0027's required-fact consistency for inventory results.
 
+### Session protected-source-identity re-review remediation — approved rename package
+
+Status: Implemented as ADR-scoped commit `de0951b`; full local gate passed
+
+Finding on `1786994`:
+
+- P1: the export policy retained protected database pathnames but not the opened file's
+  identity, so renaming the database and exporting with overwrite to its new pathname
+  could replace the only directory entry of the still-open canonical database.
+
+Approval: the remediation was explicitly approved by the repository owner in the Codex
+task on 2026-08-31.
+
+Implemented:
+
+- ADR-0026 (`de0951b`): policy construction captures device/inode identities for the
+  database and every existing SQLite companion through both resolved and canonical
+  paths; existing export targets are compared directly with those retained identities;
+- path-based checks remain active for absent or later-created companion paths, and a
+  distinct existing artifact remains allowed;
+- regressions rename the database and an existing WAL, require both new names to remain
+  protected and verify their bytes are unchanged.
+
+ADR impact: no new or changed architectural decision. The fix completes ADR-0026's
+accepted identity-based protection when canonical SQLite files are renamed.
+
 ## Change inventory
 
 ### Created
@@ -692,6 +718,15 @@ failure-context contract and ADR-0027's required-fact consistency for inventory 
 - `tests/unit/application/campaign-inspection-service.test.ts`
 - `tests/unit/cli/run-cli.test.ts`
 
+### Modified in protected-source-identity re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/campaign-export-target.ts`
+- `tests/unit/cli/campaign-export-target.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -756,6 +791,10 @@ failure-context contract and ADR-0027's required-fact consistency for inventory 
 | 2026-08-31 | post-command-inventory `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 259 tests, build and production smoke |
 | 2026-08-31 | command/inventory `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | command/inventory scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused protected-source identity regressions | Passed | 3 files / 19 tests plus explicit existing-distinct-target coverage; renamed database/WAL identities remain protected |
+| 2026-08-31 | post-protected-source-identity `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 261 tests, build and production smoke |
+| 2026-08-31 | protected-source-identity `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | protected-source-identity scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -796,6 +835,8 @@ failure-context contract and ADR-0027's required-fact consistency for inventory 
 - `a77aefa` — `fix: contain CLI parser and close failures`.
 - `9c5dac3` — `docs: track CLI error boundary remediation`.
 - `51ce66c` — `fix: preserve CLI context and inventory integrity`.
+- `1786994` — `docs: track CLI and inventory remediation`.
+- `de0951b` — `fix: retain protected SQLite file identities`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -815,8 +856,8 @@ failure-context contract and ADR-0027's required-fact consistency for inventory 
 
 ## Exact resume point
 
-The two P2 findings from review of `9c5dac3` were verified, approved and implemented in
-ADR-scoped commit `51ce66c`. The full local gate passed at 40 files / 259 tests plus
+The P1 finding from review of `1786994` was verified, approved and implemented in
+ADR-scoped commit `de0951b`. The full local gate passed at 40 files / 261 tests plus
 production smoke, and the high-severity audit passed with only the two unchanged
 moderate transitive advisories. Resume by committing this tracking evidence, pushing
 the two local commits and requesting Codex re-review on the latest head. Do not merge

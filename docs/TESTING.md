@@ -93,6 +93,11 @@ database/SQLite-companion target policy cannot be bypassed outside the CLI adapt
 relative-path regression changes the process working directory after opening and still
 requires the original database path to remain protected.
 
+Export-policy regressions also rename the database and an existing WAL after policy
+construction. Their new paths must remain protected by captured filesystem identity,
+their bytes must remain unchanged, and an unrelated existing artifact must remain a
+valid explicit overwrite target.
+
 A deferred XLSX codec regression changes the working directory while serialization is
 pending and proves policy evaluation and atomic publication retain the same absolute
 output target. A redirected directory-link regression likewise proves publication uses
