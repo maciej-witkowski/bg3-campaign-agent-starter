@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Tenth approved PR review remediation validated; publish/re-review pending
+Overall status: Eleventh approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -368,6 +368,32 @@ ADR impact: no new or changed architectural decision. The fixes enforce ADR-0026
 exact structural compatibility and isolated export path, plus ADR-0028's truthful
 bounded export metadata.
 
+### Session publication-identity re-review remediation — approved stable-target package
+
+Status: Implemented as ADR-scoped commit `e9052d7`; full local gate passed
+
+Finding on `955ece5`:
+
+- P1: the exporter canonicalized and policy-checked its target before serialization but
+  the writer resolved it again afterwards, so replacing the checked canonical directory
+  with a junction could redirect publication to a protected database path.
+
+Approval: the remediation was explicitly approved by the repository owner in the Codex
+task on 2026-08-31.
+
+Implemented:
+
+- ADR-0026 (`e9052d7`): target preparation now captures the canonical absolute path and
+  parent filesystem device/inode before serialization; the writer accepts that prepared
+  target and revalidates it before creating a temporary file and immediately before
+  dispatching the final rename/link;
+- regressions replace the canonical directory with a database-directed junction during
+  deferred serialization and during temporary-artifact verification, require a typed
+  failure and prove the database sentinel remains unchanged.
+
+ADR impact: no new or changed architectural decision. The fix closes the remaining
+time-of-check/time-of-use gap in ADR-0026's accepted explicit export boundary.
+
 ## Change inventory
 
 ### Created
@@ -582,6 +608,17 @@ bounded export metadata.
 - `tests/unit/cli/run-cli.test.ts`
 - `tests/unit/persistence/schema-compatibility.test.ts`
 
+### Modified in publication-identity re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/atomic-artifact-writer.ts`
+- `src/application/export/campaign-export-service.ts`
+- `tests/unit/application/atomic-artifact-writer.test.ts`
+- `tests/unit/application/campaign-export-service.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -634,6 +671,10 @@ bounded export metadata.
 | 2026-08-31 | standalone post-remediation production smoke | Passed | All nine built commands and protected export targets completed successfully |
 | 2026-08-31 | canonical-schema `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | canonical-schema scope/security sweep | Passed | No migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused publication-identity regressions | Passed | 2 files / 6 tests covering replacement during deferred serialization and final verification |
+| 2026-08-31 | post-publication-identity `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 256 tests, build and production smoke |
+| 2026-08-31 | publication-identity `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | publication-identity scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -668,6 +709,8 @@ bounded export metadata.
 - `0463d7b` — `docs: track export and renderer remediation`.
 - `38b4d87` — `fix: verify canonical M3 paths and schema`.
 - `7f0bbd4` — `fix: report anchored CLI export targets`.
+- `955ece5` — `docs: track canonical schema remediation`.
+- `e9052d7` — `fix: bind export publication to checked target`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -687,8 +730,9 @@ bounded export metadata.
 
 ## Exact resume point
 
-The three findings from review of `0463d7b` were verified, approved and implemented in
-ADR-scoped commits `38b4d87` and `7f0bbd4`. The full local gate passed at 40 files / 254
-tests plus standalone production smoke. Resume by committing this tracking evidence,
-pushing three commits and requesting Codex re-review on the latest head. Do not merge
+The P1 finding from review of `955ece5` was verified, approved and implemented in
+ADR-scoped commit `e9052d7`. The full local gate passed at 40 files / 256 tests plus
+production smoke, and the high-severity audit passed with only the two unchanged
+moderate transitive advisories. Resume by committing this tracking evidence, pushing
+the two local commits and requesting Codex re-review on the latest head. Do not merge
 and do not start M4.

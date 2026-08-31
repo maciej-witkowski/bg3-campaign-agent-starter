@@ -92,8 +92,11 @@ requires the original database path to remain protected.
 A deferred XLSX codec regression changes the working directory while serialization is
 pending and proves policy evaluation and atomic publication retain the same absolute
 output target. A redirected directory-link regression likewise proves publication uses
-the canonical parent captured before serialization. CLI coverage verifies its success
-envelope reports that exact retained target even if the working directory changes.
+the canonical parent captured before serialization. Directory-identity regressions
+rename that canonical parent and replace it with a database-directed junction during
+deferred serialization and temporary-artifact verification; publication must fail and
+the database sentinel must remain unchanged. CLI coverage verifies its success envelope
+reports the exact retained target even if the working directory changes.
 
 Both equipment and inventory projections reject joined equipment facts with a
 contradictory status, owner, quantity or known definition slot. They also reject a

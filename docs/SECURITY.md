@@ -18,7 +18,10 @@
   same target policy for non-CLI consumers and anchors protected resolved/canonical
   identities when the application opens. Each output target is likewise resolved once
   through its canonical existing parent directory before policy evaluation and
-  asynchronous serialization; exported campaign state remains private local data.
+  asynchronous serialization. The parent device/inode is retained and revalidated
+  before temporary-file creation and immediately before final publication, so replacing
+  the checked directory with a symlink or junction fails closed. Exported campaign state
+  remains private local data.
 - M3 compares the campaign's full sorted `sqlite_schema` manifest with an isolated
   in-memory schema built from the committed migration bundle. Missing/changed columns,
   indexes or other schema objects fail closed without modifying campaign state.
