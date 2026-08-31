@@ -71,7 +71,8 @@ also reject equipment rows with contradictory status, owner, quantity or known s
 CLI contract tests cover every command grammar, help/version, duplicate/unknown/missing
 arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout/stderr
 separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
-Human party-output coverage requires every base/effective attribute pair from the DTO.
+Human party-output coverage requires the optional subclass and every base/effective
+attribute pair from the DTO.
 
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
@@ -88,6 +89,9 @@ Both equipment and inventory projections reject joined equipment facts with a
 contradictory status, owner, quantity or known definition slot. They also reject a
 returned/character-owned `EQUIPPED` instance without an assignment, while an inventory
 filter regression proves excluded contradictory rows do not fail an unrelated query.
+
+Illithid projection regressions reject acquisitions without a power definition and
+prerequisite edges whose source or target definition is missing.
 
 Validation-port regression uses two SQLite connections in WAL mode. A writer commits
 between two reads inside the validation callback; both reads must observe the original

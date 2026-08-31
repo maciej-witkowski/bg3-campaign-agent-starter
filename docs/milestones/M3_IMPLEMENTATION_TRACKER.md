@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Seventh approved PR review remediation validated; publish/re-review pending
+Overall status: Eighth approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -283,6 +283,31 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fix enforces ADR-0027's
 required-join error rule and its explicit allowance for unrelated campaign violations.
 
+### Session later re-review remediation — approved subclass/illithid package
+
+Status: Implemented as ADR-scoped commits `137a235` and `889d8b0`; full local gate passed
+
+Later findings on `5bcae33`:
+
+- P2: human `party` output omitted a known subclass present in the approved projection;
+- P2: `illithid` could omit an acquisition with a missing power definition or return a
+  prerequisite edge with a missing endpoint.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0027 (`137a235`): every character acquisition and both endpoints of every
+  prerequisite edge must reference a returned power definition;
+- ADR-0028 (`889d8b0`): human party rows render `class / subclass` when the subclass is
+  known;
+- focused regressions cover acquisition, prerequisite source/target and exact localized
+  party output.
+
+ADR impact: no new or changed architectural decision. The fixes enforce ADR-0027's
+required-join rule and ADR-0028's human rendering of the approved party DTO.
+
 ## Change inventory
 
 ### Created
@@ -456,6 +481,17 @@ required-join error rule and its explicit allowance for unrelated campaign viola
 - `src/application/inspection/campaign-inspection-service.ts`
 - `tests/unit/application/campaign-inspection-service.test.ts`
 
+### Modified in later re-review remediation session
+
+- `docs/TESTING.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `src/cli/human-renderer.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+- `tests/unit/cli/human-renderer.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -495,6 +531,10 @@ required-join error rule and its explicit allowance for unrelated campaign viola
 | 2026-08-31 | post-subsequent-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 243 tests, build and production smoke |
 | 2026-08-31 | subsequent `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | subsequent scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused later ADR-0027/0028 regressions | Passed | 2 files / 25 tests covering dangling illithid joins and exact subclass output |
+| 2026-08-31 | post-later-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 246 tests, build and production smoke |
+| 2026-08-31 | later `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | later scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -520,6 +560,9 @@ required-join error rule and its explicit allowance for unrelated campaign viola
 - `7bdf946` — `fix: validate inventory equipment joins`.
 - `cee9d86` — `docs: track M3 path and inventory remediation`.
 - `7145e8d` — `fix: scope inventory consistency validation`.
+- `5bcae33` — `docs: track scoped inventory remediation`.
+- `137a235` — `fix: reject dangling illithid joins`.
+- `889d8b0` — `fix: render party subclass in human CLI`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -539,7 +582,7 @@ required-join error rule and its explicit allowance for unrelated campaign viola
 
 ## Exact resume point
 
-The two findings from review of `cee9d86` were verified, approved and implemented in
-ADR-0027 commit `7145e8d`. The full local gate passed at 39 files / 243 tests. Resume by
-committing this tracking evidence, pushing both commits and requesting Codex re-review
-on the latest head. Do not merge and do not start M4.
+The two findings from review of `5bcae33` were verified, approved and implemented in
+ADR-scoped commits `137a235` and `889d8b0`. The full local gate passed at 39 files / 246
+tests. Resume by committing this tracking evidence, pushing three commits and requesting
+Codex re-review on the latest head. Do not merge and do not start M4.
