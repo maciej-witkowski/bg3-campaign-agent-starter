@@ -91,8 +91,18 @@ export class CampaignInspectionService {
       const inventory = new Map(session.listInventoryItems().map((value) => [value.id, value]));
       const definitions = new Map(session.listItemDefinitions().map((value) => [value.id, value]));
       const effects = effectsByDefinition(session.listItemEffects());
-      const items = session
-        .listEquipment(character.id)
+      const assignments = session.listEquipment(character.id);
+      const assignedItemIds = new Set(assignments.map((value) => value.inventoryItemId));
+      const missingAssignment = [...inventory.values()].find(
+        (item) =>
+          item.status === "EQUIPPED" &&
+          item.ownerCharacterId === character.id &&
+          !assignedItemIds.has(item.id),
+      );
+      if (missingAssignment !== undefined) {
+        inconsistentEquipment(missingAssignment.id, character.id, null);
+      }
+      const items = assignments
         .map((assignment) => {
           const inventoryItem = required(inventory, assignment.inventoryItemId, "inventory item");
           const definition = required(
@@ -129,6 +139,10 @@ export class CampaignInspectionService {
       );
       const items = session
         .listInventoryItems()
+        .filter(
+          (inventoryItem) =>
+            normalized.statuses.length === 0 || normalized.statuses.includes(inventoryItem.status),
+        )
         .map((inventoryItem) => {
           const definition = required(
             definitions,
@@ -136,14 +150,18 @@ export class CampaignInspectionService {
             "item definition",
           );
           const itemEffects = effects.get(definition.id) ?? [];
+          return { inventoryItem, definition, effects: itemEffects };
+        })
+        .filter((item) =>
+          matchesInventory(item.definition, item.effects, item.inventoryItem.status, normalized),
+        )
+        .map(({ inventoryItem, definition, effects: itemEffects }) => {
           const owner =
             inventoryItem.ownerCharacterId === null
               ? null
               : identity(required(characters, inventoryItem.ownerCharacterId, "character"));
           const assignment = equipment.get(inventoryItem.id) ?? null;
-          if (assignment !== null) {
-            assertConsistentEquipmentView(assignment, inventoryItem, definition);
-          }
+          assertConsistentInventoryEquipmentView(assignment, inventoryItem, definition);
           return {
             inventoryItem,
             definition,
@@ -152,9 +170,6 @@ export class CampaignInspectionService {
             equipment: assignment,
           };
         })
-        .filter((item) =>
-          matchesInventory(item.definition, item.effects, item.inventoryItem.status, normalized),
-        )
         .sort(compareInventory);
       return { filters: normalized, items };
     });
@@ -239,13 +254,35 @@ function assertConsistentEquipmentView(
     inventoryItem.quantity === 1 &&
     isEquipmentSlotCompatible(assignment.slot, definition.slot);
   if (consistent) return;
+  inconsistentEquipment(inventoryItem.id, assignment.characterId, assignment.slot);
+}
+
+function assertConsistentInventoryEquipmentView(
+  assignment: EquipmentView["items"][number]["assignment"] | null,
+  inventoryItem: EquipmentView["items"][number]["inventoryItem"],
+  definition: EquipmentView["items"][number]["definition"],
+): void {
+  if (assignment !== null) {
+    assertConsistentEquipmentView(assignment, inventoryItem, definition);
+    return;
+  }
+  if (inventoryItem.status === "EQUIPPED") {
+    inconsistentEquipment(inventoryItem.id, inventoryItem.ownerCharacterId, null);
+  }
+}
+
+function inconsistentEquipment(
+  inventoryItemId: string,
+  characterId: string | null,
+  equipmentSlot: string | null,
+): never {
   throw new CampaignInspectionError(
     "INCONSISTENT_STATE",
     "Stan kampanii ma niespójne przypisanie wyposażenia.",
     {
-      inventoryItemId: inventoryItem.id,
-      characterId: assignment.characterId,
-      equipmentSlot: assignment.slot,
+      inventoryItemId,
+      characterId,
+      equipmentSlot,
     },
   );
 }

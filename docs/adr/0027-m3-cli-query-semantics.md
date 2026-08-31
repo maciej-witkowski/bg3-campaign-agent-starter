@@ -224,7 +224,9 @@ to refuse any invalid full state under ADR-0023.
 - Equipment projections reject assignments whose owned instance is not singly
   `EQUIPPED` by the assigned character or whose known definition slot is incompatible;
   slot compatibility is shared with the campaign validator. Inventory projections
-  apply the same checks whenever they include an equipment assignment.
+  apply the same checks after filters whenever they include an equipment assignment,
+  and reject a returned `EQUIPPED` instance with no assignment. Character equipment
+  also rejects an owned `EQUIPPED` instance missing its assignment.
 - The M3 composition exposes inspection, validation, the existing M2 exporter and
   `close()` only over the read-only ADR-0026 connection.
 - Sanitized SQLite integration coverage exercises all query projections, Polish/NFC
@@ -282,3 +284,6 @@ without changing their exact stored-value matching semantics or the JSON contrac
   facts with `INCONSISTENT_STATE` rather than rendering a misleading row.
 - 2026-08-31 — After approved follow-up re-review remediation, applied the same required
   equipment-fact checks to assignments included by the inventory projection.
+- 2026-08-31 — After approved subsequent re-review remediation, required assignments
+  for returned `EQUIPPED` instances in both applicable views and moved inventory join
+  validation after filters so unrelated excluded inconsistencies do not fail a query.

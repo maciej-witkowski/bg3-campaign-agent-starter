@@ -109,6 +109,27 @@ describe("CampaignInspectionService", () => {
     },
   );
 
+  it("rejects an equipped inventory instance without an assignment in both views", () => {
+    connection.database.$client
+      .prepare("delete from equipment where inventory_item_id = 'inventory-ring'")
+      .run();
+
+    expect(() => service.getEquipment("laezel")).toThrowError(
+      expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+    );
+    expect(() => service.findInventory()).toThrowError(
+      expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+    );
+  });
+
+  it("does not validate contradictory equipment excluded by inventory filters", () => {
+    connection.database.$client
+      .prepare("update inventory_items set status = 'CHEST' where id = 'inventory-ring'")
+      .run();
+
+    expect(service.findInventory({ statuses: ["SOLD"] }).items).toEqual([]);
+  });
+
   it("combines inventory filter categories with AND and repeated values with OR", () => {
     expect(
       service
