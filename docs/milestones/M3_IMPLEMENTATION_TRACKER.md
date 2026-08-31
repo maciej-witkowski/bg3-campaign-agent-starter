@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Sixth approved PR review remediation validated; publish/re-review pending
+Overall status: Seventh approved PR review remediation validated; publish/re-review pending
 
 ## Purpose
 
@@ -256,6 +256,33 @@ Implemented:
 ADR impact: no new or changed architectural decision. Both fixes enforce the accepted
 path-isolation and required-join-consistency rules.
 
+### Session subsequent re-review remediation — approved missing/scoped assignment package
+
+Status: Implemented as ADR-0027 commit `7145e8d`; full local gate passed
+
+Subsequent findings on `cee9d86`:
+
+- P2: a returned `EQUIPPED` inventory instance without an assignment was rendered with
+  `equipment: null`, and the character equipment view could silently omit it;
+- P2: inventory assignment integrity ran before filters and could fail a query because
+  of an unrelated row excluded from the result.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- returned inventory rows with status `EQUIPPED` require an assignment;
+- character equipment rejects a character-owned `EQUIPPED` instance without an
+  assignment;
+- status filtering and remaining projection filtering precede owner/assignment
+  integrity checks, so excluded contradictory rows do not fail an unrelated query;
+- regressions distinguish missing required assignments from filtered-out inconsistent
+  facts.
+
+ADR impact: no new or changed architectural decision. The fix enforces ADR-0027's
+required-join error rule and its explicit allowance for unrelated campaign violations.
+
 ## Change inventory
 
 ### Created
@@ -421,6 +448,14 @@ path-isolation and required-join-consistency rules.
 - `tests/unit/application/campaign-inspection-service.test.ts`
 - `tests/unit/application/m3-campaign-application.test.ts`
 
+### Modified in subsequent re-review remediation session
+
+- `docs/TESTING.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -456,6 +491,10 @@ path-isolation and required-join-consistency rules.
 | 2026-08-31 | post-follow-up-final-re-review `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 241 tests, build and production smoke |
 | 2026-08-31 | follow-up `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | follow-up scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused subsequent ADR-0027 regressions | Passed | 2 files / 25 tests covering required missing assignments and filtered-out contradictions |
+| 2026-08-31 | post-subsequent-remediation `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 39 files / 243 tests, build and production smoke |
+| 2026-08-31 | subsequent `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | subsequent scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -479,6 +518,8 @@ path-isolation and required-join-consistency rules.
 - `418c8c0` — `docs: track final M3 review remediation`.
 - `3ddfd27` — `fix: anchor M3 protected export paths`.
 - `7bdf946` — `fix: validate inventory equipment joins`.
+- `cee9d86` — `docs: track M3 path and inventory remediation`.
+- `7145e8d` — `fix: scope inventory consistency validation`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -498,8 +539,7 @@ path-isolation and required-join-consistency rules.
 
 ## Exact resume point
 
-The two findings from review of `418c8c0` were verified, approved and implemented in the
-ADR-scoped commits `3ddfd27` and `7bdf946`. The full local gate passed at 39 files / 241
-tests. Resume by completing the diff/security sweep, committing this tracking evidence,
-pushing the three commits and requesting Codex re-review on the latest head. Do not
-merge and do not start M4.
+The two findings from review of `cee9d86` were verified, approved and implemented in
+ADR-0027 commit `7145e8d`. The full local gate passed at 39 files / 243 tests. Resume by
+committing this tracking evidence, pushing both commits and requesting Codex re-review
+on the latest head. Do not merge and do not start M4.

@@ -85,7 +85,9 @@ relative-path regression changes the process working directory after opening and
 requires the original database path to remain protected.
 
 Both equipment and inventory projections reject joined equipment facts with a
-contradictory status, owner, quantity or known definition slot.
+contradictory status, owner, quantity or known definition slot. They also reject a
+returned/character-owned `EQUIPPED` instance without an assignment, while an inventory
+filter regression proves excluded contradictory rows do not fail an unrelated query.
 
 Validation-port regression uses two SQLite connections in WAL mode. A writer commits
 between two reads inside the validation callback; both reads must observe the original
