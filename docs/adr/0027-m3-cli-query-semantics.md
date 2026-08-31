@@ -221,6 +221,9 @@ to refuse any invalid full state under ADR-0023.
   description prose or infer M14 taxonomy.
 - Change projections select summary columns only and apply the approved newest-first
   order and 1–1000 bound; before/after snapshots never enter the DTO.
+- Illithid projections verify that every character acquisition and both endpoints of
+  every prerequisite edge reference a returned power definition; dangling required
+  joins return `INCONSISTENT_STATE`.
 - Equipment projections reject assignments whose owned instance is not singly
   `EQUIPPED` by the assigned character or whose known definition slot is incompatible;
   slot compatibility is shared with the campaign validator. Inventory projections
@@ -287,3 +290,5 @@ without changing their exact stored-value matching semantics or the JSON contrac
 - 2026-08-31 — After approved subsequent re-review remediation, required assignments
   for returned `EQUIPPED` instances in both applicable views and moved inventory join
   validation after filters so unrelated excluded inconsistencies do not fail a query.
+- 2026-08-31 — After approved later re-review remediation, rejected dangling illithid
+  acquisition definitions and missing source/target definitions in prerequisite edges.

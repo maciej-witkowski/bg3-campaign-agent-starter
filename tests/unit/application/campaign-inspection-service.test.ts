@@ -197,6 +197,33 @@ describe("CampaignInspectionService", () => {
     expect(character.powers[1]).not.toHaveProperty("blocked");
   });
 
+  it.each([
+    [
+      "acquisition power",
+      [
+        "delete from illithid_power_prerequisites where prerequisite_power_id = 'power-tier-1'",
+        "delete from illithid_powers where id = 'power-tier-1'",
+      ],
+      "laezel",
+    ],
+    ["prerequisite source", ["delete from illithid_powers where id = 'power-tier-2'"], undefined],
+    [
+      "prerequisite target",
+      [
+        "delete from character_illithid_powers where power_id = 'power-tier-1'",
+        "delete from illithid_powers where id = 'power-tier-1'",
+      ],
+      undefined,
+    ],
+  ])("rejects a dangling illithid %s", (_label, statements, characterName) => {
+    connection.database.$client.pragma("foreign_keys = OFF");
+    for (const statement of statements) connection.database.$client.prepare(statement).run();
+
+    expect(() => service.getIllithid(characterName)).toThrowError(
+      expect.objectContaining<Partial<CampaignInspectionError>>({ code: "INCONSISTENT_STATE" }),
+    );
+  });
+
   it("returns bounded audit summaries newest first without snapshot payloads", () => {
     const defaultResult = service.getChanges();
     const limited = service.getChanges(2);

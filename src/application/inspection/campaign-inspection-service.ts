@@ -200,19 +200,23 @@ export class CampaignInspectionService {
     return this.source.read((session) => {
       const character =
         name === undefined ? null : resolveCharacter(session.listCharacters(), name);
-      const acquisitions = new Map(
-        (character === null ? [] : session.listCharacterIllithidPowers(character.id)).map(
-          (value) => [value.powerId, value],
-        ),
-      );
+      const definitions = session.listIllithidPowers();
+      const definitionsById = new Map(definitions.map((value) => [value.id, value]));
+      const characterAcquisitions =
+        character === null ? [] : session.listCharacterIllithidPowers(character.id);
+      for (const acquisition of characterAcquisitions) {
+        required(definitionsById, acquisition.powerId, "illithid power");
+      }
+      const acquisitions = new Map(characterAcquisitions.map((value) => [value.powerId, value]));
       const prerequisites = new Map<string, string[]>();
       for (const relation of session.listIllithidPrerequisites()) {
+        required(definitionsById, relation.powerId, "illithid power");
+        required(definitionsById, relation.prerequisitePowerId, "illithid prerequisite");
         const current = prerequisites.get(relation.powerId) ?? [];
         current.push(relation.prerequisitePowerId);
         prerequisites.set(relation.powerId, current);
       }
-      const powers = session
-        .listIllithidPowers()
+      const powers = definitions
         .map((definition) => ({
           definition,
           prerequisitePowerIds: [...(prerequisites.get(definition.id) ?? [])].sort(compareText),
