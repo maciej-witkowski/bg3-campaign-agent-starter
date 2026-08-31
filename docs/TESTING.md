@@ -77,10 +77,10 @@ separation, human output, exit categories, safe internal errors and JSON/XLSX di
 Human party-output coverage requires the optional subclass and every base/effective
 attribute pair from the DTO. Exact renderer regressions also require permanent modifier
 details/empty state, all independent spell flags and illithid prerequisite IDs.
-Error-context regressions require raw `--` to terminate option recovery even when a
-malformed preceding string option consumes it as a value. Lifecycle regressions require
-close failures to remain inside the safe envelope and never replace an earlier mapped
-command failure.
+Error-context regressions require raw `--` to terminate JSON-option recovery even when
+a malformed preceding string option consumes it as a value, while preserving the first
+command positional after the terminator. Lifecycle regressions require close failures
+to remain inside the safe envelope and never replace an earlier mapped command failure.
 
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
@@ -106,6 +106,8 @@ Both equipment and inventory projections reject joined equipment facts with a
 contradictory status, owner, quantity or known definition slot. They also reject a
 returned/character-owned `EQUIPPED` instance without an assignment, while an inventory
 filter regression proves excluded contradictory rows do not fail an unrelated query.
+Returned `CHEST` and `SOLD` rows with a non-null owner likewise fail closed, while the
+same contradiction remains irrelevant when excluded by the requested status filter.
 
 Illithid projection regressions reject acquisitions without a power definition and
 prerequisite edges whose source or target definition is missing.

@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-08-31
-Overall status: Twelfth approved PR review remediation validated; tracking/publish/re-review pending
+Overall status: Thirteenth approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -420,6 +420,32 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fixes enforce ADR-0028's
 accepted option-terminator, stable-envelope and lifecycle error-boundary contracts.
 
+### Session command/inventory re-review remediation — approved projection-context package
+
+Status: Implemented as ADR-scoped commit `51ce66c`; full local gate passed
+
+Findings on `9c5dac3`:
+
+- P2: filtering all recovered context tokens at `--` also discarded a command positional
+  after the terminator, so a JSON arity failure could report `command: null` instead of
+  the parsed command;
+- P2: a returned `CHEST` or `SOLD` inventory row with a non-null valid owner was rendered
+  despite contradicting the canonical inventory-owner rule.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-08-31.
+
+Implemented:
+
+- ADR-0028 (`51ce66c`): command identity uses the first parsed positional on either side
+  of `--`, while JSON-mode recovery still uses only option tokens before the terminator;
+- ADR-0027 (`51ce66c`): after filters, returned `CHEST`/`SOLD` rows with an owner fail as
+  `INCONSISTENT_STATE`; excluded contradictory rows remain outside unrelated queries;
+- regressions cover post-terminator command recovery and both invalid owner statuses.
+
+ADR impact: no new or changed architectural decision. The fixes complete ADR-0028's
+failure-context contract and ADR-0027's required-fact consistency for inventory results.
+
 ## Change inventory
 
 ### Created
@@ -655,6 +681,17 @@ accepted option-terminator, stable-envelope and lifecycle error-boundary contrac
 - `src/cli/run-cli.ts`
 - `tests/unit/cli/run-cli.test.ts`
 
+### Modified in command/inventory re-review remediation session
+
+- `docs/TESTING.md`
+- `docs/adr/0027-m3-cli-query-semantics.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/inspection/campaign-inspection-service.ts`
+- `src/cli/parse-cli-arguments.ts`
+- `tests/unit/application/campaign-inspection-service.test.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -715,6 +752,10 @@ accepted option-terminator, stable-envelope and lifecycle error-boundary contrac
 | 2026-08-31 | post-parser-lifecycle `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 257 tests, build and production smoke |
 | 2026-08-31 | parser/lifecycle `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | parser/lifecycle scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-08-31 | focused command/inventory regressions | Passed | 3 files / 63 tests covering post-terminator command recovery and returned/excluded owner contradictions |
+| 2026-08-31 | post-command-inventory `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 259 tests, build and production smoke |
+| 2026-08-31 | command/inventory `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-08-31 | command/inventory scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -753,6 +794,8 @@ accepted option-terminator, stable-envelope and lifecycle error-boundary contrac
 - `e9052d7` — `fix: bind export publication to checked target`.
 - `062c781` — `docs: track stable export publication`.
 - `a77aefa` — `fix: contain CLI parser and close failures`.
+- `9c5dac3` — `docs: track CLI error boundary remediation`.
+- `51ce66c` — `fix: preserve CLI context and inventory integrity`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -772,8 +815,8 @@ accepted option-terminator, stable-envelope and lifecycle error-boundary contrac
 
 ## Exact resume point
 
-The two P2 findings from review of `062c781` were verified, approved and implemented in
-ADR-scoped commit `a77aefa`. The full local gate passed at 40 files / 257 tests plus
+The two P2 findings from review of `9c5dac3` were verified, approved and implemented in
+ADR-scoped commit `51ce66c`. The full local gate passed at 40 files / 259 tests plus
 production smoke, and the high-severity audit passed with only the two unchanged
 moderate transitive advisories. Resume by committing this tracking evidence, pushing
 the two local commits and requesting Codex re-review on the latest head. Do not merge
