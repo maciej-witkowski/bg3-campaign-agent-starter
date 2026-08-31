@@ -1,7 +1,11 @@
 import { deserializeCampaignExport, serializeCampaignExport } from "./campaign-export.js";
 import { createCampaignExport, type CampaignExportV1 } from "./campaign-export.js";
 import type { CampaignExportTargetPolicy } from "./campaign-export-target.js";
-import { writeVerifiedArtifact, type ArtifactWriteOptions } from "./atomic-artifact-writer.js";
+import {
+  resolveArtifactTarget,
+  writeVerifiedArtifact,
+  type ArtifactWriteOptions,
+} from "./atomic-artifact-writer.js";
 
 export interface CampaignExportSourcePort {
   captureCurrentState(capturedAt: Date): string;
@@ -33,11 +37,12 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
-    this.targetPolicy?.assertSafe(targetPath);
+    const target = resolveArtifactTarget(targetPath);
+    this.targetPolicy?.assertSafe(target);
     const value = this.capture();
     const bytes = new TextEncoder().encode(serializeCampaignExport(value));
     await writeVerifiedArtifact(
-      targetPath,
+      target,
       bytes,
       (published) => {
         deserializeCampaignExport(new TextDecoder().decode(published));
@@ -51,11 +56,12 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
-    this.targetPolicy?.assertSafe(targetPath);
+    const target = resolveArtifactTarget(targetPath);
+    this.targetPolicy?.assertSafe(target);
     const value = this.capture();
     const bytes = await this.xlsx.serialize(value);
     await writeVerifiedArtifact(
-      targetPath,
+      target,
       bytes,
       async (published) => {
         await this.xlsx.deserialize(published);

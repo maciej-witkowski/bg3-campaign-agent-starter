@@ -20,7 +20,7 @@ export async function writeVerifiedArtifact(
   verify: (publishedBytes: Uint8Array) => void | Promise<void>,
   options: ArtifactWriteOptions = {},
 ): Promise<string> {
-  const target = explicitTarget(targetPath);
+  const target = resolveArtifactTarget(targetPath);
   const temporary = resolve(dirname(target), `.${basename(target)}.${randomUUID()}.tmp`);
   let temporaryExists = false;
   try {
@@ -51,7 +51,7 @@ export async function writeVerifiedArtifact(
   }
 }
 
-function explicitTarget(targetPath: string): string {
+export function resolveArtifactTarget(targetPath: string): string {
   if (targetPath.trim() === "" || basename(targetPath) === "." || basename(targetPath) === "..") {
     throw new ArtifactWriteError("Wymagana jest jawna ścieżka pliku docelowego.");
   }

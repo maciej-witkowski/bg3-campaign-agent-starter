@@ -202,6 +202,9 @@ voice or desktop layers.
 - The public capability captures the database's resolved and canonical protected paths
   when the application opens, so a later working-directory change or symlink pivot
   cannot reinterpret which SQLite identity is protected.
+- Each export resolves and validates its target once before the policy check and before
+  any asynchronous serialization; the same absolute path is retained through atomic
+  publication, preventing working-directory races.
 
 ## Consequences and trade-offs
 
@@ -255,3 +258,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-31 — After approved follow-up re-review remediation, anchored resolved and
   canonical protected database identities when the M3 application opens; added a
   relative-path regression that changes the process working directory before export.
+- 2026-08-31 — After approved later re-review remediation, anchored each explicit export
+  target before policy evaluation and asynchronous XLSX serialization; a deferred-codec
+  regression changes the working directory while serialization is pending.
