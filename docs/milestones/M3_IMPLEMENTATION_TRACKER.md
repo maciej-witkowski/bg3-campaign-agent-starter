@@ -3,8 +3,8 @@
 Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
-Last updated: 2026-08-31
-Overall status: Fourteenth approved PR review remediation validated; tracking/publish/re-review pending
+Last updated: 2026-09-01
+Overall status: Fifteenth approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -472,6 +472,35 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fix completes ADR-0026's
 accepted identity-based protection when canonical SQLite files are renamed.
 
+### Session final-publication/setup re-review remediation — approved recheck package
+
+Status: Implemented as ADR-scoped commit `9ef5078`; full local gate passed
+
+Findings on `01d888e`:
+
+- P1: after the one-time policy check, another process could rename the protected open
+  database onto the approved output path during XLSX serialization or verification;
+  the writer's directory-only final check would then overwrite its sole directory entry;
+- P2: if schema setup and connection cleanup both threw, the cleanup exception replaced
+  the original typed setup failure.
+
+Approval: both remediations were explicitly approved by the repository owner in the
+Codex task on 2026-09-01.
+
+Implemented:
+
+- ADR-0026 (`9ef5078`): the atomic writer accepts the same protected-target policy used
+  before serialization, rechecks it after serialization before temporary-file creation
+  and again synchronously immediately before final rename/link dispatch;
+- ADR-0026/0028 (`9ef5078`): failed composition setup attempts cleanup but preserves the
+  original failure if close also throws;
+- regressions move the protected database onto the output path during deferred
+  serialization and temporary-artifact verification, and inject simultaneous setup and
+  cleanup failures while requiring the original error object.
+
+ADR impact: no new or changed architectural decision. The fixes close ADR-0026's final
+protected-file TOCTOU window and preserve ADR-0028's stable actionable error mapping.
+
 ## Change inventory
 
 ### Created
@@ -727,6 +756,22 @@ accepted identity-based protection when canonical SQLite files are renamed.
 - `src/application/export/campaign-export-target.ts`
 - `tests/unit/cli/campaign-export-target.test.ts`
 
+### Created in final-publication/setup re-review remediation session
+
+- `tests/unit/application/m3-campaign-application-cleanup.test.ts`
+
+### Modified in final-publication/setup re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/application/export/atomic-artifact-writer.ts`
+- `src/application/export/campaign-export-service.ts`
+- `src/composition/m3-campaign-application.ts`
+- `tests/unit/application/campaign-export-service.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -795,6 +840,10 @@ accepted identity-based protection when canonical SQLite files are renamed.
 | 2026-08-31 | post-protected-source-identity `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 40 files / 261 tests, build and production smoke |
 | 2026-08-31 | protected-source-identity `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-08-31 | protected-source-identity scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-09-01 | focused final-publication/setup regressions | Passed | 4 files / 11 tests covering both protected-file race windows and setup/cleanup error precedence |
+| 2026-09-01 | post-final-publication-setup `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 264 tests, build and production smoke |
+| 2026-09-01 | final-publication/setup `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-09-01 | final-publication/setup scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -837,6 +886,8 @@ accepted identity-based protection when canonical SQLite files are renamed.
 - `51ce66c` — `fix: preserve CLI context and inventory integrity`.
 - `1786994` — `docs: track CLI and inventory remediation`.
 - `de0951b` — `fix: retain protected SQLite file identities`.
+- `01d888e` — `docs: track protected source identity remediation`.
+- `9ef5078` — `fix: recheck protected targets at publication`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -856,8 +907,8 @@ accepted identity-based protection when canonical SQLite files are renamed.
 
 ## Exact resume point
 
-The P1 finding from review of `1786994` was verified, approved and implemented in
-ADR-scoped commit `de0951b`. The full local gate passed at 40 files / 261 tests plus
+The P1/P2 findings from review of `01d888e` were verified, approved and implemented in
+ADR-scoped commit `9ef5078`. The full local gate passed at 41 files / 264 tests plus
 production smoke, and the high-severity audit passed with only the two unchanged
 moderate transitive advisories. Resume by committing this tracking evidence, pushing
 the two local commits and requesting Codex re-review on the latest head. Do not merge

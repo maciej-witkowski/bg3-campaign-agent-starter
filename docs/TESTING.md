@@ -98,6 +98,13 @@ construction. Their new paths must remain protected by captured filesystem ident
 their bytes must remain unchanged, and an unrelated existing artifact must remain a
 valid explicit overwrite target.
 
+Deferred-serialization and temporary-artifact-verification regressions move the
+protected database onto an initially safe output path after the first policy check. The
+writer must recheck the retained policy before temporary-file creation and immediately
+before publication, fail safely and preserve database bytes. Composition lifecycle
+coverage also injects simultaneous schema setup and close failures and requires the
+original setup error to retain precedence.
+
 A deferred XLSX codec regression changes the working directory while serialization is
 pending and proves policy evaluation and atomic publication retain the same absolute
 output target. A redirected directory-link regression likewise proves publication uses
