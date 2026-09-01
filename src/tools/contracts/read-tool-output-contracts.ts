@@ -263,3 +263,18 @@ export const validateCampaignStateOutputSchema = z
   .strict();
 
 export type InventoryItemOutput = z.infer<typeof inventoryItemOutputSchema>;
+export type GetPartyOutput = z.infer<typeof getPartyOutputSchema>;
+export type GetCharacterOutput = z.infer<typeof getCharacterOutputSchema>;
+export type GetCharacterBuildOutput = z.infer<typeof getCharacterBuildOutputSchema>;
+export type GetCharacterEquipmentOutput = z.infer<typeof getCharacterEquipmentOutputSchema>;
+export type FindInventoryItemsOutput = z.infer<typeof findInventoryItemsOutputSchema>;
+export type GetItemOutput = z.infer<typeof getItemOutputSchema>;
+export type GetCharacterSpellsOutput = z.infer<typeof getCharacterSpellsOutputSchema>;
+export type GetIllithidStateOutput = z.infer<typeof getIllithidStateOutputSchema>;
+export type GetRecentChangesOutput = z.infer<typeof getRecentChangesOutputSchema>;
+export type CompareEquipmentOutput = z.infer<typeof compareEquipmentOutputSchema>;
+export type CalculateEffectiveAttributesOutput = z.infer<
+  typeof calculateEffectiveAttributesOutputSchema
+>;
+export type FindEquipmentCandidatesOutput = z.infer<typeof findEquipmentCandidatesOutputSchema>;
+export type ValidateCampaignStateOutput = z.infer<typeof validateCampaignStateOutputSchema>;

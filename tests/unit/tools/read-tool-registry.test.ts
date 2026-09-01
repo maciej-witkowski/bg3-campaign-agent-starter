@@ -71,7 +71,7 @@ describe("M4 read tool catalog and registry", () => {
     ).toThrow("Undeclared read tool handler");
   });
 
-  it("has no all-capability or mutation invocation surface and validates before its handler", () => {
+  it("has no all-capability or mutation lookup surface and validates before its handler", async () => {
     let calls = 0;
     const port = new Proxy({} as CampaignReadToolPort, {
       get: () => () => {
@@ -80,14 +80,21 @@ describe("M4 read tool catalog and registry", () => {
       },
     });
     const registry = createReadToolRegistry(port);
-    expect(Object.keys(registry).sort()).toEqual(["get", "list"]);
+    expect(Object.keys(registry).sort()).toEqual(["get", "list", "run"]);
     expect(registry).not.toHaveProperty("invoke");
     expect(registry.get("equip_item")).toBeUndefined();
-    expect(() => registry.get("get_party")!.run({ injected: true })).toThrow();
+    await expect(registry.run("equip_item", {})).resolves.toMatchObject({
+      ok: false,
+      error: { code: "TOOL_NOT_FOUND" },
+    });
+    await expect(registry.get("get_party")!.run({ injected: true })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "INVALID_TOOL_INPUT" },
+    });
     expect(calls).toBe(0);
   });
 
-  it("calls every active tool without an LLM and leaves SQLite bytes and audit rows unchanged", () => {
+  it("calls every active tool without an LLM and leaves SQLite bytes and audit rows unchanged", async () => {
     const { filename, auditCount } = fixture();
     const before = sha256(filename);
     const application = openM4CampaignApplication({ filename });
@@ -114,28 +121,39 @@ describe("M4 read tool catalog and registry", () => {
         validate_campaign_state: {},
       };
       for (const definition of application.readTools.list()) {
-        const result = application.readTools.get(definition.name)!.run(calls[definition.name]);
+        const result = await application.readTools
+          .get(definition.name)!
+          .run(calls[definition.name]);
         expect(() => JSON.stringify(result)).not.toThrow();
-        expect(definition.outputSchema.safeParse(result).success).toBe(true);
+        expect(result.ok).toBe(true);
+        if (result.ok) expect(definition.outputSchema.safeParse(result.data).success).toBe(true);
       }
-      expect(() =>
+      await expect(
         application.readTools.get("get_character")!.run({ character: "Nie istnieje" }),
-      ).toThrow(expect.objectContaining({ code: "CHARACTER_NOT_FOUND" }));
-      expect(() =>
+      ).resolves.toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+      await expect(
         application.readTools.get("get_character")!.run({ character: "cien\u0301" }),
-      ).toThrow(expect.objectContaining({ code: "CHARACTER_AMBIGUOUS" }));
+      ).resolves.toMatchObject({ ok: false, error: { code: "AMBIGUOUS" } });
       expect(
-        application.readTools.get("calculate_effective_attributes")!.run({ character: "laezel" }),
+        await application.readTools
+          .get("calculate_effective_attributes")!
+          .run({ character: "laezel" }),
       ).toMatchObject({
-        attributes: expect.arrayContaining([
-          expect.objectContaining({ attribute: "STR", effective_value: 19 }),
-        ]),
+        ok: true,
+        data: {
+          attributes: expect.arrayContaining([
+            expect.objectContaining({ attribute: "STR", effective_value: 19 }),
+          ]),
+        },
       });
       expect(
-        application.readTools
+        await application.readTools
           .get("find_equipment_candidates")!
           .run(calls.find_equipment_candidates),
-      ).toMatchObject({ items: [{ inventory_item: { id: "inventory-ring" } }] });
+      ).toMatchObject({
+        ok: true,
+        data: { items: [{ inventory_item: { id: "inventory-ring" } }] },
+      });
     } finally {
       application.close();
     }

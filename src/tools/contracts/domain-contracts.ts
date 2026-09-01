@@ -133,4 +133,18 @@ export const toolResultSchema = z.discriminatedUnion("ok", [
   toolSuccessResultSchema,
   toolFailureResultSchema,
 ]);
-export type ToolResult = z.infer<typeof toolResultSchema>;
+export type ToolSuccessResult<T extends JsonValue = JsonValue> = {
+  readonly ok: true;
+  readonly data: T;
+  readonly warnings: readonly string[];
+};
+export type ToolFailureResult = {
+  readonly ok: false;
+  readonly error: {
+    readonly code: string;
+    readonly message_pl: string;
+    readonly details?: JsonValue;
+  };
+  readonly warnings: readonly string[];
+};
+export type ToolResult<T extends JsonValue = JsonValue> = ToolSuccessResult<T> | ToolFailureResult;

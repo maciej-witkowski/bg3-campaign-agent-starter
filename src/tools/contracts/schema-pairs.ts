@@ -34,6 +34,21 @@ import {
   unlockIllithidPowerInputSchema,
   validateCampaignStateInputSchema,
 } from "./tool-input-contracts.js";
+import {
+  calculateEffectiveAttributesOutputSchema,
+  compareEquipmentOutputSchema,
+  findEquipmentCandidatesOutputSchema,
+  findInventoryItemsOutputSchema,
+  getCharacterBuildOutputSchema,
+  getCharacterEquipmentOutputSchema,
+  getCharacterOutputSchema,
+  getCharacterSpellsOutputSchema,
+  getIllithidStateOutputSchema,
+  getItemOutputSchema,
+  getPartyOutputSchema,
+  getRecentChangesOutputSchema,
+  validateCampaignStateOutputSchema,
+} from "./read-tool-output-contracts.js";
 
 export interface ContractSchemaPair {
   readonly jsonSchemaPath: `schemas/${string}.schema.json`;
@@ -136,5 +151,57 @@ export const CONTRACT_SCHEMA_PAIRS = [
   {
     jsonSchemaPath: "schemas/tools/validate-campaign-state.schema.json",
     zodSchema: validateCampaignStateInputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/calculate-effective-attributes.schema.json",
+    zodSchema: calculateEffectiveAttributesOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/compare-equipment.schema.json",
+    zodSchema: compareEquipmentOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/find-equipment-candidates.schema.json",
+    zodSchema: findEquipmentCandidatesOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/find-inventory-items.schema.json",
+    zodSchema: findInventoryItemsOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-character-build.schema.json",
+    zodSchema: getCharacterBuildOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-character-equipment.schema.json",
+    zodSchema: getCharacterEquipmentOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-character-spells.schema.json",
+    zodSchema: getCharacterSpellsOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-character.schema.json",
+    zodSchema: getCharacterOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-illithid-state.schema.json",
+    zodSchema: getIllithidStateOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-item.schema.json",
+    zodSchema: getItemOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-party.schema.json",
+    zodSchema: getPartyOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/get-recent-changes.schema.json",
+    zodSchema: getRecentChangesOutputSchema,
+  },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/validate-campaign-state.schema.json",
+    zodSchema: validateCampaignStateOutputSchema,
   },
 ] as const satisfies readonly ContractSchemaPair[];

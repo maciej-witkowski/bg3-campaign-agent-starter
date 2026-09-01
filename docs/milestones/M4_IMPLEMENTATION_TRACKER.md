@@ -113,7 +113,7 @@ Exit evidence:
 
 ### Session 3 — ADR-0032 executor and result envelope
 
-Status: In progress
+Status: Completed
 
 Expected owned paths:
 
@@ -129,11 +129,12 @@ Exit evidence:
 - success/failure envelopes and stable error families are exact and JSON-safe;
 - malformed handler output and thrown exceptions fail safely without private leaks;
 - focused tests, typecheck and formatting pass;
-- focused ADR-0032 commit created.
+- focused ADR-0032 changes are complete and await the orchestrating agent's scoped
+  commit.
 
 ### Session 4 — ADR-0033 mutation authorization and proposal boundary
 
-Status: Pending
+Status: In progress
 
 Expected owned paths:
 
@@ -185,12 +186,12 @@ Exit evidence:
 
 ## Decision-to-code matrix
 
-| ADR | Controlling decision | Planned evidence |
-| --- | --- | --- |
-| 0030 | JSON Schema normative; strict Zod mirrors and drift tests | pair discovery, shared corpus, no coercion/extra keys |
-| 0031 | immutable catalog and separate capability registries | API separation, unique catalog, direct read/analysis calls |
-| 0032 | one schema-first executor and stable safe envelopes | exact errors, output validation, redaction, JSON safety |
-| 0033 | confirmation claim plus out-of-band bound authorization | mismatch/expiry/replay tests and deny-by-default composition |
+| ADR  | Controlling decision                                      | Planned evidence                                             |
+| ---- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| 0030 | JSON Schema normative; strict Zod mirrors and drift tests | pair discovery, shared corpus, no coercion/extra keys        |
+| 0031 | immutable catalog and separate capability registries      | API separation, unique catalog, direct read/analysis calls   |
+| 0032 | one schema-first executor and stable safe envelopes       | exact errors, output validation, redaction, JSON safety      |
+| 0033 | confirmation claim plus out-of-band bound authorization   | mismatch/expiry/replay tests and deny-by-default composition |
 
 ## State and migration impact
 
@@ -202,26 +203,28 @@ Exit evidence:
 
 ## Test/evidence log
 
-| Date | Session | Command/evidence | Result |
-| --- | --- | --- | --- |
-| 2026-09-01 | 0 | Repository safety checks | Clean except four expected untracked proposed ADRs; branch/base recorded |
-| 2026-09-01 | 0 | Scoped Prettier write and `git diff --check` | Passed for accepted ADRs and tracker |
-| 2026-09-01 | 1 | `node node_modules/vitest/vitest.mjs run tests/unit/tools/tool-contract-parity.test.ts` | Passed: 1 file / 64 tests (outside sandbox after `spawn EPERM`) |
-| 2026-09-01 | 1 | `node node_modules/typescript/bin/tsc --noEmit` | Passed |
-| 2026-09-01 | 2 | `node node_modules/vitest/vitest.mjs run tests/unit/tools/read-tool-registry.test.ts` | Passed outside sandbox after `spawn EPERM`: 1 file / 4 tests |
-| 2026-09-01 | 2 | M3 inspection/application plus M4 read-registry Vitest regression | Passed outside sandbox: 3 files / 32 tests |
-| 2026-09-01 | 2 | Scoped Prettier, ESLint and `node node_modules/typescript/bin/tsc --noEmit` | Passed |
+| Date       | Session | Command/evidence                                                                         | Result                                                                   |
+| ---------- | ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 2026-09-01 | 0       | Repository safety checks                                                                 | Clean except four expected untracked proposed ADRs; branch/base recorded |
+| 2026-09-01 | 0       | Scoped Prettier write and `git diff --check`                                             | Passed for accepted ADRs and tracker                                     |
+| 2026-09-01 | 1       | `node node_modules/vitest/vitest.mjs run tests/unit/tools/tool-contract-parity.test.ts`  | Passed: 1 file / 64 tests (outside sandbox after `spawn EPERM`)          |
+| 2026-09-01 | 1       | `node node_modules/typescript/bin/tsc --noEmit`                                          | Passed                                                                   |
+| 2026-09-01 | 2       | `node node_modules/vitest/vitest.mjs run tests/unit/tools/read-tool-registry.test.ts`    | Passed outside sandbox after `spawn EPERM`: 1 file / 4 tests             |
+| 2026-09-01 | 2       | M3 inspection/application plus M4 read-registry Vitest regression                        | Passed outside sandbox: 3 files / 32 tests                               |
+| 2026-09-01 | 2       | Scoped Prettier, ESLint and `node node_modules/typescript/bin/tsc --noEmit`              | Passed                                                                   |
+| 2026-09-01 | 3       | Executor, contract parity, read registry and M3 inspection/application Vitest regression | Passed outside sandbox after `spawn EPERM`: 5 files / 143 tests          |
+| 2026-09-01 | 3       | Scoped Prettier, ESLint and `node node_modules/typescript/bin/tsc --noEmit`              | Passed                                                                   |
 
 ## Commit and PR log
 
-| Session | Commit/PR | Status |
-| --- | --- | --- |
-| 0 | `fa2334f` | ADR acceptance and tracker |
-| 1 | `2f73dc9` | ADR-0030 implementation |
-| 2 | pending | ADR-0031 implementation |
-| 3 | pending | ADR-0032 implementation |
-| 4 | pending | ADR-0033 implementation |
-| 5 | pending | integration/docs/gates |
+| Session | Commit/PR | Status                     |
+| ------- | --------- | -------------------------- |
+| 0       | `fa2334f` | ADR acceptance and tracker |
+| 1       | `2f73dc9` | ADR-0030 implementation    |
+| 2       | `a2cd9ce` | ADR-0031 implementation    |
+| 3       | pending   | ADR-0032 implementation    |
+| 4       | pending   | ADR-0033 implementation    |
+| 5       | pending   | integration/docs/gates     |
 
 ## Risks and active questions
 
@@ -235,9 +238,9 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 3 (ADR-0032) is next. Add the shared executor and stable safe result envelopes
-around the existing minimal read runners. Preserve the read registry capability boundary
-and do not add proposal/mutation authorization until Session 4.
+Session 4 (ADR-0033) is next. Add only the proposal/mutation contract registries and the
+trusted out-of-band authorization boundary described by ADR-0033. Reuse the neutral
+executor hook from Session 3; do not add production proposal storage or M6 mutations.
 
 ## Change log
 
@@ -248,3 +251,6 @@ and do not add proposal/mutation authorization until Session 4.
 - 2026-09-01 — Completed Session 2 with the 13-tool read/analysis catalog, atomic
   application projections, read-only composition and 4 focused registry/integration
   tests; opened Session 3.
+- 2026-09-01 — Completed Session 3 with 13 normative output DTO contracts, stable safe
+  envelopes, schema-first asynchronous execution, bounded diagnostics and 143 focused
+  executor/parity/registry/regression tests; opened Session 4.

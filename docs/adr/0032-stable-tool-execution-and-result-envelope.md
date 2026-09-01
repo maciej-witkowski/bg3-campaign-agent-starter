@@ -157,6 +157,27 @@ not introduce persistent telemetry.
 - Redaction reduces immediate diagnostics in user results; injected local diagnostics
   can preserve safe operational evidence later.
 
+## Implementation evidence
+
+- `schemas/tool-outputs` publishes one normative output-data schema for each of the 13
+  executable read/analysis tools. Shared definitions remain JSON Schema artifacts, and
+  every public output root has a strict Zod mirror, inferred TypeScript DTO and parity
+  entry.
+- `src/tools/execution` owns the provider-neutral asynchronous executor. Its fixed path
+  is strict input parsing, an optional neutral `beforeInvoke` hook, handler invocation,
+  strict output-data parsing and final `ToolResult` validation.
+- Invalid input returns `INVALID_TOOL_INPUT` before the hook or handler. Invalid or
+  non-JSON output returns `TOOL_OUTPUT_INVALID`; unexpected throws and rejections return
+  a redacted `INTERNAL_ERROR`.
+- Failure factories bound Polish messages, warnings and allowlisted detail structures.
+  The optional local observer receives only tool name, execution stage, code and an
+  unexpected flag; observer failure cannot alter the public result.
+- `ReadToolRegistry` remains limited to its 13 read/analysis bindings. Known runners and
+  its read-only name dispatch return validated envelopes; an unknown name returns
+  `TOOL_NOT_FOUND` and cannot reach a handler.
+- Focused executor, schema parity, direct registry and M3 inspection regressions passed
+  5 files / 143 tests. Scoped formatting, ESLint and strict TypeScript typecheck passed.
+
 ## Rejected alternatives
 
 - Handler-specific envelopes are rejected because they drift and duplicate security
@@ -181,3 +202,5 @@ not weaken the canonical tool validation semantics.
 
 - 2026-09-01 — Initial M4 proposal.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
+- 2026-09-01 — Implemented normative read/analysis output DTOs, the shared safe
+  executor, result factories, bounded diagnostics and envelope-returning read registry.

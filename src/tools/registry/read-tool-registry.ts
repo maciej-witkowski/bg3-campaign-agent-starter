@@ -1,24 +1,40 @@
 import type { z } from "zod";
 
+import { CampaignInspectionError } from "../../application/inspection/campaign-inspection.js";
 import type { CampaignReadToolPort } from "../../application/tools/campaign-read-tools.js";
+import { CampaignToolQueryError } from "../../application/tools/campaign-read-tools.js";
 import {
   READ_TOOL_CATALOG,
   assertValidReadToolCatalog,
   type ReadToolDefinition,
   type ReadToolName,
 } from "../catalog/read-tool-catalog.js";
+import type { JsonValue, ToolResult } from "../contracts/domain-contracts.js";
+import {
+  executeTool,
+  type ToolBeforeInvokeContext,
+  type ToolExecutionObserver,
+} from "../execution/tool-executor.js";
+import type { SafeToolError } from "../execution/tool-errors.js";
+import { toolFailure } from "../execution/tool-result.js";
 
 export interface ReadToolRunner {
   readonly definition: ReadToolDefinition;
-  run(input: unknown): unknown;
+  run(input: unknown): Promise<ToolResult>;
 }
 
 export interface ReadToolRegistry {
   list(): readonly ReadToolDefinition[];
   get(name: string): ReadToolRunner | undefined;
+  run(name: string, input: unknown): Promise<ToolResult>;
 }
 
-type Handler = (input: never) => unknown;
+export interface ReadToolRegistryOptions {
+  readonly beforeInvoke?: (context: ToolBeforeInvokeContext<unknown>) => void | Promise<void>;
+  readonly observer?: ToolExecutionObserver;
+}
+
+type Handler = (input: never) => JsonValue | Promise<JsonValue>;
 
 const handlers = (port: CampaignReadToolPort): Readonly<Record<ReadToolName, Handler>> => ({
   get_party: (input) => port.getParty(input),
@@ -39,6 +55,7 @@ const handlers = (port: CampaignReadToolPort): Readonly<Record<ReadToolName, Han
 export function createReadToolRegistry(
   port: CampaignReadToolPort,
   catalog: readonly ReadToolDefinition[] = READ_TOOL_CATALOG,
+  options: ReadToolRegistryOptions = {},
 ): ReadToolRegistry {
   assertValidReadToolCatalog(catalog);
   const supplied = handlers(port);
@@ -53,17 +70,61 @@ export function createReadToolRegistry(
       entry.name,
       Object.freeze({
         definition: entry,
-        run(input: unknown): unknown {
-          const parsed = entry.inputSchema.parse(input) as never;
-          return entry.outputSchema.parse(handler(parsed));
+        run(input: unknown): Promise<ToolResult> {
+          return executeTool<never, JsonValue>({
+            definition: entry,
+            input,
+            handler,
+            ...(options.beforeInvoke === undefined
+              ? {}
+              : {
+                  beforeInvoke: options.beforeInvoke as (
+                    context: ToolBeforeInvokeContext<never>,
+                  ) => void | Promise<void>,
+                }),
+            ...(options.observer === undefined ? {} : { observer: options.observer }),
+            mapError: mapReadToolError,
+          });
         },
       }),
     );
   }
   const listed = Object.freeze([...catalog]);
-  return Object.freeze({ list: () => listed, get: (name: string) => runners.get(name) });
+  return Object.freeze({
+    list: () => listed,
+    get: (name: string) => runners.get(name),
+    run: (name: string, input: unknown) =>
+      runners.get(name)?.run(input) ??
+      Promise.resolve(
+        toolFailure("TOOL_NOT_FOUND", "Nie znaleziono narzędzia.", {
+          details: { tool_name: name.slice(0, 100) },
+        }),
+      ),
+  });
 }
 
 export function parseToolData<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
   return schema.parse(value);
+}
+
+function mapReadToolError(error: unknown): SafeToolError | undefined {
+  if (error instanceof CampaignToolQueryError) {
+    if (error.code === "NOT_FOUND") return { code: "NOT_FOUND", message_pl: error.message };
+    if (error.code === "AMBIGUOUS") return { code: "AMBIGUOUS", message_pl: error.message };
+    return { code: "INVALID_TOOL_INPUT", message_pl: error.message };
+  }
+  if (error instanceof CampaignInspectionError) {
+    switch (error.code) {
+      case "CHARACTER_NOT_FOUND":
+        return { code: "NOT_FOUND", message_pl: error.message };
+      case "CHARACTER_AMBIGUOUS":
+        return { code: "AMBIGUOUS", message_pl: error.message };
+      case "INVALID_FILTER":
+      case "INVALID_LIMIT":
+        return { code: "INVALID_TOOL_INPUT", message_pl: error.message };
+      case "INCONSISTENT_STATE":
+        return { code: "CONFLICT", message_pl: error.message };
+    }
+  }
+  return undefined;
 }

@@ -23,11 +23,30 @@ function resolveReference(
   schemaPath: string,
   reference: string,
 ): { schema: JsonSchema; path: string } {
+  if (reference.startsWith("#")) {
+    return { schema: resolveFragment(readSchema(schemaPath), reference), path: schemaPath };
+  }
+  const [fileReference, fragment] = reference.split("#", 2);
   const path = relative(
     repositoryRoot,
-    resolve(repositoryRoot, dirname(schemaPath), reference),
+    resolve(repositoryRoot, dirname(schemaPath), fileReference ?? ""),
   ).replaceAll("\\", "/");
-  return { schema: readSchema(path), path };
+  const schema = readSchema(path);
+  return {
+    schema: fragment === undefined ? schema : resolveFragment(schema, `#${fragment}`),
+    path,
+  };
+}
+
+function resolveFragment(schema: JsonSchema, fragment: string): JsonSchema {
+  if (fragment === "#" || fragment === "") return schema;
+  const segments = fragment
+    .replace(/^#\//u, "")
+    .split("/")
+    .map((value) => value.replaceAll("~1", "/").replaceAll("~0", "~"));
+  let current: unknown = schema;
+  for (const segment of segments) current = (current as Record<string, unknown>)[segment];
+  return current as JsonSchema;
 }
 
 function variants(schema: JsonSchema): readonly JsonSchema[] | undefined {
@@ -53,7 +72,7 @@ function sampleFor(schema: JsonSchema, schemaPath: string): unknown {
       return result;
     }
     case "array": {
-      const count = typeof schema.minItems === "number" ? schema.minItems : 0;
+      const count = Math.max(typeof schema.minItems === "number" ? schema.minItems : 0, 1);
       return Array.from({ length: count }, () =>
         sampleFor((schema.items ?? {}) as JsonSchema, schemaPath),
       );
@@ -159,7 +178,7 @@ function invalidSamples(schema: JsonSchema, schemaPath: string): readonly unknow
 
 describe("M4 normative JSON Schema and Zod contract parity", () => {
   it("declares exactly one Zod pair for every individual JSON Schema artifact", () => {
-    const files = ["schemas/domain", "schemas/tools"]
+    const files = ["schemas/domain", "schemas/tools", "schemas/tool-outputs"]
       .flatMap((directory) =>
         readdirSync(resolve(repositoryRoot, directory))
           .filter((name) => name.endsWith(".schema.json"))
