@@ -185,7 +185,8 @@ voice or desktop layers.
   applied migration hash and timestamp in order, rejects missing/older/newer/mismatched
   ledgers and verifies all 16 canonical M1 tables without writing metadata. It also
   builds an isolated in-memory schema from that bundle and compares the complete sorted
-  `sqlite_schema` manifest, detecting changed columns, indexes and other objects.
+  `sqlite_schema` manifest—including the migration ledger definition—detecting changed
+  columns, constraints, indexes and other objects.
 - `CampaignValidationService` is a read-only application boundary around the existing
   deterministic validator. Its SQLite port runs the complete multi-query validation in
   one transactionally consistent snapshot and returns violations without repair.
@@ -283,3 +284,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-09-01 — After approved final-publication remediation, rechecked the protected-file
   policy after serialization and immediately before final publication, and preserved an
   original schema/setup failure when connection cleanup also throws.
+- 2026-09-01 — After approved ledger-manifest remediation, included the
+  `__drizzle_migrations` table definition in the canonical schema fingerprint so matching
+  history rows cannot mask missing ledger constraints.

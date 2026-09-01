@@ -181,4 +181,36 @@ describe("assertLatestCampaignSchema", () => {
       connection.close();
     }
   });
+
+  it("rejects a structurally changed migration ledger with matching rows", () => {
+    const directory = createTemporaryDirectory();
+    const migrationsFolder = join(directory, "migrations");
+    const filename = join(directory, "campaign.sqlite");
+    writeMigrationFixture(migrationsFolder, committedMigrations);
+    const connection = openMigratedSqliteConnection({ filename, migrationsFolder });
+
+    try {
+      connection.database.$client.exec(`
+        alter table __drizzle_migrations rename to __drizzle_migrations_original;
+        create table __drizzle_migrations (
+          id integer,
+          hash text,
+          created_at numeric
+        );
+        insert into __drizzle_migrations (id, hash, created_at)
+          select id, hash, created_at from __drizzle_migrations_original;
+        drop table __drizzle_migrations_original;
+      `);
+
+      expect(() =>
+        assertLatestCampaignSchema(connection.database, { migrationsFolder }),
+      ).toThrowError(
+        expect.objectContaining<Partial<SchemaCompatibilityError>>({
+          code: "SCHEMA_STRUCTURE_MISMATCH",
+        }),
+      );
+    } finally {
+      connection.close();
+    }
+  });
 });

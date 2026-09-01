@@ -153,7 +153,6 @@ function schemaManifest(database: SqliteDatabase): readonly SchemaObject[] {
       `select type, name, tbl_name as tableName, sql
        from sqlite_schema
        where name not like 'sqlite_%'
-         and name <> '__drizzle_migrations'
        order by type asc, name asc`,
     )
     .all() as SchemaObject[];
