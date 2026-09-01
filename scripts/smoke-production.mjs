@@ -54,7 +54,6 @@ try {
       "json",
       "--output",
       protectedPath,
-      "--overwrite",
     ]);
     const parsed = JSON.parse(rejected.stdout);
     if (
@@ -64,6 +63,21 @@ try {
     ) {
       throw new Error(`Production CLI accepted protected export target: ${protectedPath}.`);
     }
+  }
+  const existingExport = runCli(databasePath, [
+    "export",
+    "--format",
+    "json",
+    "--output",
+    exportPath,
+  ]);
+  const existingExportResult = JSON.parse(existingExport.stdout);
+  if (
+    existingExport.status !== 5 ||
+    existingExportResult.ok !== false ||
+    existingExportResult.error?.code !== "ARTIFACT_WRITE_FAILED"
+  ) {
+    throw new Error("Production CLI replaced an existing export target.");
   }
   if (sha256(databasePath) !== before) {
     throw new Error("Production CLI changed canonical SQLite bytes.");

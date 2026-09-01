@@ -1,6 +1,6 @@
 # ADR-0029: Non-destructive M3 export publication
 
-Status: Proposed
+Status: Accepted
 
 Milestone: M3 — Read-Only CLI
 
@@ -129,6 +129,20 @@ M3 branch for a portable, enforceable no-canonical-data-loss guarantee.
 - Full `pnpm check`, high-severity audit, scope sweep, CI/security and current-head Codex
   review pass before M3 is handed to a human.
 
+## Implementation evidence
+
+- The M3 target policy declares overwrite forbidden, and `CampaignExportService`
+  rejects `{ overwrite: true }` before capture or serialization when that policy is
+  present.
+- The M3 CLI grammar and command DTO contain no overwrite option; strict parsing rejects
+  the former `--overwrite` token before opening SQLite.
+- M3 dispatch always selects the atomic writer's fail-if-present hard-link publication.
+  The generic M2 writer retains its separately tested overwrite behavior.
+- Public-composition tests preserve existing JSON/XLSX bytes, and race regressions move
+  the protected database onto the target before and after the final policy check.
+- Human equipment rows include complete effect facts or an explicit empty marker, and
+  inventory rows include recorded quantity.
+
 ## Consequences and trade-offs
 
 - M3 gains a simple portable invariant: it creates a new artifact or changes nothing.
@@ -156,9 +170,13 @@ facility, but it must use a new ADR and cannot weaken M3's creation-only default
 ## Approval record
 
 - Proposed after Codex review of `5f6e83c` on 2026-09-01.
-- Awaiting explicit repository-owner approval.
+- Accepted by the repository owner in the Codex task on 2026-09-01.
+- Approval scope: creation-only M3 export plus equipment-effect and inventory-quantity
+  human-output remediation.
 
 ## Change log
 
 - 2026-09-01 — Initial proposal after review identified the remaining non-atomic
   protected-target check/overwrite interval.
+- 2026-09-01 — Accepted after explicit repository-owner approval and implemented for the
+  M3 CLI/public composition without changing M2 overwrite behavior.

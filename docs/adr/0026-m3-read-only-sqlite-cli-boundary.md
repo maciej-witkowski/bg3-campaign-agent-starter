@@ -4,6 +4,9 @@ Status: Accepted
 
 Milestone: M3 — Read-Only CLI
 
+Partial supersession: ADR-0029 supersedes this ADR's allowance for M3 export overwrite;
+the remaining read-only boundary and export isolation decisions stay accepted.
+
 ## Context and problem statement
 
 M3 must expose local inspection commands without AI and must prove that every command
@@ -98,8 +101,9 @@ read-only state reader. It reports violations and never repairs them.
 
 `export` captures and validates one consistent read transaction through the existing
 M2 export source and serializer. The only write capability supplied for that command is
-the approved atomic artifact writer. An explicit target path is required; existing
-targets are refused unless the caller supplies the explicit overwrite option. Export
+the approved atomic artifact writer. An explicit target path is required. The original
+decision allowed an explicit overwrite option; ADR-0029 supersedes that allowance and
+makes M3 publication creation-only. Export
 creates no checkpoint or audit event and never modifies SQLite.
 
 ## Boundaries and dependency direction
@@ -287,3 +291,5 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-09-01 — After approved ledger-manifest remediation, included the
   `__drizzle_migrations` table definition in the canonical schema fingerprint so matching
   history rows cannot mask missing ledger constraints.
+- 2026-09-01 — Partially superseded by accepted ADR-0029: M3 exports no longer replace
+  existing targets, while the generic M2 writer retains its prior overwrite behavior.

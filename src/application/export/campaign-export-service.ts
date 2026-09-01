@@ -2,6 +2,7 @@ import { deserializeCampaignExport, serializeCampaignExport } from "./campaign-e
 import { createCampaignExport, type CampaignExportV1 } from "./campaign-export.js";
 import type { CampaignExportTargetPolicy } from "./campaign-export-target.js";
 import {
+  ArtifactWriteError,
   prepareArtifactTarget,
   writeVerifiedArtifactToResolvedTarget,
   type ArtifactWriteOptions,
@@ -37,6 +38,7 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.assertOverwriteAllowed(options);
     const target = prepareArtifactTarget(targetPath);
     this.targetPolicy?.assertSafe(target.path);
     const value = this.capture();
@@ -57,6 +59,7 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.assertOverwriteAllowed(options);
     const target = prepareArtifactTarget(targetPath);
     this.targetPolicy?.assertSafe(target.path);
     const value = this.capture();
@@ -71,5 +74,13 @@ export class CampaignExportService {
       this.targetPolicy,
     );
     return value;
+  }
+
+  private assertOverwriteAllowed(options: ArtifactWriteOptions): void {
+    if (options.overwrite === true && this.targetPolicy?.allowsOverwrite === false) {
+      throw new ArtifactWriteError(
+        "Eksport M3 nie zastępuje istniejących plików; wskaż nową ścieżkę docelową.",
+      );
+    }
   }
 }

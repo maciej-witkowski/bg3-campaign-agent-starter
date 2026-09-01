@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -51,18 +51,31 @@ describe("openM3CampaignApplication", () => {
       ]);
       expect(application.inspection.getParty().characters).toHaveLength(2);
       expect(application.validation.validate()).toEqual({ valid: true, violations: [] });
-      await expect(
-        application.campaignExport.writeJson(filename, { overwrite: true }),
-      ).rejects.toThrowError(
+      await expect(application.campaignExport.writeJson(filename)).rejects.toThrowError(
         "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
       );
-      await expect(
-        application.campaignExport.writeXlsx(`${filename}-shm`, { overwrite: true }),
-      ).rejects.toThrowError(
+      await expect(application.campaignExport.writeXlsx(`${filename}-shm`)).rejects.toThrowError(
         "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
       );
       const exported = await application.campaignExport.writeJson(target);
       expect(exported.state.characters).toHaveLength(5);
+      const existingJson = readFileSync(target);
+      await expect(application.campaignExport.writeJson(target)).rejects.toThrowError(
+        "Plik docelowy już istnieje",
+      );
+      expect(readFileSync(target)).toEqual(existingJson);
+      const existingXlsx = join(directory, "existing.xlsx");
+      const existingXlsxBytes = Buffer.from("existing xlsx");
+      writeFileSync(existingXlsx, existingXlsxBytes);
+      await expect(application.campaignExport.writeXlsx(existingXlsx)).rejects.toThrowError(
+        "Plik docelowy już istnieje",
+      );
+      expect(readFileSync(existingXlsx)).toEqual(existingXlsxBytes);
+      await expect(
+        application.campaignExport.writeJson(join(directory, "replacement.json"), {
+          overwrite: true,
+        }),
+      ).rejects.toThrowError("Eksport M3 nie zastępuje istniejących plików");
     } finally {
       application.close();
     }
@@ -95,9 +108,7 @@ describe("openM3CampaignApplication", () => {
       });
       process.chdir(changedDirectory);
 
-      await expect(
-        application.campaignExport.writeJson(filename, { overwrite: true }),
-      ).rejects.toThrowError(
+      await expect(application.campaignExport.writeJson(filename)).rejects.toThrowError(
         "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
       );
     } finally {

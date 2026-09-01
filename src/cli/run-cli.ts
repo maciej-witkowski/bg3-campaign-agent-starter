@@ -34,7 +34,7 @@ Użycie:
   bg3-campaign --db <path> [--json] illithid [name]
   bg3-campaign --db <path> [--json] changes [--limit <1-1000>]
   bg3-campaign --db <path> [--json] validate
-  bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path> [--overwrite]
+  bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path>
 
 Opcje:
   --db <path>   Istniejąca baza SQLite kampanii (wymagana dla komend danych)
@@ -123,12 +123,8 @@ async function execute(
   const outputPath = resolveArtifactTarget(command.outputPath);
   const exported =
     command.artifactFormat === "json"
-      ? await application.campaignExport.writeJson(outputPath, {
-          overwrite: command.overwrite,
-        })
-      : await application.campaignExport.writeXlsx(outputPath, {
-          overwrite: command.overwrite,
-        });
+      ? await application.campaignExport.writeJson(outputPath)
+      : await application.campaignExport.writeXlsx(outputPath);
   return success({
     artifactFormat: command.artifactFormat,
     outputPath,

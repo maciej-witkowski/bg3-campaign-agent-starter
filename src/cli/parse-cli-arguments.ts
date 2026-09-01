@@ -31,7 +31,6 @@ const cliOptions = {
   limit: { type: "string" },
   format: { type: "string" },
   output: { type: "string" },
-  overwrite: { type: "boolean", default: false },
 } as const;
 
 export function parseCliArguments(args: readonly string[]): CliRequest {
@@ -140,7 +139,6 @@ function commandFor(
     name,
     artifactFormat: values.format,
     outputPath: requiredText(values.output, "--output"),
-    overwrite: values.overwrite ?? false,
   };
 }
 
@@ -158,7 +156,7 @@ function validateAllowedOptions(
     illithid: new Set(),
     changes: new Set(["limit"]),
     validate: new Set(),
-    export: new Set(["format", "output", "overwrite"]),
+    export: new Set(["format", "output"]),
   };
   const disallowed = tokens.find(
     (token) =>

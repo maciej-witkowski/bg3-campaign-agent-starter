@@ -67,9 +67,10 @@ pnpm cli -- --db campaign/current.sqlite --json character "Lae'zel"
 pnpm cli -- --db campaign/current.sqlite export --format json --output campaign/exports/state.json
 ```
 
-The CLI never migrates or mutates SQLite. `export` writes only the explicit artifact and
-refuses an existing target unless `--overwrite` is supplied. See `docs/CLI.md` for the
-complete grammar, filters, JSON contract and exit statuses.
+The CLI never migrates or mutates SQLite. `export` creates only the explicit artifact
+and never replaces an existing target; choose a new path or move/remove the old artifact
+yourself. See `docs/CLI.md` for the complete grammar, filters, JSON contract and exit
+statuses.
 
 The repository does not yet include restore/undo, OpenAI integration, voice or desktop
 UI implementation.

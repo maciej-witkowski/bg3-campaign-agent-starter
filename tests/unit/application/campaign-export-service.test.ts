@@ -49,7 +49,10 @@ describe("CampaignExportService", () => {
           }),
         deserialize: async () => createCampaignExport(emptySnapshot()),
       },
-      { assertSafe: (targetPath) => checkedTargets.push(targetPath) },
+      {
+        allowsOverwrite: true,
+        assertSafe: (targetPath) => checkedTargets.push(targetPath),
+      },
     );
 
     try {
@@ -187,7 +190,7 @@ describe("CampaignExportService", () => {
     );
 
     try {
-      const write = service.writeXlsx(targetPath, { overwrite: true });
+      const write = service.writeXlsx(targetPath);
       expect(releaseSerialization).toBeDefined();
       renameSync(databasePath, targetPath);
       releaseSerialization!(new TextEncoder().encode("xlsx"));
@@ -220,10 +223,68 @@ describe("CampaignExportService", () => {
     );
 
     try {
-      await expect(service.writeXlsx(targetPath, { overwrite: true })).rejects.toThrow(
+      await expect(service.writeXlsx(targetPath)).rejects.toThrow(
         "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
       );
       expect(readFileSync(targetPath, "utf8")).toBe("database");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("uses create-if-absent publication when a protected file appears after the final check", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-source-after-final-check-"));
+    const databasePath = join(directory, "campaign.sqlite");
+    const targetPath = join(directory, "campaign.xlsx");
+    writeFileSync(databasePath, "database");
+    const protectedPolicy = createCampaignExportTargetPolicy(databasePath);
+    let checks = 0;
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: async () => new TextEncoder().encode("xlsx"),
+        deserialize: async () => createCampaignExport(emptySnapshot()),
+      },
+      {
+        allowsOverwrite: false,
+        assertSafe: (checkedPath) => {
+          protectedPolicy.assertSafe(checkedPath);
+          checks += 1;
+          if (checks === 3) renameSync(databasePath, targetPath);
+        },
+      },
+    );
+
+    try {
+      await expect(service.writeXlsx(targetPath)).rejects.toThrow("Plik docelowy już istnieje");
+      expect(checks).toBe(3);
+      expect(readFileSync(targetPath, "utf8")).toBe("database");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects overwrite through a creation-only target policy", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-no-overwrite-"));
+    const databasePath = join(directory, "campaign.sqlite");
+    const targetPath = join(directory, "campaign.json");
+    writeFileSync(databasePath, "database");
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: async () => new Uint8Array(),
+        deserialize: async () => createCampaignExport(emptySnapshot()),
+      },
+      createCampaignExportTargetPolicy(databasePath),
+    );
+
+    try {
+      await expect(service.writeJson(targetPath, { overwrite: true })).rejects.toThrow(
+        "Eksport M3 nie zastępuje istniejących plików",
+      );
+      expect(existsSync(targetPath)).toBe(false);
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

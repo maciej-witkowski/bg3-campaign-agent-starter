@@ -14,9 +14,10 @@
   for one versioned result document. Errors raised while closing an opened M3
   application are contained by the same mapping boundary and cannot expose a stack trace
   or replace an earlier command failure.
-- CLI exports require an explicit local target and refuse overwrite unless the operator
-  supplies `--overwrite`. The database, filesystem aliases and SQLite companion paths
-  remain protected even with that flag. The public M3 export capability enforces the
+- CLI exports require an explicit local target and are creation-only: M3 rejects every
+  existing output and has no overwrite flag. The public M3 export capability also
+  rejects programmatic overwrite requests, while the generic M2 artifact writer retains
+  its separately scoped overwrite behavior. The public M3 capability enforces the
   same target policy for non-CLI consumers and anchors protected resolved/canonical
   paths plus the database and existing SQLite-companion file identities when the
   application opens, so renaming a protected file does not make its new path exportable.
@@ -24,9 +25,10 @@
   directory before policy evaluation and asynchronous serialization. The parent
   device/inode is retained and revalidated before temporary-file creation and
   immediately before final publication. The protected-file policy is rechecked at those
-  same publication boundaries, so replacing the checked directory or moving a protected
-  database onto the target fails closed. Exported campaign state remains private local
-  data.
+  same publication boundaries. Final publication uses an atomic create-if-absent
+  operation, so replacing the checked directory, moving a protected database onto the
+  target or creating any target after the final check fails closed without replacement.
+  Exported campaign state remains private local data.
 - M3 compares the campaign's full sorted application-owned `sqlite_schema` manifest,
   including the migration-ledger definition, with an isolated in-memory schema built
   from the committed migration bundle. Missing or changed columns, constraints, indexes

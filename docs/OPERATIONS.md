@@ -17,8 +17,9 @@ pnpm cli -- --db campaign/current.sqlite export --format json --output campaign/
 pnpm cli -- --db campaign/current.sqlite export --format xlsx --output campaign/exports/state.xlsx
 ```
 
-Existing targets are refused unless `--overwrite` is explicit. Export validates one
-consistent current-state snapshot and creates no audit event or checkpoint.
+M3 never replaces an existing target. Choose a new path or explicitly move/remove the
+old artifact outside the CLI. Export validates one consistent current-state snapshot
+and creates no audit event or checkpoint.
 
 ## Recovery
 M3 provides read-only validation:

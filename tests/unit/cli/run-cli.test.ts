@@ -190,27 +190,15 @@ describe("runCli", () => {
       exportVersion: 1,
     });
     expect(parsed.data).not.toHaveProperty("state");
-    expect(writeJson).toHaveBeenCalledWith(resolveArtifactTarget("state.json"), {
-      overwrite: false,
-    });
+    expect(writeJson).toHaveBeenCalledWith(resolveArtifactTarget("state.json"));
 
     const xlsx = await runCli(
-      [
-        "--db",
-        "campaign.sqlite",
-        "export",
-        "--format",
-        "xlsx",
-        "--output",
-        "state.xlsx",
-        "--overwrite",
-      ],
+      ["--db", "campaign.sqlite", "export", "--format", "xlsx", "--output", "state.xlsx"],
       { openApplication: () => application },
     );
     expect(xlsx.exitCode).toBe(0);
     expect(application.campaignExport.writeXlsx).toHaveBeenCalledWith(
       resolveArtifactTarget("state.xlsx"),
-      { overwrite: true },
     );
   });
 
@@ -269,7 +257,6 @@ describe("runCli", () => {
         "json",
         "--output",
         "campaign.sqlite",
-        "--overwrite",
       ],
       { openApplication: open },
     );

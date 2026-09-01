@@ -78,6 +78,57 @@ describe("renderHumanSuccess", () => {
     );
   });
 
+  it("renders complete equipment effects and an explicit empty marker", () => {
+    const baseItem = {
+      assignment: { slot: "RING_1" },
+      definition: { namePl: "Pierścień Blasku" },
+      inventoryItem: { id: "inventory-ring" },
+    };
+    const effect = {
+      effectType: "BONUS",
+      numericValue: 2,
+      diceExpression: null,
+      damageType: "Promienne",
+      trigger: "Trafienie",
+      conditionTextPl: "Gdy cel jest oświetlony",
+      durationTextPl: null,
+      descriptionPl: "Premia do obrażeń",
+      verificationStatus: "USER_CONFIRMED",
+    };
+
+    expect(
+      renderHumanSuccess("equipment", {
+        character: { displayNamePl: "Lae'zel" },
+        items: [{ ...baseItem, effects: [effect] }],
+      }),
+    ).toContain(
+      "efekty: typ: BONUS, wartość: 2, kości: nieznane, obrażenia: Promienne, wyzwalacz: Trafienie, warunek: Gdy cel jest oświetlony, czas: nieznane, opis: Premia do obrażeń, weryfikacja: USER_CONFIRMED",
+    );
+    expect(
+      renderHumanSuccess("equipment", {
+        character: { displayNamePl: "Lae'zel" },
+        items: [{ ...baseItem, effects: [] }],
+      }),
+    ).toContain("efekty: brak");
+  });
+
+  it("renders inventory stack quantity", () => {
+    expect(
+      renderHumanSuccess("inventory", {
+        filters: { slots: [], statuses: [], tags: [] },
+        items: [
+          {
+            definition: { namePl: "Mikstura Leczenia" },
+            inventoryItem: { status: "CARRIED", quantity: 4 },
+            owner: { displayNamePl: "Lae'zel" },
+            effects: [],
+            equipment: null,
+          },
+        ],
+      }),
+    ).toBe("Inwentarz\n- Mikstura Leczenia — CARRIED — ilość: 4 — Lae'zel\n");
+  });
+
   it("renders known illithid prerequisite edges", () => {
     const output = renderHumanSuccess("illithid", {
       character: null,

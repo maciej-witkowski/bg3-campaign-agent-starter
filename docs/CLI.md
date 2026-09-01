@@ -20,7 +20,8 @@ The installed executable name is `bg3-campaign`. Repository examples use
 - No command creates an audit event or checkpoint.
 - `export` writes only its explicit output file; SQLite remains unchanged.
 - Export targets resolving to the database, an existing filesystem alias or its
-  `-wal`, `-shm` and `-journal` companions are rejected even with `--overwrite`.
+  `-wal`, `-shm` and `-journal` companions are rejected. M3 never replaces any existing
+  output file.
 - No command uses AI, web research, fuzzy name resolution or mutation tools.
 
 SQLite databases and exports contain private campaign state. Keep them outside source
@@ -38,10 +39,13 @@ bg3-campaign --db <path> [--json] spells <name>
 bg3-campaign --db <path> [--json] illithid [name]
 bg3-campaign --db <path> [--json] changes [--limit <1-1000>]
 bg3-campaign --db <path> [--json] validate
-bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path> [--overwrite]
+bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path>
 ```
 
 Quote character names containing spaces or shell-significant punctuation.
+
+Human equipment output includes every recorded effect field or an explicit empty
+marker. Human inventory output includes the recorded stack quantity.
 
 `party` returns active characters and effective attributes. `character` returns the
 profile, attributes, permanent modifiers and assigned abilities. Equipment, spells and

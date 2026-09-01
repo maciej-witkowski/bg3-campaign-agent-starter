@@ -78,7 +78,8 @@ arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout
 separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
 Human party-output coverage requires the optional subclass and every base/effective
 attribute pair from the DTO. Exact renderer regressions also require permanent modifier
-details/empty state, all independent spell flags and illithid prerequisite IDs.
+details/empty state, all independent spell flags, complete equipment effects/empty
+state, inventory quantity and illithid prerequisite IDs.
 Error-context regressions require raw `--` to terminate JSON-option recovery even when
 a malformed preceding string option consumes it as a value, while preserving the first
 command positional after the terminator. Lifecycle regressions require close failures
@@ -87,8 +88,8 @@ to remain inside the safe envelope and never replace an earlier mapped command f
 After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
 latest-schema database and launches the actual `dist/cli/main.js` child process for all
 nine commands. Every JSON envelope and the export artifact are parsed, and the SQLite
-SHA-256 before/after all commands must match. The smoke also attempts overwrite exports
-against the database, WAL and SHM paths and requires a safe exit-5 refusal.
+SHA-256 before/after all commands must match. The smoke also attempts exports against
+the database, WAL, SHM and an existing export target and requires a safe exit-5 refusal.
 
 Direct M3 composition coverage invokes both public export writers and proves the same
 database/SQLite-companion target policy cannot be bypassed outside the CLI adapter. A
@@ -97,13 +98,17 @@ requires the original database path to remain protected.
 
 Export-policy regressions also rename the database and an existing WAL after policy
 construction. Their new paths must remain protected by captured filesystem identity,
-their bytes must remain unchanged, and an unrelated existing artifact must remain a
-valid explicit overwrite target.
+and their bytes must remain unchanged. M3 creation-only coverage requires every
+unrelated existing artifact to remain unchanged and rejects direct programmatic
+overwrite, while the generic M2 export writer retains separate overwrite regression
+coverage.
 
 Deferred-serialization and temporary-artifact-verification regressions move the
 protected database onto an initially safe output path after the first policy check. The
 writer must recheck the retained policy before temporary-file creation and immediately
-before publication, fail safely and preserve database bytes. Composition lifecycle
+before publication, then use create-if-absent publication. A regression moves the
+database after that final check and requires the atomic publication operation itself to
+refuse replacement and preserve database bytes. Composition lifecycle
 coverage also injects simultaneous schema setup and close failures and requires the
 original setup error to retain precedence.
 

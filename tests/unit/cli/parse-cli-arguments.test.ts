@@ -17,6 +17,16 @@ const invalidInvocations: readonly (readonly string[])[] = [
   ["--db", "campaign.sqlite", "inventory", "--tag", "   "],
   ["--db", "campaign.sqlite", "export", "--format", "xml", "--output", "x"],
   ["--db", "campaign.sqlite", "export", "--format", "json"],
+  [
+    "--db",
+    "campaign.sqlite",
+    "export",
+    "--format",
+    "json",
+    "--output",
+    "state.json",
+    "--overwrite",
+  ],
   ["--db", "campaign.sqlite", "party", "--unknown"],
 ];
 
@@ -40,17 +50,8 @@ describe("parseCliArguments", () => {
     [["--db", "campaign.sqlite", "changes", "--limit", "12"], { name: "changes", limit: 12 }],
     [["--db", "campaign.sqlite", "validate"], { name: "validate" }],
     [
-      [
-        "--db",
-        "campaign.sqlite",
-        "export",
-        "--format",
-        "xlsx",
-        "--output",
-        "state.xlsx",
-        "--overwrite",
-      ],
-      { name: "export", artifactFormat: "xlsx", outputPath: "state.xlsx", overwrite: true },
+      ["--db", "campaign.sqlite", "export", "--format", "xlsx", "--output", "state.xlsx"],
+      { name: "export", artifactFormat: "xlsx", outputPath: "state.xlsx" },
     ],
   ] as const)("parses a valid command %#", (args, expected) => {
     expect(parseCliArguments(args)).toMatchObject({

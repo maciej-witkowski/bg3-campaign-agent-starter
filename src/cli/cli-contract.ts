@@ -32,7 +32,6 @@ export type CliCommand =
       readonly name: "export";
       readonly artifactFormat: "json" | "xlsx";
       readonly outputPath: string;
-      readonly overwrite: boolean;
     };
 
 export interface CliCommandRequest {

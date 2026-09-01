@@ -7,6 +7,7 @@ import { ArtifactWriteError } from "./atomic-artifact-writer.js";
 const SQLITE_COMPANION_SUFFIXES = ["", "-wal", "-shm", "-journal"] as const;
 
 export interface CampaignExportTargetPolicy {
+  readonly allowsOverwrite: boolean;
   assertSafe(targetPath: string): void;
 }
 
@@ -29,6 +30,7 @@ export function createCampaignExportTargetPolicy(databasePath: string): Campaign
   }
 
   return {
+    allowsOverwrite: false,
     assertSafe: (outputPath) => {
       const target = resolve(outputPath);
       const targetCanonical = canonicalPath(target);

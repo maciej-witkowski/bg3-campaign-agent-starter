@@ -4,6 +4,9 @@ Status: Accepted
 
 Milestone: M3 — Read-Only CLI
 
+Partial supersession: ADR-0029 removes the M3 `--overwrite` option; the remaining CLI
+grammar, output and lifecycle contract stays accepted.
+
 ## Context and problem statement
 
 M3 requires a usable local command-line interface and a stable machine-readable JSON
@@ -90,7 +93,7 @@ bg3-campaign --db <path> [--json] spells <name>
 bg3-campaign --db <path> [--json] illithid [name]
 bg3-campaign --db <path> [--json] changes [--limit <positive-integer>]
 bg3-campaign --db <path> [--json] validate
-bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path> [--overwrite]
+bg3-campaign --db <path> [--json] export --format <json|xlsx> --output <path>
 ```
 
 Global options may appear before or after the command only where the native parser can
@@ -210,7 +213,8 @@ broad categories.
   snapshots.
 - Human output and JSON still contain private campaign facts requested by the local
   user; the CLI does not transmit them or create telemetry.
-- Explicit `--overwrite` is required before replacing an export artifact.
+- Per ADR-0029, M3 never replaces an existing export artifact; the operator must choose
+  a new path or explicitly move/remove the old artifact outside the CLI.
 
 ## Required tests and operational evidence
 
@@ -250,7 +254,9 @@ broad categories.
   markers; the party view includes the recorded class, optional subclass and each
   base/effective attribute pair. Character output includes permanent modifier details,
   spell rows expose all independent assignment flags and illithid rows include known
-  prerequisite IDs. Human failures use stderr; JSON-mode failures use stdout only.
+  prerequisite IDs. Equipment rows include every recorded effect fact or explicit empty
+  state, and inventory rows include quantity. Human failures use stderr; JSON-mode
+  failures use stdout only.
 - Export dispatch calls the approved M2 JSON/XLSX writers, reports only bounded artifact
   metadata and keeps the campaign export body in the explicit output file. The reported
   output path is the same resolved/canonical target passed to policy evaluation and
@@ -335,3 +341,6 @@ tests must not require color.
 - 2026-09-01 — After approved setup-cleanup remediation, preserved the original M3
   setup/schema error if closing the partially initialized application also fails, keeping
   the stable CLI error mapping actionable.
+- 2026-09-01 — Partially superseded by accepted ADR-0029: removed `--overwrite` from M3,
+  enforced creation-only public export, and completed human equipment effects and
+  inventory quantity output.

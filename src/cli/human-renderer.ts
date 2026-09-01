@@ -85,7 +85,10 @@ function renderEquipment(value: EquipmentView): string {
   return section(
     `Ekwipunek: ${value.character.displayNamePl}`,
     value.items.map(
-      (item) => `${item.assignment.slot}: ${item.definition.namePl} [${item.inventoryItem.id}]`,
+      (item) =>
+        `${item.assignment.slot}: ${item.definition.namePl} [${item.inventoryItem.id}] — efekty: ${
+          item.effects.length === 0 ? "brak" : item.effects.map(renderItemEffect).join(" | ")
+        }`,
     ),
   );
 }
@@ -95,9 +98,23 @@ function renderInventory(value: InventoryView): string {
     "Inwentarz",
     value.items.map(
       (item) =>
-        `${item.definition.namePl} — ${item.inventoryItem.status} — ${item.owner?.displayNamePl ?? "bez właściciela"}`,
+        `${item.definition.namePl} — ${item.inventoryItem.status} — ilość: ${item.inventoryItem.quantity} — ${item.owner?.displayNamePl ?? "bez właściciela"}`,
     ),
   );
+}
+
+function renderItemEffect(effect: EquipmentView["items"][number]["effects"][number]): string {
+  return [
+    `typ: ${effect.effectType}`,
+    `wartość: ${unknown(effect.numericValue)}`,
+    `kości: ${unknown(effect.diceExpression)}`,
+    `obrażenia: ${unknown(effect.damageType)}`,
+    `wyzwalacz: ${unknown(effect.trigger)}`,
+    `warunek: ${unknown(effect.conditionTextPl)}`,
+    `czas: ${unknown(effect.durationTextPl)}`,
+    `opis: ${effect.descriptionPl}`,
+    `weryfikacja: ${effect.verificationStatus}`,
+  ].join(", ");
 }
 
 function renderSpells(value: SpellsView): string {
