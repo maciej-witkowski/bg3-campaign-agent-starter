@@ -8,6 +8,7 @@ import type {
   SpellSource,
   VerificationStatus,
 } from "../../domain/model/campaign.js";
+export { normalizePolishMatchingKey } from "../../domain/naming/polish-matching.js";
 
 const LEGACY_INVENTORY_STATUSES = {
   WYPOSAŻONY: "EQUIPPED",
@@ -72,10 +73,6 @@ const LEGACY_VERIFICATION_STATUSES = {
   "POTWIERDZONE W GRZE": "VERIFIED",
   "ZWERYFIKOWANE WCZEŚNIEJ": "VERIFIED",
 } as const satisfies Record<string, VerificationStatus>;
-
-export function normalizePolishMatchingKey(value: string): string {
-  return value.normalize("NFC").trim().replace(/\s+/gu, " ").toLocaleLowerCase("pl-PL");
-}
 
 export function mapLegacyInventoryStatus(value: string): InventoryStatus | null {
   return lookup(LEGACY_INVENTORY_STATUSES, value);

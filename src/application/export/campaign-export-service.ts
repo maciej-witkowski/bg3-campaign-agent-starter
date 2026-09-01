@@ -1,6 +1,12 @@
 import { deserializeCampaignExport, serializeCampaignExport } from "./campaign-export.js";
 import { createCampaignExport, type CampaignExportV1 } from "./campaign-export.js";
-import { writeVerifiedArtifact, type ArtifactWriteOptions } from "./atomic-artifact-writer.js";
+import type { CampaignExportTargetPolicy } from "./campaign-export-target.js";
+import {
+  ArtifactWriteError,
+  prepareArtifactTarget,
+  writeVerifiedArtifactToResolvedTarget,
+  type ArtifactWriteOptions,
+} from "./atomic-artifact-writer.js";
 
 export interface CampaignExportSourcePort {
   captureCurrentState(capturedAt: Date): string;
@@ -20,6 +26,7 @@ export class CampaignExportService {
     private readonly source: CampaignExportSourcePort,
     private readonly clock: ExportClock,
     private readonly xlsx: CampaignXlsxCodec,
+    private readonly targetPolicy?: CampaignExportTargetPolicy,
   ) {}
 
   public capture(): CampaignExportV1 {
@@ -31,15 +38,19 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.assertOverwriteAllowed(options);
+    const target = prepareArtifactTarget(targetPath);
+    this.targetPolicy?.assertSafe(target.path);
     const value = this.capture();
     const bytes = new TextEncoder().encode(serializeCampaignExport(value));
-    await writeVerifiedArtifact(
-      targetPath,
+    await writeVerifiedArtifactToResolvedTarget(
+      target,
       bytes,
       (published) => {
         deserializeCampaignExport(new TextDecoder().decode(published));
       },
       options,
+      this.targetPolicy,
     );
     return value;
   }
@@ -48,16 +59,28 @@ export class CampaignExportService {
     targetPath: string,
     options: ArtifactWriteOptions = {},
   ): Promise<CampaignExportV1> {
+    this.assertOverwriteAllowed(options);
+    const target = prepareArtifactTarget(targetPath);
+    this.targetPolicy?.assertSafe(target.path);
     const value = this.capture();
     const bytes = await this.xlsx.serialize(value);
-    await writeVerifiedArtifact(
-      targetPath,
+    await writeVerifiedArtifactToResolvedTarget(
+      target,
       bytes,
       async (published) => {
         await this.xlsx.deserialize(published);
       },
       options,
+      this.targetPolicy,
     );
     return value;
+  }
+
+  private assertOverwriteAllowed(options: ArtifactWriteOptions): void {
+    if (options.overwrite === true && this.targetPolicy?.allowsOverwrite === false) {
+      throw new ArtifactWriteError(
+        "Eksport M3 nie zastępuje istniejących plików; wskaż nową ścieżkę docelową.",
+      );
+    }
   }
 }

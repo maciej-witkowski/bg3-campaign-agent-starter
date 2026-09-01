@@ -55,3 +55,82 @@ character row, preventing unchanged dependent references from resolving to the f
 same-named character.
 
 Private acceptance uses `scripts/verify-m2-real-import.mjs` only after `pnpm build`. It refuses existing targets, imports the real tracker into a new database, repeats the import, verifies SQLite integrity and foreign keys, exports JSON/XLSX, imports both into separate fresh databases and compares canonical state digests. Generated evidence remains under ignored `campaign/exports/`.
+
+## M3 read-only CLI evidence
+
+Sanitized unit/integration coverage verifies the existing-file-only SQLite connection,
+query-only write refusal, byte-identical database files, exact migration hash/timestamp
+compatibility and refusal of missing, old, new, tampered or incomplete schemas.
+Compatibility regressions additionally remove a required index and rename a required
+column while preserving the migration ledger; both must fail the full schema manifest
+comparison. A ledger-structure regression preserves every migration-history row while
+recreating `__drizzle_migrations` without its required constraints; the full manifest
+must still reject it.
+
+Application tests cover active-party projection, base/effective attributes, canonical
+and Polish/NFC character resolution, ambiguity/not-found, equipment joins, inventory
+filter AND/OR behavior, exact effect facets, spell flags, illithid non-inference,
+summary-only audit limits/order, validation and explicit export isolation. Regressions
+also reject equipment rows with contradictory status, owner, quantity or known slot.
+
+CLI contract tests cover every command grammar, help/version, duplicate/unknown/missing
+arguments, V1 success/failure envelopes, Unicode/null/date serialization, stdout/stderr
+separation, human output, exit categories, safe internal errors and JSON/XLSX dispatch.
+Human party-output coverage requires the optional subclass and every base/effective
+attribute pair from the DTO. Exact renderer regressions also require permanent modifier
+details/empty state, all independent spell flags, complete equipment effects/empty
+state, inventory quantity and illithid prerequisite IDs.
+Error-context regressions require raw `--` to terminate JSON-option recovery even when
+a malformed preceding string option consumes it as a value, while preserving the first
+command positional after the terminator. Lifecycle regressions require close failures
+to remain inside the safe envelope and never replace an earlier mapped command failure.
+
+After the production build, `scripts/smoke-production.mjs` creates a sanitized temporary
+latest-schema database and launches the actual `dist/cli/main.js` child process for all
+nine commands. Every JSON envelope and the export artifact are parsed, and the SQLite
+SHA-256 before/after all commands must match. The smoke also attempts exports against
+the database, WAL, SHM and an existing export target and requires a safe exit-5 refusal.
+
+Direct M3 composition coverage invokes both public export writers and proves the same
+database/SQLite-companion target policy cannot be bypassed outside the CLI adapter. A
+relative-path regression changes the process working directory after opening and still
+requires the original database path to remain protected.
+
+Export-policy regressions also rename the database and an existing WAL after policy
+construction. Their new paths must remain protected by captured filesystem identity,
+and their bytes must remain unchanged. M3 creation-only coverage requires every
+unrelated existing artifact to remain unchanged and rejects direct programmatic
+overwrite, while the generic M2 export writer retains separate overwrite regression
+coverage.
+
+Deferred-serialization and temporary-artifact-verification regressions move the
+protected database onto an initially safe output path after the first policy check. The
+writer must recheck the retained policy before temporary-file creation and immediately
+before publication, then use create-if-absent publication. A regression moves the
+database after that final check and requires the atomic publication operation itself to
+refuse replacement and preserve database bytes. Composition lifecycle
+coverage also injects simultaneous schema setup and close failures and requires the
+original setup error to retain precedence.
+
+A deferred XLSX codec regression changes the working directory while serialization is
+pending and proves policy evaluation and atomic publication retain the same absolute
+output target. A redirected directory-link regression likewise proves publication uses
+the canonical parent captured before serialization. Directory-identity regressions
+rename that canonical parent and replace it with a database-directed junction during
+deferred serialization and temporary-artifact verification; publication must fail and
+the database sentinel must remain unchanged. CLI coverage verifies its success envelope
+reports the exact retained target even if the working directory changes.
+
+Both equipment and inventory projections reject joined equipment facts with a
+contradictory status, owner, quantity or known definition slot. They also reject a
+returned/character-owned `EQUIPPED` instance without an assignment, while an inventory
+filter regression proves excluded contradictory rows do not fail an unrelated query.
+Returned `CHEST` and `SOLD` rows with a non-null owner likewise fail closed, while the
+same contradiction remains irrelevant when excluded by the requested status filter.
+
+Illithid projection regressions reject acquisitions without a power definition and
+prerequisite edges whose source or target definition is missing.
+
+Validation-port regression uses two SQLite connections in WAL mode. A writer commits
+between two reads inside the validation callback; both reads must observe the original
+snapshot, while a later transaction observes the committed row.

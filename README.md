@@ -2,7 +2,11 @@
 
 Persistent local-first Baldur's Gate 3 campaign manager with AI-assisted build, equipment, spell and item analysis.
 
-Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical SQLite persistence and typed campaign-state domain foundation. M2 adds a conservative legacy-tracker import, reconciliation/report artifacts and lossless current-state JSON/XLSX exchange; later milestones add read-only tools and agent-facing behavior.
+Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical
+SQLite persistence and typed campaign-state domain foundation. M2 adds a conservative
+legacy-tracker import, reconciliation/report artifacts and lossless current-state
+JSON/XLSX exchange. M3 adds a local read-only inspection CLI without AI; later milestones
+add typed model tools and agent-facing behavior.
 
 ## Start here
 
@@ -37,6 +41,7 @@ Copying `.env.example` is optional because all current settings have safe develo
 | Command | Purpose |
 | --- | --- |
 | `pnpm build` | Compile production ESM output into `dist/`. |
+| `pnpm cli -- <args>` | Run the built M3 `bg3-campaign` CLI. |
 | `pnpm check` | Run formatting check, lint, typecheck, tests and build. |
 | `pnpm db:generate` | Generate a committed Drizzle SQL migration after an approved schema change. |
 | `pnpm format` | Apply Prettier to maintained source/configuration files. |
@@ -50,4 +55,22 @@ Copying `.env.example` is optional because all current settings have safe develo
 
 The original tracker is parsed as private, untrusted input. Import is planned before one validated and audited transaction; the same source imported twice is a no-op. Generated reports, reconciliation documents, SQLite databases and exports under `campaign/exports/` are ignored by Git. See `docs/IMPORT_EXPORT.md` for the supported profiles and local acceptance command.
 
-The repository does not yet include the M3 read-only CLI, restore/undo, OpenAI integration, voice or UI implementation.
+## M3 read-only CLI
+
+Build once, then point every data command at one explicit existing latest-schema
+database:
+
+```sh
+pnpm build
+pnpm cli -- --db campaign/current.sqlite party
+pnpm cli -- --db campaign/current.sqlite --json character "Lae'zel"
+pnpm cli -- --db campaign/current.sqlite export --format json --output campaign/exports/state.json
+```
+
+The CLI never migrates or mutates SQLite. `export` creates only the explicit artifact
+and never replaces an existing target; choose a new path or move/remove the old artifact
+yourself. See `docs/CLI.md` for the complete grammar, filters, JSON contract and exit
+statuses.
+
+The repository does not yet include restore/undo, OpenAI integration, voice or desktop
+UI implementation.

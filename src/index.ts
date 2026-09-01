@@ -64,3 +64,58 @@ export type {
   M2CampaignApplication,
   OpenM2CampaignApplicationOptions,
 } from "./composition/m2-campaign-application.js";
+
+export {
+  CampaignInspectionError,
+  DEFAULT_CHANGE_LIMIT,
+  MAX_CHANGE_LIMIT,
+} from "./application/inspection/campaign-inspection.js";
+export type {
+  CampaignInspectionErrorCode,
+  ChangeSummaryView,
+  ChangesView,
+  CharacterAbilityView,
+  CharacterIdentityView,
+  CharacterSpellView,
+  CharacterView,
+  EffectiveAttributeView,
+  EquipmentItemView,
+  EquipmentView,
+  IllithidPowerView,
+  IllithidView,
+  InventoryFilters,
+  InventoryItemView,
+  InventoryView,
+  PartyCharacterView,
+  PartyView,
+  SpellsView,
+} from "./application/inspection/campaign-inspection.js";
+export { CampaignInspectionService } from "./application/inspection/campaign-inspection-service.js";
+export { CampaignValidationService } from "./application/inspection/campaign-validation-service.js";
+export type {
+  CampaignValidationReadPort,
+  CampaignValidationResult,
+} from "./application/inspection/campaign-validation-service.js";
+export { openM3CampaignApplication } from "./composition/m3-campaign-application.js";
+export type {
+  M3CampaignApplication,
+  OpenM3CampaignApplicationOptions,
+} from "./composition/m3-campaign-application.js";
+
+export { CLI_RESULT_FORMAT, CLI_RESULT_VERSION, CliUsageError } from "./cli/cli-contract.js";
+export type {
+  CliCommand,
+  CliCommandName,
+  CliCommandRequest,
+  CliEnvelope,
+  CliErrorPayload,
+  CliFailureEnvelope,
+  CliProcessResult,
+  CliRequest,
+  CliSuccessEnvelope,
+  CliUsageErrorCode,
+} from "./cli/cli-contract.js";
+export { cliFailure, cliSuccess, serializeCliEnvelope } from "./cli/cli-envelope.js";
+export { parseCliArguments } from "./cli/parse-cli-arguments.js";
+export { runCli } from "./cli/run-cli.js";
+export type { RunCliOptions } from "./cli/run-cli.js";

@@ -66,6 +66,13 @@ const slotCompatibility: Readonly<Record<EquipmentAssignment["slot"], ItemDefini
   INSTRUMENT: "INSTRUMENT",
 };
 
+export function isEquipmentSlotCompatible(
+  equipmentSlot: EquipmentAssignment["slot"],
+  definitionSlot: ItemDefinition["slot"],
+): boolean {
+  return definitionSlot === null || definitionSlot === slotCompatibility[equipmentSlot];
+}
+
 export function calculateEffectiveAttribute(
   attribute: CharacterAttribute,
   modifiers: readonly PermanentModifier[],
@@ -127,7 +134,7 @@ export function validateCampaignState(
     const definition = definitions.get(item.itemDefinitionId);
     if (definition === undefined) {
       violations.push(violation("EQUIPMENT_DEFINITION_MISSING", [item.id, item.itemDefinitionId]));
-    } else if (definition.slot !== null && definition.slot !== slotCompatibility[assignment.slot]) {
+    } else if (!isEquipmentSlotCompatible(assignment.slot, definition.slot)) {
       violations.push(violation("EQUIPMENT_SLOT_MISMATCH", [item.id, definition.id]));
     }
   }

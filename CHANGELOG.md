@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- Implemented the M3 local read-only CLI with `party`, `character`, `equipment`,
+  `inventory`, `spells`, `illithid`, `changes`, `validate` and `export` commands.
+- Added a dedicated existing-file-only SQLite connection with driver read-only mode,
+  `query_only` defence and exact non-mutating migration/schema compatibility checks.
+- Added typed deterministic inspection projections, conservative Polish character-name
+  resolution, derived effective attributes and exact stored-effect inventory facets.
+- Added the versioned `BG3_CLI_RESULT` V1 JSON envelope, Polish human output, strict
+  native argument parsing, safe error mapping and stable process exit categories.
+- Added the `bg3-campaign` production executable, JSON/XLSX export dispatch and
+  child-process smoke coverage proving all M3 commands leave canonical SQLite bytes
+  unchanged.
+- Made M3 export creation-only for CLI and direct application consumers, protected the
+  campaign database, filesystem aliases and SQLite companion files, and made complete
+  CLI validation observe one transactional snapshot.
+- Completed human equipment effect and inventory quantity output.
+- Recorded the approved M3 architecture in ADRs 0026–0029 and added a durable
+  per-ADR implementation tracker.
 - Added M15 Campaign Initialization and Onboarding after the core product workflows, with clean-start and mid-campaign entry modes; moved Reliability / Evals / Long-Term Operations to M16.
 - Implemented M2 legacy XLSX staging, exact Polish normalization, entity-specific planning and one-transaction audited campaign import.
 - Added deterministic import reports and digest-bound reconciliation documents for skipped, ambiguous and conflicting source facts.

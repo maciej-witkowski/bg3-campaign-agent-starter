@@ -1,0 +1,340 @@
+import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import process from "node:process";
+
+import { describe, expect, it, vi } from "vitest";
+
+import type { M3CampaignApplication } from "../../../src/composition/m3-campaign-application.js";
+import { runCli } from "../../../src/cli/run-cli.js";
+import { CampaignInspectionError } from "../../../src/application/inspection/campaign-inspection.js";
+import {
+  ArtifactWriteError,
+  resolveArtifactTarget,
+} from "../../../src/application/export/atomic-artifact-writer.js";
+import { SchemaCompatibilityError } from "../../../src/persistence/sqlite/schema-compatibility.js";
+
+describe("runCli", () => {
+  it("returns help/version without opening a database", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const help = await runCli(["--help"], { openApplication: open, version: "0.3.0" });
+    const version = await runCli(["--version"], { openApplication: open, version: "0.3.0" });
+
+    expect(help).toMatchObject({ exitCode: 0, stderr: "" });
+    expect(help.stdout).toContain("read-only CLI");
+    expect(version).toEqual({ exitCode: 0, stdout: "0.3.0\n", stderr: "" });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid JSON-mode arguments before opening and emits one JSON document", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const result = await runCli(["--json", "party"], { openApplication: open });
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toBe("");
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      format: "BG3_CLI_RESULT",
+      version: 1,
+      command: "party",
+      ok: false,
+      error: { code: "INVALID_ARGUMENTS" },
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("derives an error command only from the parsed command position", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const invalidArity = await runCli(["--db", "x", "--json", "character", "party", "extra"], {
+      openApplication: open,
+    });
+    const unknownWithCommandNamedDatabase = await runCli(["--db", "party", "--json", "unknown"], {
+      openApplication: open,
+    });
+
+    expect(JSON.parse(invalidArity.stdout)).toMatchObject({
+      command: "character",
+      ok: false,
+    });
+    expect(JSON.parse(unknownWithCommandNamedDatabase.stdout)).toMatchObject({
+      command: null,
+      ok: false,
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("preserves parsed error context without treating positional data as JSON mode", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const laterInvalidOption = await runCli(["--db", "x", "--json", "party", "--unknown"], {
+      openApplication: open,
+    });
+    const positionalJson = await runCli(["--db", "x", "party", "--", "--json"], {
+      openApplication: open,
+    });
+    const malformedBeforeTerminator = await runCli(
+      ["--db", "x", "party", "--output", "--", "--json"],
+      { openApplication: open },
+    );
+    const commandAfterTerminator = await runCli(["--json", "--db", "x", "--", "party", "extra"], {
+      openApplication: open,
+    });
+
+    expect(JSON.parse(laterInvalidOption.stdout)).toMatchObject({
+      command: "party",
+      ok: false,
+    });
+    expect(positionalJson.stdout).toBe("");
+    expect(positionalJson.stderr).toContain("Błąd:");
+    expect(malformedBeforeTerminator.stdout).toBe("");
+    expect(malformedBeforeTerminator.stderr).toContain("Błąd:");
+    expect(JSON.parse(commandAfterTerminator.stdout)).toMatchObject({
+      command: "party",
+      ok: false,
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("keeps human failures on stderr and closes the application", async () => {
+    const application = fakeApplication();
+    const close = vi.spyOn(application, "close");
+
+    const result = await runCli(["--db", "campaign.sqlite", "character", "Brak"], {
+      openApplication: () => application,
+    });
+
+    expect(result).toEqual({
+      exitCode: 3,
+      stdout: "",
+      stderr: "Błąd: Nie znaleziono postaci.\n",
+    });
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("contains close failures without replacing an earlier command failure", async () => {
+    const successfulApplication = fakeApplication();
+    vi.mocked(successfulApplication.close).mockImplementation(() => {
+      throw new Error("sekret zamknięcia");
+    });
+    const closeAfterSuccess = await runCli(["--db", "campaign.sqlite", "--json", "party"], {
+      openApplication: () => successfulApplication,
+    });
+
+    const failedApplication = fakeApplication();
+    vi.mocked(failedApplication.close).mockImplementation(() => {
+      throw new Error("drugi sekret zamknięcia");
+    });
+    const closeAfterFailure = await runCli(
+      ["--db", "campaign.sqlite", "--json", "character", "Brak"],
+      { openApplication: () => failedApplication },
+    );
+
+    expect(closeAfterSuccess.exitCode).toBe(1);
+    expect(closeAfterSuccess.stdout).not.toContain("sekret zamknięcia");
+    expect(JSON.parse(closeAfterSuccess.stdout)).toMatchObject({
+      error: { code: "INTERNAL_ERROR" },
+    });
+    expect(closeAfterFailure.exitCode).toBe(3);
+    expect(closeAfterFailure.stdout).not.toContain("drugi sekret zamknięcia");
+    expect(JSON.parse(closeAfterFailure.stdout)).toMatchObject({
+      error: { code: "CHARACTER_NOT_FOUND" },
+    });
+  });
+
+  it("returns a complete validation report with exit 4 for invalid state", async () => {
+    const application = fakeApplication();
+    vi.spyOn(application.validation, "validate").mockReturnValue({
+      valid: false,
+      violations: [
+        { code: "INVENTORY_OWNER_INVALID", entityIds: ["item-1"], message: "Błąd stanu" },
+      ],
+    });
+
+    const result = await runCli(["--db", "campaign.sqlite", "--json", "validate"], {
+      openApplication: () => application,
+    });
+
+    expect(result.exitCode).toBe(4);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ok: true,
+      data: { valid: false, violations: [{ code: "INVENTORY_OWNER_INVALID" }] },
+    });
+  });
+
+  it("renders successful human output on stdout", async () => {
+    const application = fakeApplication();
+
+    const result = await runCli(["--db", "campaign.sqlite", "party"], {
+      openApplication: () => application,
+    });
+
+    expect(result).toEqual({ exitCode: 0, stdout: "Aktywna drużyna\n— brak —\n", stderr: "" });
+  });
+
+  it("renders export metadata separately from the campaign artifact", async () => {
+    const application = fakeApplication();
+    const writeJson = vi.spyOn(application.campaignExport, "writeJson");
+
+    const result = await runCli(
+      ["--db", "campaign.sqlite", "--json", "export", "--format", "json", "--output", "state.json"],
+      { openApplication: () => application },
+    );
+
+    const parsed = JSON.parse(result.stdout) as { readonly data: Record<string, unknown> };
+    expect(result.exitCode).toBe(0);
+    expect(parsed.data).toMatchObject({
+      artifactFormat: "json",
+      exportFormat: "BG3_CAMPAIGN_EXPORT",
+      exportVersion: 1,
+    });
+    expect(parsed.data).not.toHaveProperty("state");
+    expect(writeJson).toHaveBeenCalledWith(resolveArtifactTarget("state.json"));
+
+    const xlsx = await runCli(
+      ["--db", "campaign.sqlite", "export", "--format", "xlsx", "--output", "state.xlsx"],
+      { openApplication: () => application },
+    );
+    expect(xlsx.exitCode).toBe(0);
+    expect(application.campaignExport.writeXlsx).toHaveBeenCalledWith(
+      resolveArtifactTarget("state.xlsx"),
+    );
+  });
+
+  it("reports the export target anchored before asynchronous work", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-cli-output-target-"));
+    const initialDirectory = join(directory, "initial");
+    const changedDirectory = join(directory, "changed");
+    mkdirSync(initialDirectory);
+    mkdirSync(changedDirectory);
+    const previousDirectory = process.cwd();
+    const application = fakeApplication();
+    let receivedTarget: string | undefined;
+    vi.spyOn(application.campaignExport, "writeXlsx").mockImplementation(async (targetPath) => {
+      receivedTarget = targetPath;
+      process.chdir(changedDirectory);
+      return exportValue();
+    });
+
+    try {
+      process.chdir(initialDirectory);
+      const result = await runCli(
+        [
+          "--db",
+          "campaign.sqlite",
+          "--json",
+          "export",
+          "--format",
+          "xlsx",
+          "--output",
+          "campaign.xlsx",
+        ],
+        { openApplication: () => application },
+      );
+      const expectedTarget = join(realpathSync.native(initialDirectory), "campaign.xlsx");
+
+      expect(receivedTarget).toBe(expectedTarget);
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        data: { outputPath: expectedTarget },
+      });
+    } finally {
+      process.chdir(previousDirectory);
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects an export target that aliases the campaign database before opening it", async () => {
+    const open = vi.fn<() => M3CampaignApplication>();
+
+    const result = await runCli(
+      [
+        "--db",
+        "campaign.sqlite",
+        "--json",
+        "export",
+        "--format",
+        "json",
+        "--output",
+        "campaign.sqlite",
+      ],
+      { openApplication: open },
+    );
+
+    expect(result.exitCode).toBe(5);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      error: { code: "ARTIFACT_WRITE_FAILED" },
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("maps database, export and unexpected failures to stable broad exit categories", async () => {
+    const schema = await runCli(["--db", "old.sqlite", "--json", "party"], {
+      openApplication: () => {
+        throw new SchemaCompatibilityError("SCHEMA_OLDER", "Starszy schemat.");
+      },
+    });
+    const exportApplication = fakeApplication();
+    vi.spyOn(exportApplication.campaignExport, "writeJson").mockRejectedValue(
+      new ArtifactWriteError("Nie udało się zapisać."),
+    );
+    const artifact = await runCli(
+      ["--db", "campaign.sqlite", "--json", "export", "--format", "json", "--output", "state.json"],
+      { openApplication: () => exportApplication },
+    );
+    const unexpectedApplication = fakeApplication();
+    vi.spyOn(unexpectedApplication.inspection, "getParty").mockImplementation(() => {
+      throw new Error("sekret wewnętrzny");
+    });
+    const unexpected = await runCli(["--db", "campaign.sqlite", "--json", "party"], {
+      openApplication: () => unexpectedApplication,
+    });
+
+    expect(schema.exitCode).toBe(4);
+    expect(JSON.parse(schema.stdout)).toMatchObject({ error: { code: "SCHEMA_OLDER" } });
+    expect(artifact.exitCode).toBe(5);
+    expect(JSON.parse(artifact.stdout)).toMatchObject({
+      error: { code: "ARTIFACT_WRITE_FAILED" },
+    });
+    expect(unexpected.exitCode).toBe(1);
+    expect(unexpected.stdout).not.toContain("sekret wewnętrzny");
+    expect(JSON.parse(unexpected.stdout)).toMatchObject({ error: { code: "INTERNAL_ERROR" } });
+  });
+});
+
+function fakeApplication(): M3CampaignApplication {
+  return {
+    inspection: {
+      getParty: vi.fn(() => ({ characters: [] })),
+      getCharacter: vi.fn(() => {
+        throw new CampaignInspectionError("CHARACTER_NOT_FOUND", "Nie znaleziono postaci.");
+      }),
+      getEquipment: vi.fn(),
+      findInventory: vi.fn(),
+      getSpells: vi.fn(),
+      getIllithid: vi.fn(),
+      getChanges: vi.fn(),
+    } as unknown as M3CampaignApplication["inspection"],
+    validation: {
+      validate: vi.fn(() => ({ valid: true, violations: [] })),
+    } as unknown as M3CampaignApplication["validation"],
+    campaignExport: {
+      writeJson: vi.fn(async () => exportValue()),
+      writeXlsx: vi.fn(async () => exportValue()),
+    } as unknown as M3CampaignApplication["campaignExport"],
+    close: vi.fn(),
+  };
+}
+
+function exportValue() {
+  return {
+    format: "BG3_CAMPAIGN_EXPORT",
+    version: 1,
+    sourceSnapshotFormat: "BG3_CAMPAIGN_SNAPSHOT",
+    sourceSnapshotVersion: 1,
+    schemaVersion: 4,
+    exportedAt: "2026-08-30T12:00:00.000Z",
+    stateSha256: "a".repeat(64),
+    state: {},
+  } as never;
+}

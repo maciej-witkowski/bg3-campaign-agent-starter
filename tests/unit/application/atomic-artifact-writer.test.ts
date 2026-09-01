@@ -1,6 +1,7 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import process from "node:process";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -42,6 +43,38 @@ describe("atomic artifact writer", () => {
       overwrite: true,
     });
     expect(await readFile(target, "utf8")).toBe("new");
+  });
+
+  it("rejects publication when verification observes a replaced target directory", async () => {
+    const directory = await temporaryDirectory();
+    const initialDirectory = join(directory, "initial");
+    const movedDirectory = join(directory, "moved");
+    const databaseDirectory = join(directory, "database");
+    const databasePath = join(databaseDirectory, "campaign.sqlite");
+    await mkdir(initialDirectory);
+    await mkdir(databaseDirectory);
+    await writeFile(databasePath, "database", "utf8");
+
+    await expect(
+      writeVerifiedArtifact(
+        join(initialDirectory, "campaign.sqlite"),
+        new TextEncoder().encode("artifact"),
+        async () => {
+          await rename(initialDirectory, movedDirectory);
+          await symlink(
+            databaseDirectory,
+            initialDirectory,
+            process.platform === "win32" ? "junction" : "dir",
+          );
+        },
+        { overwrite: true },
+      ),
+    ).rejects.toThrow("zmienił tożsamość");
+
+    expect(await readFile(databasePath, "utf8")).toBe("database");
+    await expect(readFile(join(movedDirectory, "campaign.sqlite"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 });
 
