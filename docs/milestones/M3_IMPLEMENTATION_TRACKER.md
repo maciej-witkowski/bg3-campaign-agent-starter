@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-09-01
-Overall status: ADR-0029 remediation committed; tracker publication/re-review pending
+Overall status: ADR-0029 remediation passed CI/security and Codex review; final tracking commit pending
 
 ## Purpose
 
@@ -528,7 +528,7 @@ accepted full structural compatibility check for every application-owned schema 
 
 ### Session ADR-0029 atomic-overwrite/output re-review remediation
 
-Status: Complete — committed as `cbf1210`; tracker publication/re-review pending
+Status: Complete — committed as `cbf1210`; CI/security and Codex re-review passed
 
 Findings on `5f6e83c`:
 
@@ -941,6 +941,8 @@ dependency changes.
 | 2026-09-01 | post-ADR-0029 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 270 tests, build and production smoke including existing-target refusal |
 | 2026-09-01 | ADR-0029 `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-09-01 | ADR-0029 scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-09-01 | PR checks for `49a66ca` | Passed | Both Quality gates runs and GitGuardian Security Checks completed successfully |
+| 2026-09-01 | Codex review of `49a66ca` | Passed | Current-head review completed with no new inline findings |
 
 ## Commits and remote state
 
@@ -990,6 +992,7 @@ dependency changes.
 - `5f6e83c` — `docs: track migration ledger remediation`.
 - `4df51b5` — `docs: propose non-destructive M3 exports`.
 - `cbf1210` — `fix: make M3 exports creation-only`.
+- `49a66ca` — `docs: track creation-only export remediation`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -1012,5 +1015,7 @@ dependency changes.
 ADR-0029 and the two renderer fixes were explicitly approved, implemented as `cbf1210`
 and fully validated. Focused 6 files / 56 tests and full `pnpm check` with 41 files / 270
 tests passed; build/smoke, high-severity audit and scope/security sweep also passed.
-Resume by committing this tracker update, pushing both commits, then triggering and
-awaiting current-head Codex review plus CI/security. Do not merge and do not start M4.
+PR checks and Codex review of `49a66ca` are green with no new findings. Resume by
+committing/pushing this final tracking update, then trigger and await one last
+current-head Codex review plus CI/security for the documentation-only head. If clean,
+request human approval; do not merge and do not start M4.
