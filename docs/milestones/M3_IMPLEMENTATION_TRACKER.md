@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-09-01
-Overall status: New P1 requires ADR-0029 approval; two renderer P2 findings also await approval
+Overall status: ADR-0029 remediation committed; tracker publication/re-review pending
 
 ## Purpose
 
@@ -31,12 +31,7 @@ context from chat history.
 | ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Complete: `362a10f` plus ADR-0027 composition integration |
 | ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete: `c63d236` |
 | ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Complete: `ffc2707` |
-
-## Proposed decision awaiting approval
-
-| ADR | Decision | Status | Implementation gate |
-| --- | --- | --- | --- |
-| ADR-0029 | Make M3 export creation-only; retain M2 overwrite behavior | Proposed 2026-09-01 | No implementation before explicit owner approval |
+| ADR-0029 | Creation-only M3 export; generic M2 overwrite behavior retained | Accepted by repository owner, 2026-09-01 | Complete: `cbf1210` |
 
 ## Session ledger
 
@@ -531,9 +526,9 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fix completes ADR-0026's
 accepted full structural compatibility check for every application-owned schema object.
 
-### Session atomic-overwrite/output re-review — approval pending
+### Session ADR-0029 atomic-overwrite/output re-review remediation
 
-Status: ADR-0029 proposed; no finding remediation implemented
+Status: Complete — committed as `cbf1210`; tracker publication/re-review pending
 
 Findings on `5f6e83c`:
 
@@ -543,17 +538,23 @@ Findings on `5f6e83c`:
 - P2: human equipment output omits joined item effects and has no explicit empty marker;
 - P2: human inventory output omits recorded stack quantity.
 
-Proposed remediation:
+Approved and implemented remediation:
 
 - ADR-0029 makes only M3 export creation-only, removes `--overwrite` from M3 grammar and
   prevents direct M3 consumers from requesting writer overwrite; generic M2 behavior is
   unchanged;
 - ADR-0028 human rendering includes complete recorded effect facts/empty state for each
   equipped item and quantity for each inventory row;
-- focused race, parser, public-boundary and exact-output regressions precede the full
-  validation/re-review cycle.
+- direct M3 programmatic overwrite is rejected before capture/serialization, while
+  publication always uses the atomic create-if-absent path;
+- regressions cover the final post-policy-check race, parser rejection, unchanged
+  existing JSON/XLSX targets, direct composition and exact human output.
 
-Approval: awaiting explicit repository-owner approval in the Codex task.
+Approval: explicitly accepted by the repository owner in the Codex task on 2026-09-01.
+
+ADR impact: ADR-0029 is accepted and partially supersedes only the M3 overwrite portions
+of ADR-0026 and ADR-0028. No M2 overwrite behavior, schema, migration or runtime
+dependency changes.
 
 ## Change inventory
 
@@ -835,6 +836,31 @@ Approval: awaiting explicit repository-owner approval in the Codex task.
 - `src/persistence/sqlite/schema-compatibility.ts`
 - `tests/unit/persistence/schema-compatibility.test.ts`
 
+### Modified in ADR-0029 remediation session
+
+- `CHANGELOG.md`
+- `README.md`
+- `docs/CLI.md`
+- `docs/OPERATIONS.md`
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/adr/0028-versioned-cli-process-and-output-contract.md`
+- `docs/adr/0029-m3-non-destructive-export-publication.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `scripts/smoke-production.mjs`
+- `src/application/export/campaign-export-service.ts`
+- `src/application/export/campaign-export-target.ts`
+- `src/cli/cli-contract.ts`
+- `src/cli/human-renderer.ts`
+- `src/cli/parse-cli-arguments.ts`
+- `src/cli/run-cli.ts`
+- `tests/unit/application/campaign-export-service.test.ts`
+- `tests/unit/application/m3-campaign-application.test.ts`
+- `tests/unit/cli/human-renderer.test.ts`
+- `tests/unit/cli/parse-cli-arguments.test.ts`
+- `tests/unit/cli/run-cli.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -911,6 +937,10 @@ Approval: awaiting explicit repository-owner approval in the Codex task.
 | 2026-09-01 | post-migration-ledger `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 265 tests, build and production smoke |
 | 2026-09-01 | migration-ledger `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-09-01 | migration-ledger scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-09-01 | focused ADR-0029/output regressions | Passed | 6 files / 56 tests covering creation-only M3 publication, final race, parser/public boundary and exact renderers |
+| 2026-09-01 | post-ADR-0029 `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 270 tests, build and production smoke including existing-target refusal |
+| 2026-09-01 | ADR-0029 `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-09-01 | ADR-0029 scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -957,6 +987,9 @@ Approval: awaiting explicit repository-owner approval in the Codex task.
 - `9ef5078` — `fix: recheck protected targets at publication`.
 - `7d0ba51` — `docs: track final publication remediation`.
 - `60ff27e` — `fix: fingerprint migration ledger schema`.
+- `5f6e83c` — `docs: track migration ledger remediation`.
+- `4df51b5` — `docs: propose non-destructive M3 exports`.
+- `cbf1210` — `fix: make M3 exports creation-only`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -976,10 +1009,8 @@ Approval: awaiting explicit repository-owner approval in the Codex task.
 
 ## Exact resume point
 
-Review of `5f6e83c` completed with one valid P1 atomic-overwrite finding and two valid P2
-human-renderer completeness findings. ADR-0029 is proposed to make M3 exports
-creation-only because portable Node APIs cannot atomically compare and replace a target
-inode. No finding remediation is implemented. Resume only after explicit owner approval
-of ADR-0029 plus the proposed equipment-effect and inventory-quantity renderer fixes.
-Then mark ADR-0029 Accepted, record partial supersession in ADR-0026/0028, implement and
-rerun the complete validation/review cycle. Do not merge and do not start M4.
+ADR-0029 and the two renderer fixes were explicitly approved, implemented as `cbf1210`
+and fully validated. Focused 6 files / 56 tests and full `pnpm check` with 41 files / 270
+tests passed; build/smoke, high-severity audit and scope/security sweep also passed.
+Resume by committing this tracker update, pushing both commits, then triggering and
+awaiting current-head Codex review plus CI/security. Do not merge and do not start M4.
