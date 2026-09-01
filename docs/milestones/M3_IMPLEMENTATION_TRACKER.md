@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-09-01
-Overall status: Sixteenth approved PR review remediation validated; tracking/publish/re-review pending
+Overall status: New P1 requires ADR-0029 approval; two renderer P2 findings also await approval
 
 ## Purpose
 
@@ -31,6 +31,12 @@ context from chat history.
 | ADR-0026 | Dedicated read-only SQLite connection/composition and isolated export writes | Accepted by repository owner, 2026-08-30 | Complete: `362a10f` plus ADR-0027 composition integration |
 | ADR-0027 | Typed command projections, deterministic resolution/filter/order semantics | Accepted by repository owner, 2026-08-30 | Complete: `c63d236` |
 | ADR-0028 | Native Node parser, explicit DB path, V1 envelope and stable exit categories | Accepted by repository owner, 2026-08-30 | Complete: `ffc2707` |
+
+## Proposed decision awaiting approval
+
+| ADR | Decision | Status | Implementation gate |
+| --- | --- | --- | --- |
+| ADR-0029 | Make M3 export creation-only; retain M2 overwrite behavior | Proposed 2026-09-01 | No implementation before explicit owner approval |
 
 ## Session ledger
 
@@ -525,6 +531,30 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fix completes ADR-0026's
 accepted full structural compatibility check for every application-owned schema object.
 
+### Session atomic-overwrite/output re-review — approval pending
+
+Status: ADR-0029 proposed; no finding remediation implemented
+
+Findings on `5f6e83c`:
+
+- P1: a protected database can move onto the target after the final policy check but
+  before overwrite rename; portable Node APIs do not provide inode-conditioned atomic
+  replacement;
+- P2: human equipment output omits joined item effects and has no explicit empty marker;
+- P2: human inventory output omits recorded stack quantity.
+
+Proposed remediation:
+
+- ADR-0029 makes only M3 export creation-only, removes `--overwrite` from M3 grammar and
+  prevents direct M3 consumers from requesting writer overwrite; generic M2 behavior is
+  unchanged;
+- ADR-0028 human rendering includes complete recorded effect facts/empty state for each
+  equipped item and quantity for each inventory row;
+- focused race, parser, public-boundary and exact-output regressions precede the full
+  validation/re-review cycle.
+
+Approval: awaiting explicit repository-owner approval in the Codex task.
+
 ## Change inventory
 
 ### Created
@@ -946,9 +976,10 @@ accepted full structural compatibility check for every application-owned schema 
 
 ## Exact resume point
 
-The P2 finding from review of `7d0ba51` was verified, approved and implemented in
-ADR-scoped commit `60ff27e`. The full local gate passed at 41 files / 265 tests plus
-production smoke, and the high-severity audit passed with only the two unchanged
-moderate transitive advisories. Resume by committing this tracking evidence, pushing
-the two local commits and requesting Codex re-review on the latest head. Do not merge
-and do not start M4.
+Review of `5f6e83c` completed with one valid P1 atomic-overwrite finding and two valid P2
+human-renderer completeness findings. ADR-0029 is proposed to make M3 exports
+creation-only because portable Node APIs cannot atomically compare and replace a target
+inode. No finding remediation is implemented. Resume only after explicit owner approval
+of ADR-0029 plus the proposed equipment-effect and inventory-quantity renderer fixes.
+Then mark ADR-0029 Accepted, record partial supersession in ADR-0026/0028, implement and
+rerun the complete validation/review cycle. Do not merge and do not start M4.
