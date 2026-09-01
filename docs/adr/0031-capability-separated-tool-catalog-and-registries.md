@@ -163,6 +163,27 @@ milestones must supply approved contracts and handlers.
 - The manifest can describe the long-term product without falsely advertising current
   runtime availability.
 
+## Implementation evidence
+
+- `src/tools/catalog/read-tool-catalog.ts` defines and freezes the deterministic M4
+  catalog of exactly nine read and four analysis capabilities. Its construction guard
+  rejects duplicate names, unsupported categories and missing schemas; roadmap-only
+  manifest capabilities are not executable.
+- `ReadToolRegistry` exposes only `list()` and read/analysis `get()` bindings. It has no
+  mutation, proposal or all-category dispatch surface. Each minimal runner validates
+  input before calling its narrow application handler and validates the returned
+  JSON-safe DTO; stable envelopes and exception mapping remain ADR-0032 work.
+- `CampaignReadToolService` adapts the M3 inspection and validation boundaries. Each
+  compound inspection captures all required rows in one read transaction and performs
+  its joins and comparisons against that immutable in-memory projection.
+- `openM4CampaignApplication` opens SQLite read-only and exposes exactly the read tool
+  registry and `close`; it wires no exporter, mutation coordinator or authorization
+  issuer.
+- Focused tests call all 13 tools without an LLM, cover catalog/manifest separation,
+  fail-closed construction, invalid-input-before-handler behavior, conservative
+  missing/ambiguous character resolution and prove byte-identical SQLite plus an
+  unchanged audit-row count.
+
 ## Rejected alternatives
 
 - A category flag on one all-powerful registry is rejected as an accidental-call risk.
@@ -185,3 +206,5 @@ identity, input/output schemas or capability membership.
 
 - 2026-09-01 — Initial M4 proposal.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
+- 2026-09-01 — Implemented the read/analysis catalog, registry, atomic query adapter,
+  JSON-safe DTOs and read-only M4 composition; focused tests passed 4/4.

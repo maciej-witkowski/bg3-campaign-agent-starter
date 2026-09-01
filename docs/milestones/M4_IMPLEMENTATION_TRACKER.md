@@ -90,7 +90,7 @@ Exit evidence:
 
 ### Session 2 — ADR-0031 catalog, registries and read/analysis tools
 
-Status: In progress
+Status: Completed
 
 Expected owned paths:
 
@@ -108,11 +108,12 @@ Exit evidence:
 - future manifest entries remain non-executable;
 - read/analysis integration proves byte-identical SQLite and zero audit writes;
 - focused tests, typecheck and formatting pass;
-- focused ADR-0031 commit created.
+- focused ADR-0031 changes are complete and await the orchestrating agent's scoped
+  commit.
 
 ### Session 3 — ADR-0032 executor and result envelope
 
-Status: Pending
+Status: In progress
 
 Expected owned paths:
 
@@ -207,13 +208,16 @@ Exit evidence:
 | 2026-09-01 | 0 | Scoped Prettier write and `git diff --check` | Passed for accepted ADRs and tracker |
 | 2026-09-01 | 1 | `node node_modules/vitest/vitest.mjs run tests/unit/tools/tool-contract-parity.test.ts` | Passed: 1 file / 64 tests (outside sandbox after `spawn EPERM`) |
 | 2026-09-01 | 1 | `node node_modules/typescript/bin/tsc --noEmit` | Passed |
+| 2026-09-01 | 2 | `node node_modules/vitest/vitest.mjs run tests/unit/tools/read-tool-registry.test.ts` | Passed outside sandbox after `spawn EPERM`: 1 file / 4 tests |
+| 2026-09-01 | 2 | M3 inspection/application plus M4 read-registry Vitest regression | Passed outside sandbox: 3 files / 32 tests |
+| 2026-09-01 | 2 | Scoped Prettier, ESLint and `node node_modules/typescript/bin/tsc --noEmit` | Passed |
 
 ## Commit and PR log
 
 | Session | Commit/PR | Status |
 | --- | --- | --- |
 | 0 | `fa2334f` | ADR acceptance and tracker |
-| 1 | pending | ADR-0030 implementation |
+| 1 | `2f73dc9` | ADR-0030 implementation |
 | 2 | pending | ADR-0031 implementation |
 | 3 | pending | ADR-0032 implementation |
 | 4 | pending | ADR-0033 implementation |
@@ -231,9 +235,9 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 2 (ADR-0031) is active. Implement the immutable catalog, capability-separated
-read registry, atomic application projections and all 13 active read/analysis handlers.
-Do not add an all-category registry or concrete mutation execution.
+Session 3 (ADR-0032) is next. Add the shared executor and stable safe result envelopes
+around the existing minimal read runners. Preserve the read registry capability boundary
+and do not add proposal/mutation authorization until Session 4.
 
 ## Change log
 
@@ -241,3 +245,6 @@ Do not add an all-category registry or concrete mutation execution.
 - 2026-09-01 — Completed Session 0 approval/tracking gate and opened Session 1.
 - 2026-09-01 — Completed Session 1 with 30 JSON/Zod pairs and 64 focused parity tests;
   opened Session 2.
+- 2026-09-01 — Completed Session 2 with the 13-tool read/analysis catalog, atomic
+  application projections, read-only composition and 4 focused registry/integration
+  tests; opened Session 3.
