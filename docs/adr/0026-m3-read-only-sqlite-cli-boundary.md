@@ -207,9 +207,12 @@ voice or desktop layers.
   pivot or protected-file rename cannot reinterpret which SQLite identity is protected.
 - Each export resolves and validates its target once before the policy check and before
   any asynchronous serialization; the same absolute path and parent filesystem identity
-  are retained through atomic publication. The writer revalidates that identity before
-  creating its temporary file and immediately before dispatching the final rename or
-  link, preventing working-directory, redirected-link and replaced-directory races.
+  are retained through atomic publication. The writer revalidates both the directory
+  identity and protected SQLite file policy before creating its temporary file and
+  immediately before dispatching the final rename or link, preventing working-directory,
+  redirected-link, replaced-directory and post-check protected-file rename races.
+- If schema setup fails, the composition attempts to close its read-only connection but
+  preserves the original actionable setup error even if cleanup also fails.
 
 ## Consequences and trade-offs
 
@@ -277,3 +280,6 @@ requires a new proposed ADR rather than weakening the tests.
 - 2026-08-31 — After approved source-identity remediation, captured the database and
   existing SQLite companion device/inode identities when constructing the export policy;
   renamed protected files remain blocked even after their original paths disappear.
+- 2026-09-01 — After approved final-publication remediation, rechecked the protected-file
+  policy after serialization and immediately before final publication, and preserved an
+  original schema/setup failure when connection cleanup also throws.

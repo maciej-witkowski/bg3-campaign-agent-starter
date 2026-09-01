@@ -51,7 +51,11 @@ export function openM3CampaignApplication(
       close: () => connection.close(),
     };
   } catch (error: unknown) {
-    connection.close();
+    try {
+      connection.close();
+    } catch {
+      // Preserve the actionable setup failure; cleanup failure must not replace it.
+    }
     throw error;
   }
 }

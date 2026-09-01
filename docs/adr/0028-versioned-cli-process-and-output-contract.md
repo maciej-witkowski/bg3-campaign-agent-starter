@@ -241,7 +241,8 @@ broad categories.
 - `runCli()` owns application lifecycle, typed dispatch, safe error mapping and the
   approved exit categories. Every opened application is closed on success and failure;
   close failures after successful execution become a safe `INTERNAL_ERROR`, while a
-  close failure cannot replace an earlier mapped command failure.
+  close failure cannot replace an earlier mapped command failure. The M3 composition
+  likewise preserves a typed setup failure when its cleanup attempt also fails.
 - `BG3_CLI_RESULT` V1 success/failure constructors emit the documented key shapes and
   exactly one pretty UTF-8 JSON document plus one newline. Dates serialize as canonical
   ISO UTC strings and failures never include `data`.
@@ -331,3 +332,6 @@ tests must not require color.
 - 2026-08-31 — After approved command-recovery remediation, retained post-terminator
   positionals for command identity while continuing to exclude them from JSON-option
   detection; added regressions for both sides of the terminator contract.
+- 2026-09-01 — After approved setup-cleanup remediation, preserved the original M3
+  setup/schema error if closing the partially initialized application also fails, keeping
+  the stable CLI error mapping actionable.

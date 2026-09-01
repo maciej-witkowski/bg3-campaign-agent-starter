@@ -7,6 +7,10 @@ export interface ArtifactWriteOptions {
   readonly overwrite?: boolean;
 }
 
+export interface ArtifactPublicationGuard {
+  assertSafe(targetPath: string): void;
+}
+
 export interface ResolvedArtifactTarget {
   readonly path: string;
   readonly parentDevice: number;
@@ -36,9 +40,11 @@ export async function writeVerifiedArtifactToResolvedTarget(
   bytes: Uint8Array,
   verify: (publishedBytes: Uint8Array) => void | Promise<void>,
   options: ArtifactWriteOptions = {},
+  publicationGuard?: ArtifactPublicationGuard,
 ): Promise<string> {
   const target = resolvedTarget.path;
   assertStableResolvedTarget(resolvedTarget);
+  publicationGuard?.assertSafe(target);
   const temporary = resolve(dirname(target), `.${basename(target)}.${randomUUID()}.tmp`);
   let temporaryExists = false;
   try {
@@ -53,9 +59,11 @@ export async function writeVerifiedArtifactToResolvedTarget(
     await verify(new Uint8Array(await readFile(temporary)));
     if (options.overwrite === true) {
       assertStableResolvedTarget(resolvedTarget);
+      publicationGuard?.assertSafe(target);
       await rename(temporary, target);
     } else {
       assertStableResolvedTarget(resolvedTarget);
+      publicationGuard?.assertSafe(target);
       await link(temporary, target);
       await unlink(temporary);
     }

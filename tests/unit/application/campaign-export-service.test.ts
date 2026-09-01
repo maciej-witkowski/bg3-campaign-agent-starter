@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import { createCampaignExport } from "../../../src/application/export/campaign-export.js";
 import { CampaignExportService } from "../../../src/application/export/campaign-export-service.js";
 import { ArtifactWriteError } from "../../../src/application/export/atomic-artifact-writer.js";
+import { createCampaignExportTargetPolicy } from "../../../src/application/export/campaign-export-target.js";
 import {
   CAMPAIGN_SNAPSHOT_FORMAT,
   CAMPAIGN_SNAPSHOT_VERSION,
@@ -59,9 +60,11 @@ describe("CampaignExportService", () => {
       releaseSerialization!(new TextEncoder().encode("xlsx"));
       await write;
 
-      expect(checkedTargets).toEqual([
-        join(realpathSync.native(initialDirectory), "campaign.xlsx"),
-      ]);
+      expect(checkedTargets).toEqual(
+        Array.from({ length: 3 }, () =>
+          join(realpathSync.native(initialDirectory), "campaign.xlsx"),
+        ),
+      );
       expect(existsSync(join(initialDirectory, "campaign.xlsx"))).toBe(true);
       expect(existsSync(join(changedDirectory, "campaign.xlsx"))).toBe(false);
     } finally {
@@ -160,6 +163,68 @@ describe("CampaignExportService", () => {
       expect(existsSync(join(movedDirectory, "campaign.sqlite"))).toBe(false);
     } finally {
       if (existsSync(initialDirectory)) unlinkSync(initialDirectory);
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rechecks protected file identity after deferred serialization", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-source-after-serialization-"));
+    const databasePath = join(directory, "campaign.sqlite");
+    const targetPath = join(directory, "campaign.xlsx");
+    writeFileSync(databasePath, "database");
+    let releaseSerialization: ((bytes: Uint8Array) => void) | undefined;
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: () =>
+          new Promise((resolve) => {
+            releaseSerialization = resolve;
+          }),
+        deserialize: async () => createCampaignExport(emptySnapshot()),
+      },
+      createCampaignExportTargetPolicy(databasePath),
+    );
+
+    try {
+      const write = service.writeXlsx(targetPath, { overwrite: true });
+      expect(releaseSerialization).toBeDefined();
+      renameSync(databasePath, targetPath);
+      releaseSerialization!(new TextEncoder().encode("xlsx"));
+
+      await expect(write).rejects.toThrow(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
+      expect(readFileSync(targetPath, "utf8")).toBe("database");
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rechecks protected file identity immediately before publication", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "bg3-export-source-before-publication-"));
+    const databasePath = join(directory, "campaign.sqlite");
+    const targetPath = join(directory, "campaign.xlsx");
+    writeFileSync(databasePath, "database");
+    const service = new CampaignExportService(
+      { captureCurrentState: () => emptySnapshot() },
+      { now: () => new Date(capturedAt) },
+      {
+        serialize: async () => new TextEncoder().encode("xlsx"),
+        deserialize: async () => {
+          renameSync(databasePath, targetPath);
+          return createCampaignExport(emptySnapshot());
+        },
+      },
+      createCampaignExportTargetPolicy(databasePath),
+    );
+
+    try {
+      await expect(service.writeXlsx(targetPath, { overwrite: true })).rejects.toThrow(
+        "Plik eksportu nie może zastępować bazy kampanii ani jej plików SQLite.",
+      );
+      expect(readFileSync(targetPath, "utf8")).toBe("database");
+    } finally {
       rmSync(directory, { recursive: true, force: true });
     }
   });

@@ -48,6 +48,7 @@ export class CampaignExportService {
         deserializeCampaignExport(new TextDecoder().decode(published));
       },
       options,
+      this.targetPolicy,
     );
     return value;
   }
@@ -67,6 +68,7 @@ export class CampaignExportService {
         await this.xlsx.deserialize(published);
       },
       options,
+      this.targetPolicy,
     );
     return value;
   }
