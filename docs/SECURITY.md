@@ -27,6 +27,7 @@
   same publication boundaries, so replacing the checked directory or moving a protected
   database onto the target fails closed. Exported campaign state remains private local
   data.
-- M3 compares the campaign's full sorted `sqlite_schema` manifest with an isolated
-  in-memory schema built from the committed migration bundle. Missing/changed columns,
-  indexes or other schema objects fail closed without modifying campaign state.
+- M3 compares the campaign's full sorted application-owned `sqlite_schema` manifest,
+  including the migration-ledger definition, with an isolated in-memory schema built
+  from the committed migration bundle. Missing or changed columns, constraints, indexes
+  and other schema objects fail closed without modifying campaign state.

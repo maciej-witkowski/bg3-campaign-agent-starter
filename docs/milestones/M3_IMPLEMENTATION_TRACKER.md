@@ -4,7 +4,7 @@ Milestone: M3 — Read-Only CLI
 Branch: `codex/m3-read-only-cli`
 Started: 2026-08-30
 Last updated: 2026-09-01
-Overall status: Fifteenth approved PR review remediation validated; tracking/publish/re-review pending
+Overall status: Sixteenth approved PR review remediation validated; tracking/publish/re-review pending
 
 ## Purpose
 
@@ -501,6 +501,30 @@ Implemented:
 ADR impact: no new or changed architectural decision. The fixes close ADR-0026's final
 protected-file TOCTOU window and preserve ADR-0028's stable actionable error mapping.
 
+### Session migration-ledger re-review remediation — approved full-manifest package
+
+Status: Implemented as ADR-scoped commit `60ff27e`; full local gate passed
+
+Finding on `7d0ba51`:
+
+- P2: the canonical `sqlite_schema` manifest explicitly excluded
+  `__drizzle_migrations`, so a ledger reconstructed with matching rows but missing its
+  required primary-key/default constraints still passed compatibility checks.
+
+Approval: the remediation was explicitly approved by the repository owner in the Codex
+task on 2026-09-01.
+
+Implemented:
+
+- ADR-0026 (`60ff27e`): the isolated migration-derived schema fingerprint now includes
+  the ledger table definition and excludes only SQLite-internal `sqlite_%` objects;
+- the regression reconstructs the ledger without its required constraints while
+  preserving every `id`, `hash` and `created_at` row, and requires
+  `SCHEMA_STRUCTURE_MISMATCH`.
+
+ADR impact: no new or changed architectural decision. The fix completes ADR-0026's
+accepted full structural compatibility check for every application-owned schema object.
+
 ## Change inventory
 
 ### Created
@@ -772,6 +796,15 @@ protected-file TOCTOU window and preserve ADR-0028's stable actionable error map
 - `src/composition/m3-campaign-application.ts`
 - `tests/unit/application/campaign-export-service.test.ts`
 
+### Modified in migration-ledger re-review remediation session
+
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `docs/adr/0026-m3-read-only-sqlite-cli-boundary.md`
+- `docs/milestones/M3_IMPLEMENTATION_TRACKER.md`
+- `src/persistence/sqlite/schema-compatibility.ts`
+- `tests/unit/persistence/schema-compatibility.test.ts`
+
 ## Validation ledger
 
 | Date | Command | Result | Scope/notes |
@@ -844,6 +877,10 @@ protected-file TOCTOU window and preserve ADR-0028's stable actionable error map
 | 2026-09-01 | post-final-publication-setup `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 264 tests, build and production smoke |
 | 2026-09-01 | final-publication/setup `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
 | 2026-09-01 | final-publication/setup scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
+| 2026-09-01 | focused migration-ledger regression | Passed | 1 file / 8 tests including a matching-row ledger with deliberately weakened structure |
+| 2026-09-01 | post-migration-ledger `pnpm check` | Passed | Prettier, ESLint, strict typecheck, 41 files / 265 tests, build and production smoke |
+| 2026-09-01 | migration-ledger `pnpm audit --audit-level high` | Passed | No high/critical findings; the same two inherited moderate advisories remain in the unchanged dependency graph |
+| 2026-09-01 | migration-ledger scope/security sweep | Passed | No schema, migration, dependency, campaign-data, mutation-command or M4 change; diff and whitespace checks clean |
 
 ## Commits and remote state
 
@@ -888,6 +925,8 @@ protected-file TOCTOU window and preserve ADR-0028's stable actionable error map
 - `de0951b` — `fix: retain protected SQLite file identities`.
 - `01d888e` — `docs: track protected source identity remediation`.
 - `9ef5078` — `fix: recheck protected targets at publication`.
+- `7d0ba51` — `docs: track final publication remediation`.
+- `60ff27e` — `fix: fingerprint migration ledger schema`.
 - Branch is published as `origin/codex/m3-read-only-cli`.
 - Pull request: `https://github.com/maciej-witkowski/bg3-campaign-agent-starter/pull/6`.
 
@@ -907,8 +946,8 @@ protected-file TOCTOU window and preserve ADR-0028's stable actionable error map
 
 ## Exact resume point
 
-The P1/P2 findings from review of `01d888e` were verified, approved and implemented in
-ADR-scoped commit `9ef5078`. The full local gate passed at 41 files / 264 tests plus
+The P2 finding from review of `7d0ba51` was verified, approved and implemented in
+ADR-scoped commit `60ff27e`. The full local gate passed at 41 files / 265 tests plus
 production smoke, and the high-severity audit passed with only the two unchanged
 moderate transitive advisories. Resume by committing this tracking evidence, pushing
 the two local commits and requesting Codex re-review on the latest head. Do not merge

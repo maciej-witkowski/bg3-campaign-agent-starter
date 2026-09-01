@@ -63,7 +63,9 @@ query-only write refusal, byte-identical database files, exact migration hash/ti
 compatibility and refusal of missing, old, new, tampered or incomplete schemas.
 Compatibility regressions additionally remove a required index and rename a required
 column while preserving the migration ledger; both must fail the full schema manifest
-comparison.
+comparison. A ledger-structure regression preserves every migration-history row while
+recreating `__drizzle_migrations` without its required constraints; the full manifest
+must still reject it.
 
 Application tests cover active-party projection, base/effective attributes, canonical
 and Polish/NFC character resolution, ambiguity/not-found, equipment joins, inventory
