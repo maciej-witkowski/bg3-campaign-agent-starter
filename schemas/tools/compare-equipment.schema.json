@@ -4,9 +4,9 @@
   "type": "object",
   "required": ["character", "candidate_item"],
   "properties": {
-    "character": {"type": "string"},
-    "candidate_item": {"type": "string"},
-    "slot": {"type": "string"},
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "candidate_item": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "slot": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "include_party_synergies": {"type": "boolean", "default": true}
   },
   "additionalProperties": false

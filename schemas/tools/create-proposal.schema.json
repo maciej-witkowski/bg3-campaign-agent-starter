@@ -4,9 +4,9 @@
   "type": "object",
   "required": ["intent_type", "human_summary_pl", "payload"],
   "properties": {
-    "intent_type": {"type": "string"},
-    "human_summary_pl": {"type": "string"},
-    "payload": {"type": "object"},
+    "intent_type": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "human_summary_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "payload": {"type": "object", "additionalProperties": true},
     "expires_in_seconds": {"type": "integer", "minimum": 30, "maximum": 86400}
   },
   "additionalProperties": false

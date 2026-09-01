@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "add_character_ability",
+  "type": "object",
+  "required": ["character", "ability", "source", "confirmation"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "ability": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "source": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "level_acquired": {"type": "integer", "minimum": 1, "maximum": 12},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

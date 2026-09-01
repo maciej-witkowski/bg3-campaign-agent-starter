@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "set_prepared_spells",
+  "type": "object",
+  "required": ["character", "prepared_spells", "confirmation"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "prepared_spells": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"},
+      "uniqueItems": true
+    },
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

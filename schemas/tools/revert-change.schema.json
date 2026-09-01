@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "revert_change",
+  "type": "object",
+  "required": ["change_event_id", "reason_pl", "confirmation"],
+  "properties": {
+    "change_event_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "reason_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

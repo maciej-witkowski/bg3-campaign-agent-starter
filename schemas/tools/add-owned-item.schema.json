@@ -4,12 +4,15 @@
   "type": "object",
   "required": ["name_pl", "status", "confirmation"],
   "properties": {
-    "name_pl": {"type": "string"},
+    "name_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "status": {"enum": ["CHEST","SITUATIONAL","PERSONAL_STORY"]},
-    "item_type_pl": {"type": "string"},
-    "rarity_pl": {"type": "string"},
-    "effect_text_pl": {"type": "array", "items": {"type": "string"}},
-    "obtained_location": {"type": "string"},
+    "item_type_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "rarity_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "effect_text_pl": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+    },
+    "obtained_location": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "confirmation": {"$ref": "../domain/confirmation.schema.json"}
   },
   "additionalProperties": false

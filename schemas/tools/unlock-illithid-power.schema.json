@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "unlock_illithid_power",
+  "type": "object",
+  "required": ["character", "power", "confirmation"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "power": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

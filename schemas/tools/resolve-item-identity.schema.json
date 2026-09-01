@@ -4,10 +4,13 @@
   "type": "object",
   "required": ["name_pl"],
   "properties": {
-    "name_pl": {"type": "string"},
-    "item_type_pl": {"type": "string"},
-    "rarity_pl": {"type": "string"},
-    "effect_text_pl": {"type": "array", "items": {"type": "string"}},
+    "name_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "item_type_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "rarity_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "effect_text_pl": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+    },
     "allow_external_research": {"type": "boolean", "default": true}
   },
   "additionalProperties": false

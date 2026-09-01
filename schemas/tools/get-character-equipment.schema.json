@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "get_character_equipment",
+  "type": "object",
+  "required": ["character"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"}
+  },
+  "additionalProperties": false
+}

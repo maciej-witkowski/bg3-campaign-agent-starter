@@ -1,15 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MutationConfirmation",
-  "type": "object",
-  "properties": {
-    "proposal_id": {"type": "string"},
-    "direct_fact": {"type": "boolean"},
-    "source_utterance": {"type": "string"}
-  },
-  "anyOf": [
-    {"required": ["proposal_id"]},
-    {"required": ["direct_fact", "source_utterance"], "properties": {"direct_fact": {"const": true}}}
-  ],
-  "additionalProperties": false
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["proposal_id"],
+      "properties": {
+        "proposal_id": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["direct_fact", "source_utterance"],
+      "properties": {
+        "direct_fact": {"const": true},
+        "source_utterance": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      },
+      "additionalProperties": false
+    }
+  ]
 }

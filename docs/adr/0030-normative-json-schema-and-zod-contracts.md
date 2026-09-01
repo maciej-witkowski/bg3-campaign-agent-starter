@@ -135,6 +135,26 @@ matching normalization remains an application-service concern.
 - Contract snapshots/diffs make enum, required-field and bound changes reviewable.
 - `pnpm check` and production build pass without a new runtime dependency.
 
+## Implementation evidence
+
+- `src/tools/contracts` provides strict non-coercing Zod mirrors and inferred
+  TypeScript types for all five domain schemas and all 25 individual tool-input schemas.
+- `CONTRACT_SCHEMA_PAIRS` is the explicit drift boundary. Pair-discovery coverage scans
+  `schemas/domain` and `schemas/tools` and fails for a missing, duplicate or undeclared
+  `*.schema.json` counterpart.
+- Missing read, deterministic-analysis and mutation input JSON Schemas were added. The
+  future `resolve_item_identity` schema remains a paired but non-executable contract
+  artifact; registration and availability remain governed by ADR-0031.
+- Confirmation is now an exclusive `oneOf`: a non-blank proposal ID or a literal direct
+  fact with non-blank source utterance. Tool text identifiers use matching non-blank
+  constraints in JSON and Zod.
+- A dependency-free test validator exercises the normative JSON artifacts and each Zod
+  mirror with generated minimum-valid and top-level negative corpora. Focused tests also
+  cover confirmation exclusivity, documented defaults, no coercion, no caller-input
+  mutation and no downstream call after failed validation.
+- Focused verification passed 1 file / 64 tests and strict TypeScript typecheck passed.
+  No runtime dependency was added.
+
 ## Consequences and trade-offs
 
 - JSON remains portable and human-reviewable while Zod provides runtime validation and
@@ -167,3 +187,5 @@ semantic parity tests and external reference paths remain stable.
 
 - 2026-09-01 — Initial M4 proposal.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
+- 2026-09-01 — Implemented 30 normative JSON/Zod schema pairs, pair discovery and the
+  shared semantic parity corpus; focused tests passed 64/64.

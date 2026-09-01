@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "create_checkpoint",
+  "type": "object",
+  "required": ["label", "reason_pl", "confirmation"],
+  "properties": {
+    "label": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "reason_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}
