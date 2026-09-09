@@ -56,7 +56,8 @@ Supports known/prepared/source filters.
 
 ### get_illithid_state
 Returns definitions, recorded acquisitions and known prerequisite IDs. M4 does not
-infer availability or blocked state from incomplete data.
+infer availability or blocked state from incomplete data. Without a character scope,
+`acquired` is `null`; only a character-scoped query may return `true` or `false`.
 
 ### get_recent_changes
 Returns audit events.

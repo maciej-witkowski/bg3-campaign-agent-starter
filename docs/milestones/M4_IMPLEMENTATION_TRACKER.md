@@ -220,6 +220,9 @@ Exit evidence:
 | 2026-09-09 | 5       | Independent base-to-head stabilization review                                             | Three P2 findings verified: two slot semantics defects and insufficient recursive parity evidence |
 | 2026-09-09 | 5       | Focused slot/parity regression                                                            | Passed: 2 files / 98 tests                              |
 | 2026-09-09 | 5       | `pnpm check` after stabilization remediation                                              | Passed: formatting, lint, typecheck, 45 files / 406 tests, build, production smoke |
+| 2026-09-09 | 6       | Codex review on `6d6532e`                                                                | One valid P1: unscoped illithid acquisition collapsed unknown to false |
+| 2026-09-09 | 6       | Focused illithid/parity regression                                                       | Passed: 2 files / 98 tests                              |
+| 2026-09-09 | 6       | `pnpm check` after P1 remediation                                                        | Passed: formatting, lint, typecheck, 45 files / 406 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -245,10 +248,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Session 5 is committed as `b2ca72b`, the branch is pushed,
-and the full 406-test `pnpm check` is green. Await terminal CI/security and current-head
-Codex review. Validate findings and present any remediation as one proposal; do not edit
-for review findings without explicit owner approval. Do not merge and do not start M5.
+Session 6 is active on PR #7. The accepted P1 remediation and stale ADR-0030 evidence
+correction are implemented, focused tests pass 98/98, and the full 406-test gate is
+green. Commit and push the remediation, then await terminal CI/security and a repeated
+current-head Codex review. Do not merge and do not start M5.
 
 ## Change log
 
@@ -272,3 +275,7 @@ for review findings without explicit owner approval. Do not merge and do not sta
   boundaries and unsupported keywords, and passed the full 406-test milestone gate.
 - 2026-09-09 — Committed Session 5 as `b2ca72b`, pushed the branch and opened PR #7;
   moved to Session 6 for CI/security and current-head Codex review.
+- 2026-09-09 — Codex reviewed current head `6d6532e` and reported one valid P1: an
+  unscoped illithid query emitted false acquisition facts. Owner authorized necessary
+  continuation; remediation changes the unscoped value to unknown (`null`) while
+  preserving booleans for character-scoped queries.

@@ -154,6 +154,26 @@ describe("M4 read tool catalog and registry", () => {
         ok: true,
         data: { items: [{ inventory_item: { id: "inventory-ring" } }] },
       });
+      expect(await application.readTools.get("get_illithid_state")!.run({})).toMatchObject({
+        ok: true,
+        data: {
+          character: null,
+          powers: expect.arrayContaining([
+            expect.objectContaining({ id: "power-tier-1", acquired: null }),
+          ]),
+        },
+      });
+      expect(
+        await application.readTools.get("get_illithid_state")!.run({ character: "laezel" }),
+      ).toMatchObject({
+        ok: true,
+        data: {
+          powers: expect.arrayContaining([
+            expect.objectContaining({ id: "power-tier-1", acquired: true }),
+            expect.objectContaining({ id: "power-tier-2", acquired: false }),
+          ]),
+        },
+      });
     } finally {
       application.close();
     }

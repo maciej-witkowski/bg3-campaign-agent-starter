@@ -190,7 +190,7 @@ export const getIllithidStateOutputSchema = z
           description_pl: nullableString,
           verification_status: z.string(),
           prerequisite_power_ids: z.array(z.string()),
-          acquired: z.boolean(),
+          acquired: z.boolean().nullable(),
           acquired_at: isoDate.nullable(),
           acquisition_source_pl: nullableString,
           notes: nullableString,

@@ -187,7 +187,7 @@ export class CampaignReadToolService implements CampaignReadToolPort {
         description_pl: definition.descriptionPl,
         verification_status: definition.verificationStatus,
         prerequisite_power_ids: [...prerequisitePowerIds],
-        acquired: acquisition !== null,
+        acquired: result.character === null ? null : acquisition !== null,
         acquired_at: date(acquisition?.acquiredAt ?? null),
         acquisition_source_pl: acquisition?.acquisitionSourcePl ?? null,
         notes: acquisition?.notes ?? null,

@@ -149,11 +149,14 @@ matching normalization remains an application-service concern.
   fact with non-blank source utterance. Tool text identifiers use matching non-blank
   constraints in JSON and Zod.
 - A dependency-free test validator exercises the normative JSON artifacts and each Zod
-  mirror with generated minimum-valid and top-level negative corpora. Focused tests also
-  cover confirmation exclusivity, documented defaults, no coercion, no caller-input
-  mutation and no downstream call after failed validation.
-- Focused verification passed 1 file / 64 tests and strict TypeScript typecheck passed.
-  No runtime dependency was added.
+  mirror with generated minimum-valid and recursive negative boundary corpora. It walks
+  nested objects, arrays and union branches and fails if a schema introduces an
+  unsupported keyword. Focused tests also cover confirmation exclusivity, documented
+  defaults, no coercion, no caller-input mutation and no downstream call after failed
+  validation.
+- Initial focused verification passed 1 file / 64 tests. Post-stabilization verification
+  passed the combined registry/parity suite (2 files / 98 tests) and the full 406-test
+  gate with strict TypeScript typecheck. No runtime dependency was added.
 
 ## Consequences and trade-offs
 
@@ -189,3 +192,6 @@ semantic parity tests and external reference paths remain stable.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
 - 2026-09-01 — Implemented 30 normative JSON/Zod schema pairs, pair discovery and the
   shared semantic parity corpus; focused tests passed 64/64.
+- 2026-09-09 — Expanded parity coverage to recursive nested boundaries and unsupported
+  keyword detection; aligned the illithid acquisition result with the unknown-state
+  invariant by allowing `null` for an unscoped query.
