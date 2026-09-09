@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "validate_campaign_state output",
+  "$ref": "read-tool-output-definitions.json#/$defs/validateCampaignState"
+}

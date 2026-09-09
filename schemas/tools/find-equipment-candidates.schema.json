@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "find_equipment_candidates",
+  "type": "object",
+  "required": ["character", "slot"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "slot": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "effect_types": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"},
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

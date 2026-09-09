@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "get_recent_changes output",
+  "$ref": "read-tool-output-definitions.json#/$defs/getRecentChanges"
+}

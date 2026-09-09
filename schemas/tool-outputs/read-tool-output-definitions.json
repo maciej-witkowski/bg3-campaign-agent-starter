@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.bg3-agent/schemas/tool-outputs/read-tool-output-definitions.json",
+  "$defs": {
+    "nullableString": { "type": ["string", "null"] },
+    "identity": {
+      "type": "object",
+      "required": ["id", "canonical_name", "display_name_pl"],
+      "properties": {
+        "id": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "display_name_pl": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "attribute": {
+      "type": "object",
+      "required": ["attribute", "base_value", "effective_value"],
+      "properties": {
+        "attribute": { "enum": ["STR", "DEX", "CON", "INT", "WIS", "CHA"] },
+        "base_value": { "type": "integer" },
+        "effective_value": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "characterSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "canonical_name",
+        "display_name_pl",
+        "race_pl",
+        "class_pl",
+        "subclass_pl",
+        "level",
+        "role_summary",
+        "active_party"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "display_name_pl": { "type": "string" },
+        "race_pl": { "$ref": "#/$defs/nullableString" },
+        "class_pl": { "type": "string" },
+        "subclass_pl": { "$ref": "#/$defs/nullableString" },
+        "level": { "type": "integer" },
+        "role_summary": { "type": "string" },
+        "active_party": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "modifier": {
+      "type": "object",
+      "required": [
+        "id",
+        "target_key",
+        "modifier",
+        "source_name_pl",
+        "provenance_type",
+        "permanent",
+        "active",
+        "notes",
+        "created_at"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "target_key": { "type": "string" },
+        "modifier": { "type": "integer" },
+        "source_name_pl": { "type": "string" },
+        "provenance_type": { "type": "string" },
+        "permanent": { "type": "boolean" },
+        "active": { "type": "boolean" },
+        "notes": { "$ref": "#/$defs/nullableString" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "ability": {
+      "type": "object",
+      "required": [
+        "id",
+        "name_pl",
+        "name_en",
+        "type",
+        "description_pl",
+        "verification_status",
+        "source",
+        "level_acquired",
+        "notes"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name_pl": { "type": "string" },
+        "name_en": { "$ref": "#/$defs/nullableString" },
+        "type": { "type": "string" },
+        "description_pl": { "$ref": "#/$defs/nullableString" },
+        "verification_status": { "type": "string" },
+        "source": { "type": "string" },
+        "level_acquired": { "type": ["integer", "null"] },
+        "notes": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "spell": {
+      "type": "object",
+      "required": [
+        "id",
+        "name_pl",
+        "name_en",
+        "level",
+        "school_pl",
+        "description_pl",
+        "verification_status",
+        "source",
+        "known",
+        "prepared",
+        "always_prepared",
+        "notes"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name_pl": { "type": "string" },
+        "name_en": { "$ref": "#/$defs/nullableString" },
+        "level": { "type": "integer" },
+        "school_pl": { "$ref": "#/$defs/nullableString" },
+        "description_pl": { "$ref": "#/$defs/nullableString" },
+        "verification_status": { "type": "string" },
+        "source": { "type": "string" },
+        "known": { "type": "boolean" },
+        "prepared": { "type": "boolean" },
+        "always_prepared": { "type": "boolean" },
+        "notes": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "itemEffect": {
+      "type": "object",
+      "required": [
+        "id",
+        "effect_type",
+        "numeric_value",
+        "dice_expression",
+        "damage_type",
+        "trigger",
+        "condition_text_pl",
+        "duration_text_pl",
+        "description_pl",
+        "verification_status"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "effect_type": { "type": "string" },
+        "numeric_value": { "type": ["number", "null"] },
+        "dice_expression": { "$ref": "#/$defs/nullableString" },
+        "damage_type": { "$ref": "#/$defs/nullableString" },
+        "trigger": { "$ref": "#/$defs/nullableString" },
+        "condition_text_pl": { "$ref": "#/$defs/nullableString" },
+        "duration_text_pl": { "$ref": "#/$defs/nullableString" },
+        "description_pl": { "type": "string" },
+        "verification_status": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "itemDefinition": {
+      "type": "object",
+      "required": [
+        "id",
+        "name_pl",
+        "name_en",
+        "type_pl",
+        "slot",
+        "rarity_pl",
+        "description_pl",
+        "verification_status",
+        "verification_confidence",
+        "verification_source",
+        "notes"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name_pl": { "type": "string" },
+        "name_en": { "$ref": "#/$defs/nullableString" },
+        "type_pl": { "$ref": "#/$defs/nullableString" },
+        "slot": { "$ref": "#/$defs/nullableString" },
+        "rarity_pl": { "$ref": "#/$defs/nullableString" },
+        "description_pl": { "$ref": "#/$defs/nullableString" },
+        "verification_status": { "type": "string" },
+        "verification_confidence": { "type": ["number", "null"] },
+        "verification_source": { "$ref": "#/$defs/nullableString" },
+        "notes": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "inventoryInstance": {
+      "type": "object",
+      "required": [
+        "id",
+        "status",
+        "owner_character_id",
+        "quantity",
+        "obtained_at",
+        "obtained_location",
+        "notes"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string" },
+        "owner_character_id": { "$ref": "#/$defs/nullableString" },
+        "quantity": { "type": "integer" },
+        "obtained_at": {
+          "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+        },
+        "obtained_location": { "$ref": "#/$defs/nullableString" },
+        "notes": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "equipment": {
+      "type": "object",
+      "required": ["inventory_item_id", "character_id", "slot"],
+      "properties": {
+        "inventory_item_id": { "type": "string" },
+        "character_id": { "type": "string" },
+        "slot": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "inventoryItem": {
+      "type": "object",
+      "required": ["inventory_item", "definition", "effects", "owner", "equipment"],
+      "properties": {
+        "inventory_item": { "$ref": "#/$defs/inventoryInstance" },
+        "definition": { "$ref": "#/$defs/itemDefinition" },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/itemEffect" } },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/identity" }, { "type": "null" }] },
+        "equipment": { "anyOf": [{ "$ref": "#/$defs/equipment" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
+    "getParty": {
+      "type": "object",
+      "required": ["characters"],
+      "properties": {
+        "characters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "canonical_name",
+              "display_name_pl",
+              "class_pl",
+              "subclass_pl",
+              "level",
+              "role_summary",
+              "attributes"
+            ],
+            "properties": {
+              "id": { "type": "string" },
+              "canonical_name": { "type": "string" },
+              "display_name_pl": { "type": "string" },
+              "class_pl": { "type": "string" },
+              "subclass_pl": { "$ref": "#/$defs/nullableString" },
+              "level": { "type": "integer" },
+              "role_summary": { "type": "string" },
+              "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "getCharacter": {
+      "type": "object",
+      "required": ["character", "attributes", "permanent_modifiers"],
+      "properties": {
+        "character": { "$ref": "#/$defs/characterSummary" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } },
+        "permanent_modifiers": { "type": "array", "items": { "$ref": "#/$defs/modifier" } }
+      },
+      "additionalProperties": false
+    },
+    "getCharacterBuild": {
+      "type": "object",
+      "required": ["character", "attributes", "permanent_modifiers", "abilities", "spells"],
+      "properties": {
+        "character": { "$ref": "#/$defs/characterSummary" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } },
+        "permanent_modifiers": { "type": "array", "items": { "$ref": "#/$defs/modifier" } },
+        "abilities": { "type": "array", "items": { "$ref": "#/$defs/ability" } },
+        "spells": { "type": "array", "items": { "$ref": "#/$defs/spell" } }
+      },
+      "additionalProperties": false
+    },
+    "getCharacterEquipment": {
+      "type": "object",
+      "required": ["character", "items"],
+      "properties": {
+        "character": { "$ref": "#/$defs/identity" },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } }
+      },
+      "additionalProperties": false
+    },
+    "findInventoryItems": {
+      "type": "object",
+      "required": ["items"],
+      "properties": { "items": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } } },
+      "additionalProperties": false
+    },
+    "getItem": {
+      "type": "object",
+      "required": ["definition", "instances"],
+      "properties": {
+        "definition": { "$ref": "#/$defs/itemDefinition" },
+        "instances": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } }
+      },
+      "additionalProperties": false
+    },
+    "getCharacterSpells": {
+      "type": "object",
+      "required": ["character", "spells"],
+      "properties": {
+        "character": { "$ref": "#/$defs/identity" },
+        "spells": { "type": "array", "items": { "$ref": "#/$defs/spell" } }
+      },
+      "additionalProperties": false
+    },
+    "getIllithidState": {
+      "type": "object",
+      "required": ["character", "powers"],
+      "properties": {
+        "character": { "anyOf": [{ "$ref": "#/$defs/identity" }, { "type": "null" }] },
+        "powers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name_pl",
+              "name_en",
+              "tier",
+              "description_pl",
+              "verification_status",
+              "prerequisite_power_ids",
+              "acquired",
+              "acquired_at",
+              "acquisition_source_pl",
+              "notes"
+            ],
+            "properties": {
+              "id": { "type": "string" },
+              "name_pl": { "type": "string" },
+              "name_en": { "$ref": "#/$defs/nullableString" },
+              "tier": { "type": ["integer", "null"] },
+              "description_pl": { "$ref": "#/$defs/nullableString" },
+              "verification_status": { "type": "string" },
+              "prerequisite_power_ids": { "type": "array", "items": { "type": "string" } },
+              "acquired": { "anyOf": [{ "type": "boolean" }, { "type": "null" }] },
+              "acquired_at": {
+                "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+              },
+              "acquisition_source_pl": { "$ref": "#/$defs/nullableString" },
+              "notes": { "$ref": "#/$defs/nullableString" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "getRecentChanges": {
+      "type": "object",
+      "required": ["limit", "changes"],
+      "properties": {
+        "limit": { "type": "integer" },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "occurred_at",
+              "type",
+              "character_id",
+              "checkpoint_id",
+              "proposal_id",
+              "summary_pl",
+              "reason_pl",
+              "reverses_change_event_id"
+            ],
+            "properties": {
+              "id": { "type": "string" },
+              "occurred_at": { "type": "string", "format": "date-time" },
+              "type": { "type": "string" },
+              "character_id": { "$ref": "#/$defs/nullableString" },
+              "checkpoint_id": { "$ref": "#/$defs/nullableString" },
+              "proposal_id": { "$ref": "#/$defs/nullableString" },
+              "summary_pl": { "type": "string" },
+              "reason_pl": { "$ref": "#/$defs/nullableString" },
+              "reverses_change_event_id": { "$ref": "#/$defs/nullableString" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "compareEquipment": {
+      "type": "object",
+      "required": [
+        "character",
+        "attributes",
+        "candidate",
+        "currently_equipped",
+        "include_party_synergies",
+        "party_equipment"
+      ],
+      "properties": {
+        "character": { "$ref": "#/$defs/identity" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } },
+        "candidate": { "$ref": "#/$defs/inventoryItem" },
+        "currently_equipped": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } },
+        "include_party_synergies": { "type": "boolean" },
+        "party_equipment": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["character", "items"],
+            "properties": {
+              "character": { "$ref": "#/$defs/identity" },
+              "items": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "calculateEffectiveAttributes": {
+      "type": "object",
+      "required": ["character", "attributes"],
+      "properties": {
+        "character": { "$ref": "#/$defs/identity" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } }
+      },
+      "additionalProperties": false
+    },
+    "findEquipmentCandidates": {
+      "type": "object",
+      "required": ["character", "slot", "effect_types", "items"],
+      "properties": {
+        "character": { "$ref": "#/$defs/identity" },
+        "slot": { "type": "string" },
+        "effect_types": { "type": "array", "items": { "type": "string" } },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } }
+      },
+      "additionalProperties": false
+    },
+    "validateCampaignState": {
+      "type": "object",
+      "required": ["valid", "violations"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "message", "entity_ids"],
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "entity_ids": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

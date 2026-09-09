@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Implemented M4 provider-independent typed tool contracts with normative JSON Schema,
+  strict Zod mirrors and automated parity/drift coverage.
+- Added separate immutable read/analysis, proposal and mutation catalogs and registries;
+  the production M4 composition exposes only nine read and four deterministic analysis
+  tools over an enforced read-only SQLite connection.
+- Added JSON-safe snake_case tool DTOs, stable success/failure envelopes, bounded error
+  details and a schema-first executor that validates input before handlers and output
+  before publication.
+- Added an out-of-band mutation authorization boundary bound to exact tool, full parsed
+  payload and confirmation claim through a versioned canonical SHA-256 digest. Proposal
+  storage, confirmation resolution and concrete mutations remain M6 scope.
+- Added M4 contract, registry, executor, read-only and authorization regressions,
+  including fabricated-confirmation scenarios proving zero campaign-state writes.
+- Recorded the approved M4 architecture in ADRs 0030–0033 and maintained a resumable
+  per-ADR implementation tracker.
 - Implemented the M3 local read-only CLI with `party`, `character`, `equipment`,
   `inventory`, `spells`, `illithid`, `changes`, `validate` and `export` commands.
 - Added a dedicated existing-file-only SQLite connection with driver read-only mode,

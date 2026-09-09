@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mark_item_sold",
+  "type": "object",
+  "required": ["item", "confirmation"],
+  "properties": {
+    "item": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "confirmation": {"$ref": "../domain/confirmation.schema.json"}
+  },
+  "additionalProperties": false
+}

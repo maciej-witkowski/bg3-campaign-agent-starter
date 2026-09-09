@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "find_equipment_candidates output",
+  "$ref": "read-tool-output-definitions.json#/$defs/findEquipmentCandidates"
+}

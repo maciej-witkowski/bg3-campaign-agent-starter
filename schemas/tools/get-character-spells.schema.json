@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "get_character_spells",
+  "type": "object",
+  "required": ["character"],
+  "properties": {
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "known": {"type": "boolean"},
+    "prepared": {"type": "boolean"},
+    "source": {
+      "enum": ["CLASS", "SPELLBOOK", "PACT", "DOMAIN", "ITEM", "INVOCATION", "RACE", "FEAT", "OTHER"]
+    }
+  },
+  "additionalProperties": false
+}

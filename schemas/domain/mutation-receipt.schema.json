@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.bg3-agent/schemas/mutation-receipt.schema.json",
+  "title": "MutationReceipt",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["changed"],
+      "properties": { "changed": { "const": false } },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["changed", "change_event_id", "occurred_at"],
+      "properties": {
+        "changed": { "const": true },
+        "change_event_id": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

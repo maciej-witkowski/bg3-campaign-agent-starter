@@ -4,11 +4,11 @@
   "type": "object",
   "required": ["character", "attribute", "modifier", "source_name_pl", "confirmation"],
   "properties": {
-    "character": {"type": "string"},
+    "character": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "attribute": {"enum": ["STR","DEX","CON","INT","WIS","CHA"]},
     "modifier": {"type": "integer"},
-    "source_name_pl": {"type": "string"},
-    "notes": {"type": "string"},
+    "source_name_pl": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "notes": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "confirmation": {"$ref": "../domain/confirmation.schema.json"}
   },
   "additionalProperties": false
