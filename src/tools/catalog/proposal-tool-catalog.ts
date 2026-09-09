@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { proposalSchema } from "../contracts/domain-contracts.js";
+import { createProposalOutputSchema } from "../contracts/domain-contracts.js";
 import { createProposalInputSchema } from "../contracts/tool-input-contracts.js";
 
 export type ProposalToolName = "create_proposal";
@@ -23,7 +23,7 @@ export const PROPOSAL_TOOL_CATALOG: readonly ProposalToolDefinition[] = Object.f
     milestone: "M4",
     availability: "EXECUTABLE",
     inputSchema: createProposalInputSchema,
-    outputSchema: proposalSchema,
+    outputSchema: createProposalOutputSchema,
   }),
 ]);
 

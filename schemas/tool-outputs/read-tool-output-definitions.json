@@ -410,6 +410,7 @@
       "type": "object",
       "required": [
         "character",
+        "attributes",
         "candidate",
         "currently_equipped",
         "include_party_synergies",
@@ -417,6 +418,7 @@
       ],
       "properties": {
         "character": { "$ref": "#/$defs/identity" },
+        "attributes": { "type": "array", "items": { "$ref": "#/$defs/attribute" } },
         "candidate": { "$ref": "#/$defs/inventoryItem" },
         "currently_equipped": { "type": "array", "items": { "$ref": "#/$defs/inventoryItem" } },
         "include_party_synergies": { "type": "boolean" },

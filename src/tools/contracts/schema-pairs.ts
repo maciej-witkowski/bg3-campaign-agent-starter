@@ -2,6 +2,7 @@ import type { ZodType } from "zod";
 
 import {
   campaignIntentSchema,
+  createProposalOutputSchema,
   itemResolutionResultSchema,
   mutationConfirmationSchema,
   mutationReceiptSchema,
@@ -72,6 +73,10 @@ export const CONTRACT_SCHEMA_PAIRS = [
     zodSchema: mutationReceiptSchema,
   },
   { jsonSchemaPath: "schemas/domain/tool-result.schema.json", zodSchema: toolResultSchema },
+  {
+    jsonSchemaPath: "schemas/tool-outputs/create-proposal.schema.json",
+    zodSchema: createProposalOutputSchema,
+  },
   {
     jsonSchemaPath: "schemas/tools/add-character-ability.schema.json",
     zodSchema: addCharacterAbilityInputSchema,

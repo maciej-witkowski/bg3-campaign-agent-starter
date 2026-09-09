@@ -147,6 +147,16 @@ describe("M4 read tool catalog and registry", () => {
         },
       });
       expect(
+        await application.readTools.get("compare_equipment")!.run(calls.compare_equipment),
+      ).toMatchObject({
+        ok: true,
+        data: {
+          attributes: expect.arrayContaining([
+            expect.objectContaining({ attribute: "STR", effective_value: 19 }),
+          ]),
+        },
+      });
+      expect(
         await application.readTools
           .get("find_equipment_candidates")!
           .run(calls.find_equipment_candidates),

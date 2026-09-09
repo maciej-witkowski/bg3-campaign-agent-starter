@@ -212,6 +212,24 @@ describe("M4 proposal and mutation capability registries", () => {
       }),
     ).resolves.toMatchObject({ ok: false, error: { code: "TOOL_OUTPUT_INVALID" } });
     expect(invalidOutputHandler).toHaveBeenCalledOnce();
+    const invalidStatusHandler = vi.fn(() => ({
+      id: "proposal-1",
+      intent_type: "SELL_ITEM",
+      human_summary_pl: "Sprzedaj przedmiot.",
+      payload: { item: "Pierścień" },
+      status: "CONFIRMED" as const,
+      created_at: "2026-09-01T12:00:00.000Z",
+      expires_at: "2026-09-01T12:05:00.000Z",
+    }));
+    const invalidStatusRegistry = createProposalToolRegistry(invalidStatusHandler);
+    await expect(
+      invalidStatusRegistry.run("create_proposal", {
+        intent_type: "SELL_ITEM",
+        human_summary_pl: "Sprzedaj przedmiot.",
+        payload: { item: "Pierścień" },
+      }),
+    ).resolves.toMatchObject({ ok: false, error: { code: "TOOL_OUTPUT_INVALID" } });
+    expect(invalidStatusHandler).toHaveBeenCalledOnce();
     expect(inputRegistry).not.toHaveProperty("confirm");
     expect(inputRegistry).not.toHaveProperty("store");
     expect(inputRegistry).not.toHaveProperty("consume");

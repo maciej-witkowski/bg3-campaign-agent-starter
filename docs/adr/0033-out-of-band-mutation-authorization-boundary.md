@@ -177,7 +177,8 @@ compatibility/expiry policy remain M6 decisions.
   strict `CampaignMutationResult`-compatible receipt union; no M1 mutation adapter,
   proposal store, confirmation resolver or durable consume/retry policy was added.
 - `ProposalToolRegistry` contains only `create_proposal`, validates an injected
-  ephemeral factory result and exposes no lookup, confirm, store or consume behavior.
+  ephemeral factory result, requires every newly created proposal to be `OPEN`, and
+  exposes no lookup, confirm, store or consume behavior.
 - Focused tests exercise valid proposal and direct-fact authorization, single-use replay
   refusal, every failure boundary, payload/key/array sensitivity, proposal input/output
   validation and a fabricated suggestion scenario with byte-identical SQLite and
@@ -220,3 +221,6 @@ is deny-by-default and persists no proposals.
 - 2026-09-09 — Implemented separate proposal/mutation contract registries, versioned
   payload binding, trusted authorization port, strict mutation receipts and focused
   no-write/replay/mismatch coverage without implementing M6 workflows.
+- 2026-09-09 — After owner-authorized review remediation, narrowed the normative
+  `create_proposal` output contract to `status: OPEN` and added rejection coverage for
+  lifecycle states owned by M6.

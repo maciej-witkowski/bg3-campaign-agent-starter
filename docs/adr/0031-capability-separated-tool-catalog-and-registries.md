@@ -187,6 +187,8 @@ milestones must supply approved contracts and handlers.
   equipment candidates exclude another character's protected `PERSONAL_STORY` items
   because M4 exposes no explicit redistribution permission, and exclude `UNKNOWN`
   inventory rows because unknown availability must not become a recommendation fact.
+- Equipment comparison results include the target character's effective attributes so
+  attribute-dependent effects can be evaluated from one deterministic snapshot.
 
 ## Rejected alternatives
 
@@ -217,3 +219,5 @@ identity, input/output schemas or capability membership.
   redistribution candidates.
 - 2026-09-09 — After owner-authorized current-head review remediation, excluded
   `UNKNOWN` inventory rows from automatic equipment candidates.
+- 2026-09-09 — Added effective attributes to the deterministic equipment comparison
+  projection after owner-authorized review remediation.

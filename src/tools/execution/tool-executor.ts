@@ -67,7 +67,13 @@ export async function executeTool<Input, Output extends JsonValue>(
     return mappedFailure(options, error, "handler");
   }
 
-  const parsedOutput = options.definition.outputSchema.safeParse(rawOutput);
+  let parsedOutput;
+  try {
+    parsedOutput = options.definition.outputSchema.safeParse(rawOutput);
+  } catch {
+    await observe(options, "output", "INTERNAL_ERROR", true);
+    return toolFailure("INTERNAL_ERROR", "Wystąpił nieoczekiwany błąd narzędzia.");
+  }
   if (!parsedOutput.success) {
     await observe(options, "output", "TOOL_OUTPUT_INVALID", false);
     return toolFailure("TOOL_OUTPUT_INVALID", "Narzędzie zwróciło nieprawidłowy wynik.", {

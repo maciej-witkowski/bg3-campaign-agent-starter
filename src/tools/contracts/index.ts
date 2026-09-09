@@ -1,5 +1,6 @@
 export {
   campaignIntentSchema,
+  createProposalOutputSchema,
   directFactConfirmationSchema,
   itemResolutionCandidateSchema,
   itemResolutionResultSchema,
@@ -18,6 +19,7 @@ export {
 } from "./domain-contracts.js";
 export type {
   CampaignIntent,
+  CreateProposalOutput,
   ItemResolutionResult,
   JsonValue,
   MutationConfirmation,

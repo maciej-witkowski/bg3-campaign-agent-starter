@@ -105,6 +105,11 @@ export const proposalSchema = z
   .strict();
 export type Proposal = z.infer<typeof proposalSchema>;
 
+export const createProposalOutputSchema = proposalSchema
+  .extend({ status: z.literal("OPEN") })
+  .strict();
+export type CreateProposalOutput = z.infer<typeof createProposalOutputSchema>;
+
 export const mutationReceiptSchema = z.discriminatedUnion("changed", [
   z.object({ changed: z.literal(false) }).strict(),
   z

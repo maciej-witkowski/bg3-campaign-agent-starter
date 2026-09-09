@@ -216,7 +216,8 @@ export class CampaignReadToolService implements CampaignReadToolPort {
 
   public compareEquipment(input: CompareEquipmentInput) {
     const snapshot = this.snapshot();
-    const character = snapshot.inspection.getCharacter(input.character).character;
+    const characterView = snapshot.inspection.getCharacter(input.character);
+    const character = characterView.character;
     const all = snapshot.inspection.findInventory().items;
     const candidate = resolveInstance(all, input.candidate_item);
     const slot = input.slot === undefined ? null : equipmentSlot(input.slot);
@@ -250,6 +251,7 @@ export class CampaignReadToolService implements CampaignReadToolPort {
       : [];
     return {
       character: identity(character),
+      attributes: characterView.attributes.map(attribute),
       candidate: inventory(candidate, candidate.owner),
       currently_equipped: current,
       include_party_synergies: input.include_party_synergies,

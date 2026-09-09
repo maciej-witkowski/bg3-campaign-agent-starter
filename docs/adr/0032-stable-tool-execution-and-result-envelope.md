@@ -173,7 +173,8 @@ not introduce persistent telemetry.
   The optional local observer receives only tool name, execution stage, code and an
   unexpected flag; observer failure cannot alter the public result. Adapter error
   mappers run inside the same containment boundary, so a mapper exception also becomes
-  a redacted `INTERNAL_ERROR` envelope.
+  a redacted `INTERNAL_ERROR` envelope. Exceptions raised while evaluating an output
+  schema—including throwing refinements or getters—are contained the same way.
 - `ReadToolRegistry` remains limited to its 13 read/analysis bindings. Known runners and
   its read-only name dispatch return validated envelopes; an unknown name returns
   `TOOL_NOT_FOUND` and cannot reach a handler.
@@ -208,3 +209,5 @@ not weaken the canonical tool validation semantics.
   executor, result factories, bounded diagnostics and envelope-returning read registry.
 - 2026-09-09 — After owner-authorized current-head review remediation, contained
   exceptions thrown by injected error mappers and added precondition/handler regressions.
+- 2026-09-09 — Contained exceptions raised by output-schema evaluation and added
+  regressions for throwing refinements and getters.

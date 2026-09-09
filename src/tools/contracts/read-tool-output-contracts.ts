@@ -226,6 +226,7 @@ export const getRecentChangesOutputSchema = z
 export const compareEquipmentOutputSchema = z
   .object({
     character: characterIdentityOutputSchema,
+    attributes: z.array(effectiveAttributeOutputSchema),
     candidate: inventoryItemOutputSchema,
     currently_equipped: z.array(inventoryItemOutputSchema),
     include_party_synergies: z.boolean(),

@@ -239,6 +239,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Codex review on `9d97525`                                                                | Two valid P2: UNKNOWN candidates and throwing error mapper containment |
 | 2026-09-09 | 6       | Focused executor/read regressions                                                        | Passed: 2 files / 31 tests                              |
 | 2026-09-09 | 6       | `pnpm check` after two-P2 remediation                                                    | Passed: formatting, lint, typecheck, 45 files / 456 tests, build, production smoke |
+| 2026-09-09 | 6       | Codex review on `35f1afb`                                                               | Three valid P2: comparison attributes, proposal OPEN status, output-validation containment |
+| 2026-09-09 | 6       | Focused contracts/registry/executor/read regression                                     | Passed: 4 files / 191 tests                             |
+| 2026-09-09 | 6       | `pnpm check` after three-P2 remediation                                                 | Passed: formatting, lint, typecheck, 45 files / 461 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -250,7 +253,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `ff9e002` / PR #7 | Latest remediation pushed; final CI/review in progress |
+| 6       | `35f1afb` / PR #7 | Latest findings remediated locally; commit/push pending |
 
 ## Risks and active questions
 
@@ -264,10 +267,11 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Latest remediation is pushed as `ff9e002`. The fresh
-cumulative stabilization sweep found no P0-P2 findings; focused tests pass 31/31 and the
-full 456-test gate is green. Await terminal CI/security and current-head Codex review,
-then prepare the human-approval handoff. Do not merge and do not start M5.
+Session 6 is active on PR #7. Codex review of `35f1afb` returned three valid P2 findings;
+the owner authorized necessary remediation. Equipment comparisons now include effective
+attributes, `create_proposal` output requires `OPEN`, and output-schema exceptions are
+contained. Focused tests pass 191/191 and the full 461-test gate is green. Commit/push,
+sweep, CI and current-head review remain. Do not merge and do not start M5.
 
 ## Change log
 
@@ -331,3 +335,7 @@ then prepare the human-approval handoff. Do not merge and do not start M5.
   mappers; focused tests passed 31 and the full gate passed 456.
 - 2026-09-09 — Committed and pushed the two-P2 remediation as `ff9e002`; fresh
   cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
+- 2026-09-09 — Codex review of `35f1afb` returned three valid P2 findings. Added
+  effective attributes to comparisons, restricted proposal creation output to `OPEN`
+  and contained output-schema exceptions; focused tests passed 191 and the full gate
+  passed 461.

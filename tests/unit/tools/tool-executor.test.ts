@@ -157,6 +157,39 @@ describe("M4 schema-first tool executor", () => {
     },
   );
 
+  it.each([
+    [
+      z.any().superRefine(() => {
+        throw new Error("refinement token=private");
+      }),
+      {},
+    ],
+    [
+      definition.outputSchema,
+      new Proxy(
+        {},
+        {
+          get: () => {
+            throw new Error("getter token=private");
+          },
+        },
+      ),
+    ],
+  ])("contains exceptions raised during output validation %#", async (outputSchema, output) => {
+    const result = await executeTool({
+      definition: { ...definition, outputSchema },
+      input: { character: "Lae'zel" },
+      handler: () => output as never,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "INTERNAL_ERROR", message_pl: "Wystąpił nieoczekiwany błąd narzędzia." },
+      warnings: [],
+    });
+    expect(JSON.stringify(result)).not.toContain("private");
+  });
+
   it("constructs exact mutually exclusive envelopes and bounds warnings", () => {
     expect(toolSuccess({ text: "Zażółć" }, ["uwaga"])).toEqual({
       ok: true,
