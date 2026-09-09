@@ -90,8 +90,16 @@ async function mappedFailure<Input, Output extends JsonValue>(
   error: unknown,
   stage: ToolExecutionStage,
 ): Promise<ToolResult<never>> {
-  const mapped =
-    error instanceof ExpectedToolError ? error.toolError : (options.mapError?.(error) ?? undefined);
+  let mapped;
+  try {
+    mapped =
+      error instanceof ExpectedToolError
+        ? error.toolError
+        : (options.mapError?.(error) ?? undefined);
+  } catch {
+    await observe(options, stage, "INTERNAL_ERROR", true);
+    return toolFailure("INTERNAL_ERROR", "Wystąpił nieoczekiwany błąd narzędzia.");
+  }
   if (mapped !== undefined) {
     await observe(options, stage, mapped.code, false);
     return toolFailure(mapped.code, mapped.message_pl, {

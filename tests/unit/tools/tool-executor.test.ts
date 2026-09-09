@@ -126,6 +126,37 @@ describe("M4 schema-first tool executor", () => {
     });
   });
 
+  it.each(["precondition", "handler"] as const)(
+    "contains a throwing error mapper after a %s failure",
+    async (stage) => {
+      const privateText = "mapper token=private";
+      const result = await executeTool({
+        definition,
+        input: { character: "Lae'zel" },
+        ...(stage === "precondition"
+          ? {
+              beforeInvoke: () => {
+                throw new Error("precondition failed");
+              },
+            }
+          : {}),
+        handler: () => {
+          throw new Error("handler failed");
+        },
+        mapError: () => {
+          throw new Error(privateText);
+        },
+      });
+
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "INTERNAL_ERROR", message_pl: "Wystąpił nieoczekiwany błąd narzędzia." },
+        warnings: [],
+      });
+      expect(JSON.stringify(result)).not.toContain(privateText);
+    },
+  );
+
   it("constructs exact mutually exclusive envelopes and bounds warnings", () => {
     expect(toolSuccess({ text: "Zażółć" }, ["uwaga"])).toEqual({
       ok: true,

@@ -185,7 +185,8 @@ milestones must supply approved contracts and handlers.
   unchanged audit-row count.
 - Ability and spell projections preserve definition verification status. Automatic
   equipment candidates exclude another character's protected `PERSONAL_STORY` items
-  because M4 exposes no explicit redistribution permission.
+  because M4 exposes no explicit redistribution permission, and exclude `UNKNOWN`
+  inventory rows because unknown availability must not become a recommendation fact.
 
 ## Rejected alternatives
 
@@ -214,3 +215,5 @@ identity, input/output schemas or capability membership.
 - 2026-09-09 — After owner-authorized Codex review remediation, preserved ability/spell
   verification metadata and protected character-bound story items from automatic
   redistribution candidates.
+- 2026-09-09 — After owner-authorized current-head review remediation, excluded
+  `UNKNOWN` inventory rows from automatic equipment candidates.

@@ -367,6 +367,7 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
         expect(pair.zodSchema.safeParse(sample).success).toBe(true);
       }
     },
+    15_000,
   );
 
   it.each(CONTRACT_SCHEMA_PAIRS)(

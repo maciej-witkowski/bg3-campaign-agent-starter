@@ -236,6 +236,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Owner approval for array-form type-union parity remediation                              | Explicitly accepted in the Codex task                   |
 | 2026-09-09 | 6       | Focused parity/read registry regression for array-form unions                            | Passed: 2 files / 146 tests                             |
 | 2026-09-09 | 6       | `pnpm check` after array-form union remediation                                          | Passed: formatting, lint, typecheck, 45 files / 454 tests, build, production smoke |
+| 2026-09-09 | 6       | Codex review on `9d97525`                                                                | Two valid P2: UNKNOWN candidates and throwing error mapper containment |
+| 2026-09-09 | 6       | Focused executor/read regressions                                                        | Passed: 2 files / 31 tests                              |
+| 2026-09-09 | 6       | `pnpm check` after two-P2 remediation                                                    | Passed: formatting, lint, typecheck, 45 files / 456 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -247,7 +250,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `9a019a2` / PR #7 | All accepted remediation pushed; final CI/review in progress |
+| 6       | `9d97525` / PR #7 | Latest review findings remediated locally; commit/push pending |
 
 ## Risks and active questions
 
@@ -261,10 +264,11 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. All accepted remediation is pushed through `9a019a2`.
-The fresh milestone-wide stabilization sweep found no P0-P2 findings, focused tests pass
-146/146 and the full 454-test gate is green. Await terminal CI/security and current-head
-Codex review, then prepare the human-approval handoff. Do not merge and do not start M5.
+Session 6 is active on PR #7. Codex review of `9d97525` returned two valid P2 findings;
+the owner authorized necessary remediation. `UNKNOWN` inventory is now excluded from
+automatic equipment candidates and throwing error mappers are contained as redacted
+`INTERNAL_ERROR` results. Focused tests pass 31/31 and the full 456-test gate is green.
+Commit/push, sweep, CI and current-head review remain. Do not merge and do not start M5.
 
 ## Change log
 
@@ -323,3 +327,6 @@ Codex review, then prepare the human-approval handoff. Do not merge and do not s
   generation; focused tests passed 146 and the full gate passed 454.
 - 2026-09-09 — Committed and pushed the array-form union remediation as `9a019a2`; fresh
   cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
+- 2026-09-09 — Codex review of `9d97525` returned two valid P2 findings. Excluded
+  `UNKNOWN` rows from automatic equipment candidates and contained throwing error
+  mappers; focused tests passed 31 and the full gate passed 456.

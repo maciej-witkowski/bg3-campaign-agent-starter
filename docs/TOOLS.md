@@ -72,10 +72,10 @@ Deterministic data assembly: current versus candidate, effective stats, tags, co
 Pure deterministic function.
 
 ### find_equipment_candidates
-Returns compatible non-sold inventory based only on the requested slot and exact stored
-effect types. Another character's `PERSONAL_STORY` item is excluded because this lookup
-has no explicit redistribution permission. It performs no M14 ranking, role scoring or
-inferred tagging.
+Returns compatible inventory with a known available status based only on the requested
+slot and exact stored effect types. `SOLD` and `UNKNOWN` rows are excluded. Another
+character's `PERSONAL_STORY` item is excluded because this lookup has no explicit
+redistribution permission. It performs no M14 ranking, role scoring or inferred tagging.
 
 ### validate_campaign_state
 Returns invariant violations without mutating.

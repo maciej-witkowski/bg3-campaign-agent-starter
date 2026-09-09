@@ -171,7 +171,9 @@ not introduce persistent telemetry.
   a redacted `INTERNAL_ERROR`.
 - Failure factories bound Polish messages, warnings and allowlisted detail structures.
   The optional local observer receives only tool name, execution stage, code and an
-  unexpected flag; observer failure cannot alter the public result.
+  unexpected flag; observer failure cannot alter the public result. Adapter error
+  mappers run inside the same containment boundary, so a mapper exception also becomes
+  a redacted `INTERNAL_ERROR` envelope.
 - `ReadToolRegistry` remains limited to its 13 read/analysis bindings. Known runners and
   its read-only name dispatch return validated envelopes; an unknown name returns
   `TOOL_NOT_FOUND` and cannot reach a handler.
@@ -204,3 +206,5 @@ not weaken the canonical tool validation semantics.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
 - 2026-09-01 — Implemented normative read/analysis output DTOs, the shared safe
   executor, result factories, bounded diagnostics and envelope-returning read registry.
+- 2026-09-09 — After owner-authorized current-head review remediation, contained
+  exceptions thrown by injected error mappers and added precondition/handler regressions.

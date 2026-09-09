@@ -273,6 +273,7 @@ export class CampaignReadToolService implements CampaignReadToolPort {
       .items.filter(
         (item) =>
           item.inventoryItem.status !== "SOLD" &&
+          item.inventoryItem.status !== "UNKNOWN" &&
           (item.inventoryItem.status !== "PERSONAL_STORY" ||
             item.inventoryItem.ownerCharacterId === character.id) &&
           item.definition.slot !== null &&

@@ -282,12 +282,18 @@ describe("M4 read tool catalog and registry", () => {
     }
   });
 
-  it("does not recommend another character's protected story item", async () => {
+  it("does not recommend unknown or another character's protected story item", async () => {
     const { filename } = fixture();
     const writable = openMigratedSqliteConnection({ filename });
     try {
       writable.database.$client.exec(
         "update item_definitions set slot = 'RING' where id = 'definition-story'",
+      );
+      writable.database.$client.exec(
+        "update item_definitions set slot = 'RING' where id = 'definition-armor'",
+      );
+      writable.database.$client.exec(
+        "update inventory_items set status = 'UNKNOWN' where id = 'inventory-armor'",
       );
     } finally {
       writable.close();
