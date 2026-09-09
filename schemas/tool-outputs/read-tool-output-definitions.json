@@ -352,7 +352,7 @@
               "description_pl": { "$ref": "#/$defs/nullableString" },
               "verification_status": { "type": "string" },
               "prerequisite_power_ids": { "type": "array", "items": { "type": "string" } },
-              "acquired": { "type": ["boolean", "null"] },
+              "acquired": { "anyOf": [{ "type": "boolean" }, { "type": "null" }] },
               "acquired_at": {
                 "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
               },

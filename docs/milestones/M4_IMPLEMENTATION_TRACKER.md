@@ -223,6 +223,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Codex review on `6d6532e`                                                                | One valid P1: unscoped illithid acquisition collapsed unknown to false |
 | 2026-09-09 | 6       | Focused illithid/parity regression                                                       | Passed: 2 files / 98 tests                              |
 | 2026-09-09 | 6       | `pnpm check` after P1 remediation                                                        | Passed: formatting, lint, typecheck, 45 files / 406 tests, build, production smoke |
+| 2026-09-09 | 6       | Owner approval for parity P2 remediation                                                 | Explicitly accepted in the Codex task                   |
+| 2026-09-09 | 6       | Focused parity/read registry regression after P2                                         | Passed: 2 files / 99 tests                              |
+| 2026-09-09 | 6       | `pnpm check` after P2 remediation                                                        | Passed: formatting, lint, typecheck, 45 files / 407 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -234,7 +237,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | PR #7     | CI/review in progress      |
+| 6       | `44cff86` / PR #7 | P1 remediation pushed; repeat review in progress |
 
 ## Risks and active questions
 
@@ -248,10 +251,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. The accepted P1 remediation and stale ADR-0030 evidence
-correction are implemented, focused tests pass 98/98, and the full 406-test gate is
-green. Commit and push the remediation, then await terminal CI/security and a repeated
-current-head Codex review. Do not merge and do not start M5.
+Session 6 is active on PR #7. P1 remediation commit `44cff86` is pushed. The owner
+explicitly accepted the follow-up P2 parity remediation; focused tests pass 99/99 and
+the full 407-test gate is green. Commit and push the follow-up, then request current-head
+Codex review and await terminal CI/security. Do not merge and do not start M5.
 
 ## Change log
 
@@ -279,3 +282,10 @@ current-head Codex review. Do not merge and do not start M5.
   unscoped illithid query emitted false acquisition facts. Owner authorized necessary
   continuation; remediation changes the unscoped value to unknown (`null`) while
   preserving booleans for character-scoped queries.
+- 2026-09-09 — Committed and pushed P1 remediation as `44cff86`. The repeated
+  stabilization sweep confirmed the functional fix and identified a P2 parity-test
+  blind spot for the nullable boolean representation plus a stale resume checkpoint.
+- 2026-09-09 — Owner explicitly accepted the P2 remediation. Switched nullable boolean
+  JSON Schema to the supported `anyOf` representation, made union-negative generation
+  reject only values invalid for the whole union, added direct parity regression and
+  passed the full 407-test gate.

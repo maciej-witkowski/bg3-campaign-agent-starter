@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CONTRACT_SCHEMA_PAIRS,
   getCharacterInputSchema,
+  getIllithidStateOutputSchema,
   getRecentChangesInputSchema,
   mutationConfirmationSchema,
 } from "../../../src/tools/contracts/index.js";
@@ -183,7 +184,9 @@ function deepInvalidSamples(schema: JsonSchema, schemaPath: string): readonly un
   }
   const choices = variants(schema);
   if (choices !== undefined)
-    return choices.flatMap((choice) => deepInvalidSamples(choice, schemaPath));
+    return choices
+      .flatMap((choice) => deepInvalidSamples(choice, schemaPath))
+      .filter((candidate) => !isValid(schema, candidate, schemaPath));
 
   const valid = sampleFor(schema, schemaPath);
   const result: unknown[] = [];
@@ -341,6 +344,41 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
       }).success,
     ).toBe(false);
     expect(mutationConfirmationSchema.safeParse({ proposal_id: "   " }).success).toBe(false);
+  });
+
+  it("keeps unscoped illithid acquisition explicitly nullable but never stringly typed", () => {
+    const definitionsPath = "schemas/tool-outputs/read-tool-output-definitions.json";
+    const acquiredSchema = resolveFragment(
+      readSchema(definitionsPath),
+      "#/$defs/getIllithidState/properties/powers/items/properties/acquired",
+    );
+    expect(isValid(acquiredSchema, true, definitionsPath)).toBe(true);
+    expect(isValid(acquiredSchema, false, definitionsPath)).toBe(true);
+    expect(isValid(acquiredSchema, null, definitionsPath)).toBe(true);
+    expect(isValid(acquiredSchema, "false", definitionsPath)).toBe(false);
+
+    const power = {
+      id: "power-1",
+      name_pl: "Próba",
+      name_en: null,
+      tier: null,
+      description_pl: null,
+      verification_status: "VERIFIED",
+      prerequisite_power_ids: [],
+      acquired: null,
+      acquired_at: null,
+      acquisition_source_pl: null,
+      notes: null,
+    };
+    expect(
+      getIllithidStateOutputSchema.safeParse({ character: null, powers: [power] }).success,
+    ).toBe(true);
+    expect(
+      getIllithidStateOutputSchema.safeParse({
+        character: null,
+        powers: [{ ...power, acquired: "false" }],
+      }).success,
+    ).toBe(false);
   });
 
   it("does not coerce invalid values or mutate caller input while applying a documented default", () => {
