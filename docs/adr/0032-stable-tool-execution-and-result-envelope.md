@@ -175,6 +175,9 @@ not introduce persistent telemetry.
   mappers run inside the same containment boundary, so a mapper exception also becomes
   a redacted `INTERNAL_ERROR` envelope. Exceptions raised while evaluating an output
   schema—including throwing refinements or getters—are contained the same way.
+  Input-schema evaluation is also contained before any precondition or handler runs;
+  ordinary invalid input remains `INVALID_TOOL_INPUT`, while a schema/getter exception
+  becomes a redacted `INTERNAL_ERROR`.
 - `ReadToolRegistry` remains limited to its 13 read/analysis bindings. Known runners and
   its read-only name dispatch return validated envelopes; an unknown name returns
   `TOOL_NOT_FOUND` and cannot reach a handler.
@@ -211,3 +214,5 @@ not weaken the canonical tool validation semantics.
   exceptions thrown by injected error mappers and added precondition/handler regressions.
 - 2026-09-09 — Contained exceptions raised by output-schema evaluation and added
   regressions for throwing refinements and getters.
+- 2026-09-09 — Contained exceptions raised by input-schema evaluation and proved that
+  throwing refinements/getters cannot reject the invocation or reach downstream work.

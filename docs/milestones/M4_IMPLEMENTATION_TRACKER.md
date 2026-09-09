@@ -242,6 +242,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Codex review on `35f1afb`                                                               | Three valid P2: comparison attributes, proposal OPEN status, output-validation containment |
 | 2026-09-09 | 6       | Focused contracts/registry/executor/read regression                                     | Passed: 4 files / 191 tests                             |
 | 2026-09-09 | 6       | `pnpm check` after three-P2 remediation                                                 | Passed: formatting, lint, typecheck, 45 files / 461 tests, build, production smoke |
+| 2026-09-09 | 6       | Owner approval for proposal typing/input containment P2 remediation                      | Explicitly accepted in the Codex task                   |
+| 2026-09-09 | 6       | Focused proposal/executor regression and typecheck                                      | Passed: 2 files / 44 tests; strict typecheck passed     |
+| 2026-09-09 | 6       | `pnpm check` after two-P2 remediation                                                   | Passed: formatting, lint, typecheck, 45 files / 463 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -253,7 +256,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `35f1afb` / PR #7 | Latest findings remediated locally; commit/push pending |
+| 6       | `e1ed51d` / PR #7 | Latest review findings remediated locally; commit/push pending |
 
 ## Risks and active questions
 
@@ -267,11 +270,12 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Codex review of `35f1afb` returned three valid P2 findings;
-the owner authorized necessary remediation. Equipment comparisons now include effective
-attributes, `create_proposal` output requires `OPEN`, and output-schema exceptions are
-contained. Focused tests pass 191/191 and the full 461-test gate is green. Commit/push,
-sweep, CI and current-head review remain. Do not merge and do not start M5.
+Session 6 is active on PR #7. Stabilization of `e1ed51d` found two valid P2 findings and
+the owner explicitly accepted remediation. Proposal registry TypeScript contracts now
+require `CreateProposalOutput`, and input-schema exceptions are contained before
+downstream work. Focused tests pass 44/44, strict typecheck passes and the full 463-test
+gate is green. Commit/push, sweep, CI and current-head review remain. Do not merge and do
+not start M5.
 
 ## Change log
 
@@ -339,3 +343,6 @@ sweep, CI and current-head review remain. Do not merge and do not start M5.
   effective attributes to comparisons, restricted proposal creation output to `OPEN`
   and contained output-schema exceptions; focused tests passed 191 and the full gate
   passed 461.
+- 2026-09-09 — Stabilization of `e1ed51d` found broad proposal TypeScript contracts and
+  uncontained input-schema evaluation. Owner accepted both P2 fixes; focused tests passed
+  44, strict typecheck passed and the full gate passed 463.

@@ -1,5 +1,5 @@
 import type { CreateProposalInput } from "../contracts/tool-input-contracts.js";
-import type { Proposal, ToolResult } from "../contracts/domain-contracts.js";
+import type { CreateProposalOutput, ToolResult } from "../contracts/domain-contracts.js";
 import {
   PROPOSAL_TOOL_CATALOG,
   assertValidProposalToolCatalog,
@@ -8,11 +8,13 @@ import {
 import { executeTool, type ToolExecutionObserver } from "../execution/tool-executor.js";
 import { toolFailure } from "../execution/tool-result.js";
 
-export type ProposalToolHandler = (input: CreateProposalInput) => Proposal | Promise<Proposal>;
+export type ProposalToolHandler = (
+  input: CreateProposalInput,
+) => CreateProposalOutput | Promise<CreateProposalOutput>;
 
 export interface ProposalToolRegistry {
   list(): readonly ProposalToolDefinition[];
-  run(name: string, input: unknown): Promise<ToolResult<Proposal>>;
+  run(name: string, input: unknown): Promise<ToolResult<CreateProposalOutput>>;
 }
 
 export function createProposalToolRegistry(
@@ -30,7 +32,7 @@ export function createProposalToolRegistry(
     list: () => listed,
     run: (name: string, input: unknown) =>
       name === "create_proposal"
-        ? executeTool<CreateProposalInput, Proposal>({
+        ? executeTool<CreateProposalInput, CreateProposalOutput>({
             definition,
             input,
             handler,

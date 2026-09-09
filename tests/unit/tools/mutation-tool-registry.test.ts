@@ -35,7 +35,10 @@ import {
   createMutationToolRegistry,
   type MutationToolHandlers,
 } from "../../../src/tools/registry/mutation-tool-registry.js";
-import { createProposalToolRegistry } from "../../../src/tools/registry/proposal-tool-registry.js";
+import {
+  createProposalToolRegistry,
+  type ProposalToolHandler,
+} from "../../../src/tools/registry/proposal-tool-registry.js";
 import manifest from "../../../schemas/tools/tool-manifest.json" with { type: "json" };
 import { seedM3CampaignFixture } from "../fixtures/m3-campaign-fixture.js";
 
@@ -221,7 +224,9 @@ describe("M4 proposal and mutation capability registries", () => {
       created_at: "2026-09-01T12:00:00.000Z",
       expires_at: "2026-09-01T12:05:00.000Z",
     }));
-    const invalidStatusRegistry = createProposalToolRegistry(invalidStatusHandler);
+    const invalidStatusRegistry = createProposalToolRegistry(
+      invalidStatusHandler as unknown as ProposalToolHandler,
+    );
     await expect(
       invalidStatusRegistry.run("create_proposal", {
         intent_type: "SELL_ITEM",

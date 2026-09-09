@@ -178,7 +178,9 @@ compatibility/expiry policy remain M6 decisions.
   proposal store, confirmation resolver or durable consume/retry policy was added.
 - `ProposalToolRegistry` contains only `create_proposal`, validates an injected
   ephemeral factory result, requires every newly created proposal to be `OPEN`, and
-  exposes no lookup, confirm, store or consume behavior.
+  exposes no lookup, confirm, store or consume behavior. Its public TypeScript handler
+  and result types use the same literal-`OPEN` contract rather than the broader proposal
+  lifecycle union.
 - Focused tests exercise valid proposal and direct-fact authorization, single-use replay
   refusal, every failure boundary, payload/key/array sensitivity, proposal input/output
   validation and a fabricated suggestion scenario with byte-identical SQLite and
@@ -224,3 +226,6 @@ is deny-by-default and persists no proposals.
 - 2026-09-09 — After owner-authorized review remediation, narrowed the normative
   `create_proposal` output contract to `status: OPEN` and added rejection coverage for
   lifecycle states owned by M6.
+- 2026-09-09 — Aligned the public proposal registry handler/result TypeScript surface
+  with `CreateProposalOutput`; the unsafe non-OPEN test remains an explicit boundary
+  attack rather than a type-valid implementation.

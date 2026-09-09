@@ -64,6 +64,44 @@ describe("M4 schema-first tool executor", () => {
   });
 
   it.each([
+    [
+      z.any().superRefine(() => {
+        throw new Error("input refinement token=private");
+      }),
+      {},
+    ],
+    [
+      definition.inputSchema,
+      new Proxy(
+        {},
+        {
+          get: () => {
+            throw new Error("input getter token=private");
+          },
+        },
+      ),
+    ],
+  ])("contains exceptions raised during input validation %#", async (inputSchema, input) => {
+    const beforeInvoke = vi.fn();
+    const handler = vi.fn();
+    const result = await executeTool({
+      definition: { ...definition, inputSchema },
+      input,
+      beforeInvoke,
+      handler,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "INTERNAL_ERROR", message_pl: "Wystąpił nieoczekiwany błąd narzędzia." },
+      warnings: [],
+    });
+    expect(beforeInvoke).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+    expect(JSON.stringify(result)).not.toContain("private");
+  });
+
+  it.each([
     [undefined, "TOOL_OUTPUT_INVALID"],
     [{ name: "Lae'zel", at: "nie-data" }, "TOOL_OUTPUT_INVALID"],
     [{ name: "Lae'zel", at: "2026-09-01T10:00:00.000Z", extra: true }, "TOOL_OUTPUT_INVALID"],

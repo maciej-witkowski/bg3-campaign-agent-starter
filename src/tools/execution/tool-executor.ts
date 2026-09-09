@@ -38,7 +38,13 @@ export interface ExecuteToolOptions<Input, Output extends JsonValue> {
 export async function executeTool<Input, Output extends JsonValue>(
   options: ExecuteToolOptions<Input, Output>,
 ): Promise<ToolResult<Output>> {
-  const parsedInput = options.definition.inputSchema.safeParse(options.input);
+  let parsedInput;
+  try {
+    parsedInput = options.definition.inputSchema.safeParse(options.input);
+  } catch {
+    await observe(options, "input", "INTERNAL_ERROR", true);
+    return toolFailure("INTERNAL_ERROR", "Wystąpił nieoczekiwany błąd narzędzia.");
+  }
   if (!parsedInput.success) {
     await observe(options, "input", "INVALID_TOOL_INPUT", false);
     return toolFailure("INVALID_TOOL_INPUT", "Nieprawidłowe argumenty narzędzia.", {
