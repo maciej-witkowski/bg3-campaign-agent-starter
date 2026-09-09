@@ -5,11 +5,13 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  compareEquipmentInputSchema,
   CONTRACT_SCHEMA_PAIRS,
   getCharacterInputSchema,
   getIllithidStateOutputSchema,
   getRecentChangesInputSchema,
   mutationConfirmationSchema,
+  resolveItemIdentityInputSchema,
 } from "../../../src/tools/contracts/index.js";
 
 type JsonSchema = Readonly<Record<string, unknown>>;
@@ -244,6 +246,44 @@ function deepInvalidSamples(schema: JsonSchema, schemaPath: string): readonly un
   return result;
 }
 
+function fullyPopulatedSamples(schema: JsonSchema, schemaPath: string): readonly unknown[] {
+  if (typeof schema.$ref === "string") {
+    const resolved = resolveReference(schemaPath, schema.$ref);
+    return fullyPopulatedSamples(resolved.schema, resolved.path);
+  }
+  const choices = variants(schema);
+  if (choices !== undefined)
+    return choices
+      .flatMap((choice) => fullyPopulatedSamples(choice, schemaPath))
+      .filter((candidate) => isValid(schema, candidate, schemaPath));
+  if (schema.type === "object") {
+    const properties = (schema.properties ?? {}) as Record<string, JsonSchema>;
+    const samplesByProperty = Object.fromEntries(
+      Object.entries(properties).map(([key, property]) => [
+        key,
+        fullyPopulatedSamples(property, schemaPath),
+      ]),
+    ) as Record<string, readonly unknown[]>;
+    const baseline = Object.fromEntries(
+      Object.entries(samplesByProperty).map(([key, samples]) => [
+        key,
+        samples[0] ?? sampleFor(properties[key] ?? {}, schemaPath),
+      ]),
+    );
+    return [
+      baseline,
+      ...Object.entries(samplesByProperty).flatMap(([key, samples]) =>
+        samples.slice(1).map((sample) => ({ ...baseline, [key]: sample })),
+      ),
+    ].filter((candidate) => isValid(schema, candidate, schemaPath));
+  }
+  if (schema.type === "array") {
+    const itemSchema = (schema.items ?? {}) as JsonSchema;
+    return fullyPopulatedSamples(itemSchema, schemaPath).map((sample) => [sample]);
+  }
+  return [sampleFor(schema, schemaPath)];
+}
+
 function assertSupportedKeywords(schema: JsonSchema, schemaPath: string): void {
   if (typeof schema.$ref === "string") {
     const resolved = resolveReference(schemaPath, schema.$ref);
@@ -310,6 +350,19 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
     expect(isValid(jsonSchema, sample, pair.jsonSchemaPath)).toBe(true);
     expect(pair.zodSchema.safeParse(sample).success).toBe(true);
   });
+
+  it.each(CONTRACT_SCHEMA_PAIRS)(
+    "accepts fully populated values and every union branch for $jsonSchemaPath",
+    (pair) => {
+      const jsonSchema = readSchema(pair.jsonSchemaPath);
+      const samples = fullyPopulatedSamples(jsonSchema, pair.jsonSchemaPath);
+      expect(samples.length).toBeGreaterThan(0);
+      for (const sample of samples) {
+        expect(isValid(jsonSchema, sample, pair.jsonSchemaPath)).toBe(true);
+        expect(pair.zodSchema.safeParse(sample).success).toBe(true);
+      }
+    },
+  );
 
   it.each(CONTRACT_SCHEMA_PAIRS)(
     "rejects the same recursive boundary corpus for $jsonSchemaPath",
@@ -381,7 +434,7 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
     ).toBe(false);
   });
 
-  it("does not coerce invalid values or mutate caller input while applying a documented default", () => {
+  it("does not coerce or mutate input and applies every documented default", () => {
     expect(getCharacterInputSchema.safeParse({ character: 42 }).success).toBe(false);
     const input: Record<string, unknown> = {};
     const before = structuredClone(input);
@@ -390,6 +443,17 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
     expect(input).toEqual(before);
     expect(parsed).not.toBe(input);
     expect(parsed).toEqual({ limit: 20 });
+    expect(
+      compareEquipmentInputSchema.parse({ character: "laezel", candidate_item: "item-1" }),
+    ).toEqual({
+      character: "laezel",
+      candidate_item: "item-1",
+      include_party_synergies: true,
+    });
+    expect(resolveItemIdentityInputSchema.parse({ name_pl: "Przedmiot" })).toEqual({
+      name_pl: "Przedmiot",
+      allow_external_research: true,
+    });
   });
 
   it("does not call downstream work after boundary validation fails", () => {

@@ -154,9 +154,10 @@ matching normalization remains an application-service concern.
   unsupported keyword. Focused tests also cover confirmation exclusivity, documented
   defaults, no coercion, no caller-input mutation and no downstream call after failed
   validation.
-- Initial focused verification passed 1 file / 64 tests. Post-stabilization verification
-  passed the combined registry/parity suite (2 files / 98 tests) and the full 406-test
-  gate with strict TypeScript typecheck. No runtime dependency was added.
+- Initial focused verification passed 1 file / 64 tests. After review remediation, the
+  parity suite passes 137 tests covering minimum and fully populated values, every union
+  branch, recursive negative boundaries and all documented defaults; the full 451-test
+  gate passes with strict TypeScript typecheck. No runtime dependency was added.
 
 ## Consequences and trade-offs
 
@@ -195,3 +196,6 @@ semantic parity tests and external reference paths remain stable.
 - 2026-09-09 — Expanded parity coverage to recursive nested boundaries and unsupported
   keyword detection; aligned the illithid acquisition result with the unknown-state
   invariant by allowing `null` for an unscoped query.
+- 2026-09-09 — After explicit owner approval of review remediation, added positive
+  fully-populated samples, every union branch and assertions for all documented defaults;
+  focused parity verification passed 137 tests.

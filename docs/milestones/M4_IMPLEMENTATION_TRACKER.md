@@ -226,6 +226,8 @@ Exit evidence:
 | 2026-09-09 | 6       | Owner approval for parity P2 remediation                                                 | Explicitly accepted in the Codex task                   |
 | 2026-09-09 | 6       | Focused parity/read registry regression after P2                                         | Passed: 2 files / 99 tests                              |
 | 2026-09-09 | 6       | `pnpm check` after P2 remediation                                                        | Passed: formatting, lint, typecheck, 45 files / 407 tests, build, production smoke |
+| 2026-09-09 | 6       | Positive full-value/union/default parity regression                                      | Passed: 1 file / 137 tests                             |
+| 2026-09-09 | 6       | `pnpm check` after positive parity remediation                                           | Passed: formatting, lint, typecheck, 45 files / 451 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -237,7 +239,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `44cff86` / PR #7 | P1 remediation pushed; repeat review in progress |
+| 6       | `0a29635` / PR #7 | Parity remediation pushed; repeat review in progress |
 
 ## Risks and active questions
 
@@ -251,10 +253,12 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. P1 remediation commit `44cff86` is pushed. The owner
-explicitly accepted the follow-up P2 parity remediation; focused tests pass 99/99 and
-the full 407-test gate is green. Commit and push the follow-up, then request current-head
-Codex review and await terminal CI/security. Do not merge and do not start M5.
+Session 6 is active on PR #7. Nullable-union remediation commit `0a29635` is pushed. The
+repeated sweep found a further P2 gap in positive parity coverage; the owner explicitly
+accepted remediation. Full-value generation, every union branch and all documented
+defaults now pass 137 focused tests and the full 451-test gate. Commit and push, then run
+the stabilization sweep and request current-head Codex review. Do not merge and do not
+start M5.
 
 ## Change log
 
@@ -289,3 +293,8 @@ Codex review and await terminal CI/security. Do not merge and do not start M5.
   JSON Schema to the supported `anyOf` representation, made union-negative generation
   reject only values invalid for the whole union, added direct parity regression and
   passed the full 407-test gate.
+- 2026-09-09 — Committed and pushed nullable-union remediation as `0a29635`. The next
+  sweep found missing positive full-value/union/default coverage; owner explicitly
+  accepted the follow-up P2 remediation.
+- 2026-09-09 — Implemented the accepted positive parity matrix; focused parity passed
+  137 tests and the full milestone gate passed 451 tests.
