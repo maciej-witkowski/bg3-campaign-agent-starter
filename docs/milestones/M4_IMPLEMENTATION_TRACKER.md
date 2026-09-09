@@ -247,7 +247,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `4a604c1` / PR #7 | Three Codex P2 fixes pushed; parity remediation in progress |
+| 6       | `9a019a2` / PR #7 | All accepted remediation pushed; final CI/review in progress |
 
 ## Risks and active questions
 
@@ -261,11 +261,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. The three Codex P2 fixes are pushed as `4a604c1`. Its
-stabilization sweep found an additional P2 blind spot for JSON Schema array-form type
-unions; the owner explicitly accepted generalized parity-harness support and direct
-regressions. Focused tests pass 146/146 and the full 454-test gate is green. Commit/push,
-sweep, CI and current-head review remain. Do not merge and do not start M5.
+Session 6 is active on PR #7. All accepted remediation is pushed through `9a019a2`.
+The fresh milestone-wide stabilization sweep found no P0-P2 findings, focused tests pass
+146/146 and the full 454-test gate is green. Await terminal CI/security and current-head
+Codex review, then prepare the human-approval handoff. Do not merge and do not start M5.
 
 ## Change log
 
@@ -322,3 +321,5 @@ sweep, CI and current-head review remain. Do not merge and do not start M5.
   harness support and representative regressions.
 - 2026-09-09 — Implemented array-form union validation plus positive/negative branch
   generation; focused tests passed 146 and the full gate passed 454.
+- 2026-09-09 — Committed and pushed the array-form union remediation as `9a019a2`; fresh
+  cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
