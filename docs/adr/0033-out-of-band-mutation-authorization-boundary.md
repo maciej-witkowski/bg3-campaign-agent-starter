@@ -157,6 +157,33 @@ compatibility/expiry policy remain M6 decisions.
 - Public composition/export inspection proves no permissive authorizer or authorization
   minting function is exposed to read-only/model callers.
 
+## Implementation evidence
+
+- `MutationToolRegistry<TContext>` exposes exactly the ten manifest mutation contracts
+  through a separate generic capability. Invocation requires a third, out-of-band
+  context argument; provider-visible schemas reject any embedded authorization context.
+- The registry strictly validates and copies input before constructing an authorization
+  request. That request binds the exact tool name, the full parsed payload (including
+  confirmation) through a versioned canonical SHA-256 digest, and an exact proposal or
+  direct-fact claim. Only an injected `MutationAuthorizationPort<TContext>` can approve
+  the request.
+- Canonical payload serialization sorts object keys recursively, preserves array order
+  and exact Unicode strings, normalizes negative zero as JSON does, and prefixes the
+  digest with `sha256:` after hashing the `bg3-mutation-payload-v1` domain separator.
+- Missing context, invalid input, unknown tool, expiry, replay, ambiguity and mismatched
+  tool/payload/claim fail before the handler. Public error details contain only a bounded
+  reason code and never the payload, utterance, context or authorization identity.
+- Mutation handlers remain injected contract fakes in M4. Their only output is the
+  strict `CampaignMutationResult`-compatible receipt union; no M1 mutation adapter,
+  proposal store, confirmation resolver or durable consume/retry policy was added.
+- `ProposalToolRegistry` contains only `create_proposal`, validates an injected
+  ephemeral factory result and exposes no lookup, confirm, store or consume behavior.
+- Focused tests exercise valid proposal and direct-fact authorization, single-use replay
+  refusal, every failure boundary, payload/key/array sensitivity, proposal input/output
+  validation and a fabricated suggestion scenario with byte-identical SQLite and
+  unchanged audit/checkpoint counts. Production `openM4CampaignApplication` still
+  exposes only `readTools` and `close`.
+
 ## Consequences and trade-offs
 
 - Confirmation becomes a real capability boundary rather than a required checkbox.
@@ -190,3 +217,6 @@ is deny-by-default and persists no proposals.
 
 - 2026-09-01 — Initial M4 proposal.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
+- 2026-09-09 — Implemented separate proposal/mutation contract registries, versioned
+  payload binding, trusted authorization port, strict mutation receipts and focused
+  no-write/replay/mismatch coverage without implementing M6 workflows.

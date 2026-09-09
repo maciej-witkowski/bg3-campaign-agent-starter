@@ -105,6 +105,18 @@ export const proposalSchema = z
   .strict();
 export type Proposal = z.infer<typeof proposalSchema>;
 
+export const mutationReceiptSchema = z.discriminatedUnion("changed", [
+  z.object({ changed: z.literal(false) }).strict(),
+  z
+    .object({
+      changed: z.literal(true),
+      change_event_id: nonBlankStringSchema,
+      occurred_at: z.iso.datetime(),
+    })
+    .strict(),
+]);
+export type MutationReceipt = z.infer<typeof mutationReceiptSchema>;
+
 export const toolErrorSchema = z
   .object({
     code: z.string(),

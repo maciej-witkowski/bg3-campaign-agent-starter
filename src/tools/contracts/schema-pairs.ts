@@ -4,6 +4,7 @@ import {
   campaignIntentSchema,
   itemResolutionResultSchema,
   mutationConfirmationSchema,
+  mutationReceiptSchema,
   proposalSchema,
   toolResultSchema,
 } from "./domain-contracts.js";
@@ -66,6 +67,10 @@ export const CONTRACT_SCHEMA_PAIRS = [
     zodSchema: itemResolutionResultSchema,
   },
   { jsonSchemaPath: "schemas/domain/proposal.schema.json", zodSchema: proposalSchema },
+  {
+    jsonSchemaPath: "schemas/domain/mutation-receipt.schema.json",
+    zodSchema: mutationReceiptSchema,
+  },
   { jsonSchemaPath: "schemas/domain/tool-result.schema.json", zodSchema: toolResultSchema },
   {
     jsonSchemaPath: "schemas/tools/add-character-ability.schema.json",
