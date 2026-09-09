@@ -1,6 +1,6 @@
 # M4 — Typed Tool Layer — Implementation Tracker
 
-Status: In progress
+Status: Completed
 
 Branch: `codex/m4-typed-tool-layer`
 
@@ -173,7 +173,7 @@ Exit evidence:
 
 ### Session 6 — CI/security/Codex review and human handoff
 
-Status: In progress
+Status: Completed
 
 Exit evidence:
 
@@ -245,6 +245,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Owner approval for proposal typing/input containment P2 remediation                      | Explicitly accepted in the Codex task                   |
 | 2026-09-09 | 6       | Focused proposal/executor regression and typecheck                                      | Passed: 2 files / 44 tests; strict typecheck passed     |
 | 2026-09-09 | 6       | `pnpm check` after two-P2 remediation                                                   | Passed: formatting, lint, typecheck, 45 files / 463 tests, build, production smoke |
+| 2026-09-09 | 6       | Hosted CI Quality gates and GitGuardian on `0e74d6b`                                    | Passed; PR merge state CLEAN                            |
+| 2026-09-09 | 6       | Codex review attempt on `0e74d6b`                                                       | Backend ref-propagation error; does not count as review |
+| 2026-09-09 | 6       | Independent current-material-head review (`main...d7f3e64`)                             | No P0-P2; accepted as documented fallback               |
 
 ## Commit and PR log
 
@@ -256,7 +259,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `d7f3e64` / PR #7 | Latest remediation pushed; final CI/review in progress |
+| 6       | `d7f3e64`, `0e74d6b` / PR #7 | Remediation and tracking pushed; ready for human approval |
 
 ## Risks and active questions
 
@@ -270,10 +273,12 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Latest remediation is pushed as `d7f3e64`. The fresh
-cumulative stabilization sweep found no P0-P2 findings; focused tests pass 44/44, strict
-typecheck passes and the full 463-test gate is green. Await terminal CI/security and
-current-head Codex review, then prepare human-approval handoff. Do not merge and do not
+M4 delivery is complete on PR #7. Material remediation head `d7f3e64` and tracker
+checkpoint `0e74d6b` are pushed. Focused tests pass 44/44, the full 463-test gate and
+hosted CI/security are green, and the PR is CLEAN. Codex failed to resolve the already
+pushed tracker ref; `git ls-remote` confirmed it exists, and one delayed retry was
+accepted. Per the workflow, the independent no-P0-P2 review of current material head
+`d7f3e64` is the final fallback evidence. Await human approval. Do not merge and do not
 start M5.
 
 ## Change log
@@ -347,3 +352,7 @@ start M5.
   44, strict typecheck passed and the full gate passed 463.
 - 2026-09-09 — Committed and pushed the two-P2 remediation as `d7f3e64`; fresh
   cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
+- 2026-09-09 — Codex review failed because its backend could not resolve tracker ref
+  `0e74d6b`, although the ref was confirmed on origin. A delayed retry was accepted; the
+  documented independent review of material head `d7f3e64` found no P0-P2 and is used as
+  fallback. Hosted CI/security passed and M4 advanced to human approval.
