@@ -239,7 +239,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `0a29635` / PR #7 | Parity remediation pushed; repeat review in progress |
+| 6       | `d4e0a1f` / PR #7 | Remediation pushed; final CI/review in progress |
 
 ## Risks and active questions
 
@@ -253,12 +253,11 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Nullable-union remediation commit `0a29635` is pushed. The
-repeated sweep found a further P2 gap in positive parity coverage; the owner explicitly
-accepted remediation. Full-value generation, every union branch and all documented
-defaults now pass 137 focused tests and the full 451-test gate. Commit and push, then run
-the stabilization sweep and request current-head Codex review. Do not merge and do not
-start M5.
+Session 6 is active on PR #7. All accepted remediation is pushed through `d4e0a1f`.
+The fresh milestone-wide stabilization sweep found no P0-P2 findings; positive parity
+passes 137 focused tests and the full 451-test gate is green. Await terminal CI/security
+and current-head Codex review, then prepare the human-approval handoff. Do not merge and
+do not start M5.
 
 ## Change log
 
@@ -298,3 +297,5 @@ start M5.
   accepted the follow-up P2 remediation.
 - 2026-09-09 — Implemented the accepted positive parity matrix; focused parity passed
   137 tests and the full milestone gate passed 451 tests.
+- 2026-09-09 — Committed and pushed the positive parity matrix as `d4e0a1f`; fresh
+  stabilization found no P0-P2 findings and only refreshed this durable checkpoint.
