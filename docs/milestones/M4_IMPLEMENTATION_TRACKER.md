@@ -155,7 +155,7 @@ Exit evidence:
 
 ### Session 5 — Integration, documentation and milestone gates
 
-Status: In progress
+Status: Completed
 
 Expected owned paths:
 
@@ -173,7 +173,7 @@ Exit evidence:
 
 ### Session 6 — CI/security/Codex review and human handoff
 
-Status: Pending
+Status: In progress
 
 Exit evidence:
 
@@ -230,7 +230,8 @@ Exit evidence:
 | 2       | `a2cd9ce` | ADR-0031 implementation    |
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
-| 5       | pending   | integration/docs/gates     |
+| 5       | `b2ca72b` | integration/docs/gates     |
+| 6       | PR #7     | CI/review in progress      |
 
 ## Risks and active questions
 
@@ -244,10 +245,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 5 is active. Public API and documentation are updated. The independent
-milestone-wide stabilization sweep found three P2 issues; all were corrected with
-regressions, and the full 406-test `pnpm check` is green. Create the integration commit,
-push the branch and open the PR, then move to Session 6. Do not start M5.
+Session 6 is active on PR #7. Session 5 is committed as `b2ca72b`, the branch is pushed,
+and the full 406-test `pnpm check` is green. Await terminal CI/security and current-head
+Codex review. Validate findings and present any remediation as one proposal; do not edit
+for review findings without explicit owner approval. Do not merge and do not start M5.
 
 ## Change log
 
@@ -269,3 +270,5 @@ push the branch and open the PR, then move to Session 6. Do not start M5.
 - 2026-09-09 — Stabilization excluded unknown-slot items from compatibility claims,
   rejected explicit candidate/slot conflicts, expanded parity evidence across nested
   boundaries and unsupported keywords, and passed the full 406-test milestone gate.
+- 2026-09-09 — Committed Session 5 as `b2ca72b`, pushed the branch and opened PR #7;
+  moved to Session 6 for CI/security and current-head Codex review.
