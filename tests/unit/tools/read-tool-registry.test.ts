@@ -168,4 +168,54 @@ describe("M4 read tool catalog and registry", () => {
       verification.close();
     }
   });
+
+  it("never turns an unknown item slot into equipment compatibility", async () => {
+    const { filename } = fixture();
+    const application = openM4CampaignApplication({ filename });
+    try {
+      await expect(
+        application.readTools.get("find_equipment_candidates")!.run({
+          character: "laezel",
+          slot: "RING_1",
+        }),
+      ).resolves.toMatchObject({
+        ok: true,
+        data: { items: [{ inventory_item: { id: "inventory-ring" } }] },
+      });
+      await expect(
+        application.readTools.get("compare_equipment")!.run({
+          character: "laezel",
+          candidate_item: "inventory-story",
+          include_party_synergies: false,
+        }),
+      ).resolves.toMatchObject({ ok: true, data: { currently_equipped: [] } });
+      await expect(
+        application.readTools.get("compare_equipment")!.run({
+          character: "laezel",
+          candidate_item: "inventory-story",
+          slot: "RING_1",
+          include_party_synergies: false,
+        }),
+      ).resolves.toMatchObject({ ok: false, error: { code: "CONFLICT" } });
+    } finally {
+      application.close();
+    }
+  });
+
+  it("rejects an explicit comparison slot incompatible with the candidate", async () => {
+    const { filename } = fixture();
+    const application = openM4CampaignApplication({ filename });
+    try {
+      await expect(
+        application.readTools.get("compare_equipment")!.run({
+          character: "laezel",
+          candidate_item: "inventory-armor",
+          slot: "RING_1",
+          include_party_synergies: false,
+        }),
+      ).resolves.toMatchObject({ ok: false, error: { code: "CONFLICT" } });
+    } finally {
+      application.close();
+    }
+  });
 });

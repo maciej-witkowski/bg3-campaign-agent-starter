@@ -216,6 +216,10 @@ Exit evidence:
 | 2026-09-01 | 3       | Scoped Prettier, ESLint and `node node_modules/typescript/bin/tsc --noEmit`              | Passed                                                                   |
 | 2026-09-09 | 4       | Mutation/proposal registry, authorization, parity and executor Vitest regression          | Passed outside sandbox: 4 files / 134 tests                              |
 | 2026-09-09 | 4       | `node node_modules/typescript/bin/tsc --noEmit` and scoped Prettier                       | Passed                                                                   |
+| 2026-09-09 | 5       | `pnpm check`                                                                              | Passed: formatting, lint, typecheck, 45 files / 404 tests, build, production smoke |
+| 2026-09-09 | 5       | Independent base-to-head stabilization review                                             | Three P2 findings verified: two slot semantics defects and insufficient recursive parity evidence |
+| 2026-09-09 | 5       | Focused slot/parity regression                                                            | Passed: 2 files / 98 tests                              |
+| 2026-09-09 | 5       | `pnpm check` after stabilization remediation                                              | Passed: formatting, lint, typecheck, 45 files / 406 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -225,7 +229,7 @@ Exit evidence:
 | 1       | `2f73dc9` | ADR-0030 implementation    |
 | 2       | `a2cd9ce` | ADR-0031 implementation    |
 | 3       | `c69c9d6` | ADR-0032 implementation    |
-| 4       | pending   | ADR-0033 implementation    |
+| 4       | `790791e` | ADR-0033 implementation    |
 | 5       | pending   | integration/docs/gates     |
 
 ## Risks and active questions
@@ -240,10 +244,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 5 is active. Review and export the intended public M4 API, update architecture,
-tool/testing/operator documentation and changelog, run the complete validation ladder
-and the milestone-wide stabilization sweep, then create the integration commit. Do not
-start M5.
+Session 5 is active. Public API and documentation are updated. The independent
+milestone-wide stabilization sweep found three P2 issues; all were corrected with
+regressions, and the full 406-test `pnpm check` is green. Create the integration commit,
+push the branch and open the PR, then move to Session 6. Do not start M5.
 
 ## Change log
 
@@ -262,3 +266,6 @@ start M5.
 - 2026-09-09 — Completed Session 4 with separate proposal/mutation registries, strict
   receipts, versioned payload authorization binding and 134 focused tests; opened
   Session 5.
+- 2026-09-09 — Stabilization excluded unknown-slot items from compatibility claims,
+  rejected explicit candidate/slot conflicts, expanded parity evidence across nested
+  boundaries and unsupported keywords, and passed the full 406-test milestone gate.

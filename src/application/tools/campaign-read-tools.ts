@@ -72,7 +72,7 @@ export interface CampaignReadToolPort {
 export class CampaignToolQueryError extends Error {
   public override readonly name = "CampaignToolQueryError";
   public constructor(
-    public readonly code: "NOT_FOUND" | "AMBIGUOUS" | "INVALID_FILTER",
+    public readonly code: "NOT_FOUND" | "AMBIGUOUS" | "INVALID_FILTER" | "CONFLICT",
     message: string,
   ) {
     super(message);
@@ -219,11 +219,22 @@ export class CampaignReadToolService implements CampaignReadToolPort {
     const all = snapshot.inspection.findInventory().items;
     const candidate = resolveInstance(all, input.candidate_item);
     const slot = input.slot === undefined ? null : equipmentSlot(input.slot);
+    if (
+      slot !== null &&
+      (candidate.definition.slot === null ||
+        !isEquipmentSlotCompatible(slot, candidate.definition.slot))
+    ) {
+      throw new CampaignToolQueryError(
+        "CONFLICT",
+        "Kandydat nie ma potwierdzonej zgodności z wybranym slotem wyposażenia.",
+      );
+    }
     const current = snapshot.inspection
       .getEquipment(character.canonicalName)
       .items.filter((item) =>
         slot === null
-          ? isEquipmentSlotCompatible(item.assignment.slot, candidate.definition.slot)
+          ? candidate.definition.slot !== null &&
+            isEquipmentSlotCompatible(item.assignment.slot, candidate.definition.slot)
           : item.assignment.slot === slot,
       )
       .map((item) => inventory(item, character));
@@ -261,6 +272,7 @@ export class CampaignReadToolService implements CampaignReadToolPort {
       .items.filter(
         (item) =>
           item.inventoryItem.status !== "SOLD" &&
+          item.definition.slot !== null &&
           isEquipmentSlotCompatible(slot, item.definition.slot) &&
           normalizedEffects.every((wanted) =>
             item.effects.some((effect) => normalizePolishMatchingKey(effect.effectType) === wanted),

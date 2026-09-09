@@ -5,8 +5,10 @@ Persistent local-first Baldur's Gate 3 campaign manager with AI-assisted build, 
 Implementation is intentionally staged through `ROADMAP.md`. M1 provides the canonical
 SQLite persistence and typed campaign-state domain foundation. M2 adds a conservative
 legacy-tracker import, reconciliation/report artifacts and lossless current-state
-JSON/XLSX exchange. M3 adds a local read-only inspection CLI without AI; later milestones
-add typed model tools and agent-facing behavior.
+JSON/XLSX exchange. M3 adds a local read-only inspection CLI without AI. M4 adds
+provider-independent typed tool contracts, read/analysis execution and a deny-by-default
+mutation authorization boundary; later milestones add model-facing behavior and
+concrete confirmed mutation workflows.
 
 ## Start here
 
@@ -71,6 +73,23 @@ The CLI never migrates or mutates SQLite. `export` creates only the explicit art
 and never replaces an existing target; choose a new path or move/remove the old artifact
 yourself. See `docs/CLI.md` for the complete grammar, filters, JSON contract and exit
 statuses.
+
+## M4 typed tool layer
+
+`openM4CampaignApplication({ filename })` opens an existing latest-schema database in
+read-only/query-only mode and returns only `readTools` plus `close()`. The registry
+contains nine read and four deterministic analysis tools. Calls validate input and
+output and return a stable success/failure envelope; they can be executed directly in
+TypeScript tests or applications without an LLM.
+
+Proposal and mutation catalogs are separate capabilities. M4 includes only an
+ephemeral proposal factory boundary and contract-only mutation handlers supplied by a
+caller. A mutation call requires both strict confirmation metadata and a trusted,
+out-of-band authorization context bound to the exact tool and payload. The default M4
+composition exposes neither mutation handlers nor an authorization issuer. Concrete
+proposal persistence, confirmation resolution and campaign mutations remain M6 scope.
+
+See `docs/TOOLS.md` for the active capability list and safety boundary.
 
 The repository does not yet include restore/undo, OpenAI integration, voice or desktop
 UI implementation.

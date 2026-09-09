@@ -99,3 +99,34 @@ explicit artifact.
 Human and versioned JSON renderers consume the same DTOs. `BG3_CLI_RESULT` V1 is an
 inspection/process result contract, not a backup or import authority. M3 adds no model,
 tool registry, fuzzy resolver or synergy taxonomy.
+
+## Implemented M4 typed tool path
+
+M4 adds provider-independent JSON Schema/Zod contracts and a shared schema-first tool
+executor. Normative JSON Schema artifacts and strict, non-coercing Zod mirrors are
+paired by a discovery/parity suite. Each known invocation validates input before any
+handler, applies category preconditions, validates JSON-safe output DTOs, and constructs
+one stable success/failure envelope. Expected errors are mapped to bounded Polish
+results; unexpected exceptions never expose SQL, stack traces, snapshots or input
+values.
+
+The active read surface contains nine query tools and four deterministic analysis
+tools. `CampaignReadToolService` adapts the M3 inspection/validation semantics and
+captures compound views through one read transaction. Its output is bounded snake_case
+JSON with ISO UTC dates, not persistence rows or M3 CLI envelopes. The M4 composition
+opens the same existing-file-only, exact-schema, query-only SQLite boundary as M3 and
+exposes exactly the read registry and `close()`.
+
+Capability separation is structural. Read/analysis, proposal and mutation catalogs and
+registries are distinct; there is no all-category dispatcher. The production M4
+composition does not instantiate proposal or mutation registries. Contract tests may
+inject an ephemeral proposal factory or fake mutation handlers, but M4 provides no
+proposal store, language classifier, confirmation resolver or concrete campaign
+mutation adapter.
+
+Mutation confirmation fields are untrusted provenance. Before an injected mutation
+handler can run, a separate trusted authorization port must approve a request bound to
+the exact tool name, exact confirmation claim and a versioned canonical digest of the
+complete parsed payload. Missing, expired, replayed, ambiguous or mismatched authority
+fails before the handler and before any transaction. M6 owns real authorization
+issuance, durable proposal/consume semantics and mappings to ADR-0014 mutation services.

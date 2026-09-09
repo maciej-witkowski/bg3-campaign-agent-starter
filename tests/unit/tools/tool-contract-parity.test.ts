@@ -176,6 +176,115 @@ function invalidSamples(schema: JsonSchema, schemaPath: string): readonly unknow
   return result;
 }
 
+function deepInvalidSamples(schema: JsonSchema, schemaPath: string): readonly unknown[] {
+  if (typeof schema.$ref === "string") {
+    const resolved = resolveReference(schemaPath, schema.$ref);
+    return deepInvalidSamples(resolved.schema, resolved.path);
+  }
+  const choices = variants(schema);
+  if (choices !== undefined)
+    return choices.flatMap((choice) => deepInvalidSamples(choice, schemaPath));
+
+  const valid = sampleFor(schema, schemaPath);
+  const result: unknown[] = [];
+  if (schema.type === "object") {
+    const object = valid as Record<string, unknown>;
+    const properties = (schema.properties ?? {}) as Record<string, JsonSchema>;
+    for (const key of (schema.required ?? []) as readonly string[]) {
+      const missing = { ...object };
+      delete missing[key];
+      result.push(missing);
+    }
+    if (schema.additionalProperties === false) result.push({ ...object, unexpected: true });
+    for (const [key, property] of Object.entries(properties)) {
+      const base = { ...object, [key]: sampleFor(property, schemaPath) };
+      for (const nested of deepInvalidSamples(property, schemaPath))
+        result.push({ ...base, [key]: nested });
+    }
+    result.push([]);
+  } else if (schema.type === "array") {
+    const itemSchema = (schema.items ?? {}) as JsonSchema;
+    if (typeof schema.minItems === "number")
+      result.push(
+        Array.from({ length: Math.max(0, schema.minItems - 1) }, () =>
+          sampleFor(itemSchema, schemaPath),
+        ),
+      );
+    if (typeof schema.maxItems === "number")
+      result.push(
+        Array.from({ length: schema.maxItems + 1 }, () => sampleFor(itemSchema, schemaPath)),
+      );
+    if (schema.uniqueItems === true) {
+      const item = sampleFor(itemSchema, schemaPath);
+      result.push([item, item]);
+    }
+    for (const nested of deepInvalidSamples(itemSchema, schemaPath)) result.push([nested]);
+    result.push({});
+  } else if (schema.type === "string") {
+    if (typeof schema.minLength === "number" && schema.minLength > 0) result.push("");
+    if (typeof schema.maxLength === "number") result.push("x".repeat(schema.maxLength + 1));
+    if (typeof schema.pattern === "string") result.push("\n");
+    if (schema.format === "date-time") result.push("nie-data");
+    result.push(42);
+  } else if (schema.type === "integer") {
+    result.push(1.5, "1");
+    if (typeof schema.minimum === "number") result.push(schema.minimum - 1);
+    if (typeof schema.maximum === "number") result.push(schema.maximum + 1);
+  } else if (schema.type === "number") {
+    result.push("1");
+    if (typeof schema.minimum === "number") result.push(schema.minimum - 1);
+    if (typeof schema.maximum === "number") result.push(schema.maximum + 1);
+  } else if (schema.type === "boolean") result.push("true");
+  else if (schema.type === "null") result.push(false);
+  if (Array.isArray(schema.enum)) result.push("__outside_enum__");
+  if ("const" in schema) result.push("__not_const__");
+  return result;
+}
+
+function assertSupportedKeywords(schema: JsonSchema, schemaPath: string): void {
+  if (typeof schema.$ref === "string") {
+    const resolved = resolveReference(schemaPath, schema.$ref);
+    assertSupportedKeywords(resolved.schema, resolved.path);
+    return;
+  }
+  const supported = new Set([
+    "$schema",
+    "$id",
+    "$ref",
+    "$defs",
+    "title",
+    "description",
+    "default",
+    "type",
+    "properties",
+    "required",
+    "additionalProperties",
+    "items",
+    "minItems",
+    "maxItems",
+    "uniqueItems",
+    "minLength",
+    "maxLength",
+    "pattern",
+    "format",
+    "minimum",
+    "maximum",
+    "enum",
+    "const",
+    "oneOf",
+    "anyOf",
+  ]);
+  for (const key of Object.keys(schema))
+    expect(supported.has(key), `unsupported JSON Schema keyword ${key}`).toBe(true);
+  for (const nested of Object.values((schema.properties ?? {}) as Record<string, JsonSchema>))
+    assertSupportedKeywords(nested, schemaPath);
+  for (const nested of Object.values((schema.$defs ?? {}) as Record<string, JsonSchema>))
+    assertSupportedKeywords(nested, schemaPath);
+  if (typeof schema.items === "object" && schema.items !== null)
+    assertSupportedKeywords(schema.items as JsonSchema, schemaPath);
+  for (const nested of variants(schema) ?? []) assertSupportedKeywords(nested, schemaPath);
+}
+
 describe("M4 normative JSON Schema and Zod contract parity", () => {
   it("declares exactly one Zod pair for every individual JSON Schema artifact", () => {
     const files = ["schemas/domain", "schemas/tools", "schemas/tool-outputs"]
@@ -200,10 +309,16 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
   });
 
   it.each(CONTRACT_SCHEMA_PAIRS)(
-    "rejects the same top-level negative corpus for $jsonSchemaPath",
+    "rejects the same recursive boundary corpus for $jsonSchemaPath",
     (pair) => {
       const jsonSchema = readSchema(pair.jsonSchemaPath);
-      for (const sample of invalidSamples(jsonSchema, pair.jsonSchemaPath)) {
+      assertSupportedKeywords(jsonSchema, pair.jsonSchemaPath);
+      const samples = [
+        ...invalidSamples(jsonSchema, pair.jsonSchemaPath),
+        ...deepInvalidSamples(jsonSchema, pair.jsonSchemaPath),
+      ];
+      expect(samples.length).toBeGreaterThan(0);
+      for (const sample of samples) {
         expect(isValid(jsonSchema, sample, pair.jsonSchemaPath)).toBe(false);
         expect(pair.zodSchema.safeParse(sample).success).toBe(false);
       }

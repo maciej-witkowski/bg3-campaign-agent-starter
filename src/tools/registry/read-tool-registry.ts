@@ -111,6 +111,7 @@ function mapReadToolError(error: unknown): SafeToolError | undefined {
   if (error instanceof CampaignToolQueryError) {
     if (error.code === "NOT_FOUND") return { code: "NOT_FOUND", message_pl: error.message };
     if (error.code === "AMBIGUOUS") return { code: "AMBIGUOUS", message_pl: error.message };
+    if (error.code === "CONFLICT") return { code: "CONFLICT", message_pl: error.message };
     return { code: "INVALID_TOOL_INPUT", message_pl: error.message };
   }
   if (error instanceof CampaignInspectionError) {

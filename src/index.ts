@@ -119,3 +119,85 @@ export { cliFailure, cliSuccess, serializeCliEnvelope } from "./cli/cli-envelope
 export { parseCliArguments } from "./cli/parse-cli-arguments.js";
 export { runCli } from "./cli/run-cli.js";
 export type { RunCliOptions } from "./cli/run-cli.js";
+
+export {
+  CampaignReadToolService,
+  CampaignToolQueryError,
+} from "./application/tools/campaign-read-tools.js";
+export type { CampaignReadToolPort } from "./application/tools/campaign-read-tools.js";
+export { openM4CampaignApplication } from "./composition/m4-campaign-application.js";
+export type {
+  M4CampaignApplication,
+  OpenM4CampaignApplicationOptions,
+} from "./composition/m4-campaign-application.js";
+
+export * from "./tools/contracts/index.js";
+export {
+  READ_TOOL_CATALOG,
+  assertValidReadToolCatalog,
+} from "./tools/catalog/read-tool-catalog.js";
+export type {
+  ReadToolCategory,
+  ReadToolDefinition,
+  ReadToolName,
+} from "./tools/catalog/read-tool-catalog.js";
+export {
+  PROPOSAL_TOOL_CATALOG,
+  assertValidProposalToolCatalog,
+} from "./tools/catalog/proposal-tool-catalog.js";
+export type {
+  ProposalToolDefinition,
+  ProposalToolName,
+} from "./tools/catalog/proposal-tool-catalog.js";
+export {
+  MUTATION_TOOL_CATALOG,
+  MUTATION_TOOL_NAMES,
+  assertValidMutationToolCatalog,
+} from "./tools/catalog/mutation-tool-catalog.js";
+export type {
+  MutationToolDefinition,
+  MutationToolName,
+} from "./tools/catalog/mutation-tool-catalog.js";
+export {
+  canonicalJsonDigest,
+  mutationAuthorizationClaim,
+} from "./tools/authorization/mutation-authorization.js";
+export type {
+  MutationAuthorizationClaim,
+  MutationAuthorizationDecision,
+  MutationAuthorizationPort,
+  MutationAuthorizationRequest,
+} from "./tools/authorization/mutation-authorization.js";
+export { createReadToolRegistry } from "./tools/registry/read-tool-registry.js";
+export type {
+  ReadToolRegistry,
+  ReadToolRegistryOptions,
+  ReadToolRunner,
+} from "./tools/registry/read-tool-registry.js";
+export { createProposalToolRegistry } from "./tools/registry/proposal-tool-registry.js";
+export type {
+  ProposalToolHandler,
+  ProposalToolRegistry,
+} from "./tools/registry/proposal-tool-registry.js";
+export { createMutationToolRegistry } from "./tools/registry/mutation-tool-registry.js";
+export type {
+  MutationToolHandlers,
+  MutationToolInputByName,
+  MutationToolRegistry,
+} from "./tools/registry/mutation-tool-registry.js";
+export { executeTool } from "./tools/execution/tool-executor.js";
+export type {
+  ExecutableToolDefinition,
+  ExecuteToolOptions,
+  ToolBeforeInvokeContext,
+  ToolExecutionObservation,
+  ToolExecutionObserver,
+  ToolExecutionStage,
+} from "./tools/execution/tool-executor.js";
+export { ExpectedToolError, SHARED_TOOL_ERROR_CODES } from "./tools/execution/tool-errors.js";
+export type {
+  SafeToolError,
+  SharedToolErrorCode,
+  ToolErrorMapper,
+} from "./tools/execution/tool-errors.js";
+export { toolFailure, toolSuccess } from "./tools/execution/tool-result.js";

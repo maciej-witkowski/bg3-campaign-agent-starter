@@ -134,3 +134,29 @@ prerequisite edges whose source or target definition is missing.
 Validation-port regression uses two SQLite connections in WAL mode. A writer commits
 between two reads inside the validation callback; both reads must observe the original
 snapshot, while a later transaction observes the committed row.
+
+## M4 typed tool evidence
+
+Contract parity coverage discovers every normative domain, tool-input and tool-output
+JSON Schema and requires exactly one strict Zod mirror. A shared generated corpus covers
+minimum/full valid values, required fields, root types, additional properties, enum and
+numeric boundaries, confirmation exclusivity, defaults, Unicode, no coercion and no
+caller-object mutation.
+
+The shared executor suite proves invalid input runs neither precondition nor handler;
+malformed/non-JSON output becomes a safe failure; synchronous and asynchronous errors
+are redacted; warnings/details are bounded; observer failure cannot alter the public
+result; and every result matches the mutually exclusive success/failure envelope.
+
+Read registry integration directly calls all nine read and four deterministic analysis
+tools without an LLM. It covers manifest/catalog separation, conservative identity
+errors, JSON-safe DTOs and output validation. A sanitized file-database regression
+closes the read-only application and proves byte-identical SQLite plus unchanged audit
+rows.
+
+Mutation/proposal contract tests use injected fakes only. They cover exclusive
+confirmation variants, missing context, expiry, replay, ambiguity, tool/payload/claim
+mismatch, key-order-independent but value/array-sensitive digests, valid proposal and
+direct-fact paths, and invalid proposal input/output. A fabricated suggestion carrying
+`direct_fact: true` without trusted authorization leaves SQLite bytes, audit events and
+checkpoints unchanged. No concrete M6 mutation service is exercised or exposed.
