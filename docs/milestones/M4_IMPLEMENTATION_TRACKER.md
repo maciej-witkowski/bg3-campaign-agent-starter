@@ -1,6 +1,6 @@
 # M4 — Typed Tool Layer — Implementation Tracker
 
-Status: In progress
+Status: Completed
 
 Branch: `codex/m4-typed-tool-layer`
 
@@ -173,7 +173,7 @@ Exit evidence:
 
 ### Session 6 — CI/security/Codex review and human handoff
 
-Status: In progress
+Status: Completed
 
 Exit evidence:
 
@@ -228,6 +228,8 @@ Exit evidence:
 | 2026-09-09 | 6       | `pnpm check` after P2 remediation                                                        | Passed: formatting, lint, typecheck, 45 files / 407 tests, build, production smoke |
 | 2026-09-09 | 6       | Positive full-value/union/default parity regression                                      | Passed: 1 file / 137 tests                             |
 | 2026-09-09 | 6       | `pnpm check` after positive parity remediation                                           | Passed: formatting, lint, typecheck, 45 files / 451 tests, build, production smoke |
+| 2026-09-09 | 6       | CI Quality gates and GitGuardian on remediated PR                                        | Passed on the latest material code and documentation checkpoint |
+| 2026-09-09 | 6       | Current-material-head independent AI review (`main...d4e0a1f`)                            | No P0-P2; one tracker-only P3 corrected in `aaddcd2`    |
 
 ## Commit and PR log
 
@@ -239,7 +241,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `d4e0a1f` / PR #7 | Remediation pushed; final CI/review in progress |
+| 6       | `d4e0a1f`, `aaddcd2` / PR #7 | Remediation and final tracking pushed; ready for human approval |
 
 ## Risks and active questions
 
@@ -253,11 +255,12 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. All accepted remediation is pushed through `d4e0a1f`.
-The fresh milestone-wide stabilization sweep found no P0-P2 findings; positive parity
-passes 137 focused tests and the full 451-test gate is green. Await terminal CI/security
-and current-head Codex review, then prepare the human-approval handoff. Do not merge and
-do not start M5.
+M4 delivery is complete on PR #7. All accepted remediation is pushed through material
+code head `d4e0a1f`; `aaddcd2` is a tracker-only checkpoint. The fresh independent review
+of the current material code found no P0-P2 findings, positive parity passes 137 focused
+tests, the full 451-test gate and hosted CI/security are green. External Codex was
+re-requested but returned no current-head review, so the documented independent fallback
+is the final AI review evidence. Await human approval. Do not merge and do not start M5.
 
 ## Change log
 
@@ -299,3 +302,7 @@ do not start M5.
   137 tests and the full milestone gate passed 451 tests.
 - 2026-09-09 — Committed and pushed the positive parity matrix as `d4e0a1f`; fresh
   stabilization found no P0-P2 findings and only refreshed this durable checkpoint.
+- 2026-09-09 — Pushed tracker-only checkpoint `aaddcd2`; hosted Quality gates and
+  GitGuardian passed. External Codex did not return a current-head review after a repeat
+  request, so the no-P0-P2 independent review of material head `d4e0a1f` is recorded as
+  the workflow fallback. M4 is ready for human approval without merging.
