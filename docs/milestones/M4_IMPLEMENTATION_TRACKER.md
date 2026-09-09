@@ -250,7 +250,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `9d97525` / PR #7 | Latest review findings remediated locally; commit/push pending |
+| 6       | `ff9e002` / PR #7 | Latest remediation pushed; final CI/review in progress |
 
 ## Risks and active questions
 
@@ -264,11 +264,10 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Codex review of `9d97525` returned two valid P2 findings;
-the owner authorized necessary remediation. `UNKNOWN` inventory is now excluded from
-automatic equipment candidates and throwing error mappers are contained as redacted
-`INTERNAL_ERROR` results. Focused tests pass 31/31 and the full 456-test gate is green.
-Commit/push, sweep, CI and current-head review remain. Do not merge and do not start M5.
+Session 6 is active on PR #7. Latest remediation is pushed as `ff9e002`. The fresh
+cumulative stabilization sweep found no P0-P2 findings; focused tests pass 31/31 and the
+full 456-test gate is green. Await terminal CI/security and current-head Codex review,
+then prepare the human-approval handoff. Do not merge and do not start M5.
 
 ## Change log
 
@@ -330,3 +329,5 @@ Commit/push, sweep, CI and current-head review remain. Do not merge and do not s
 - 2026-09-09 — Codex review of `9d97525` returned two valid P2 findings. Excluded
   `UNKNOWN` rows from automatic equipment candidates and contained throwing error
   mappers; focused tests passed 31 and the full gate passed 456.
+- 2026-09-09 — Committed and pushed the two-P2 remediation as `ff9e002`; fresh
+  cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
