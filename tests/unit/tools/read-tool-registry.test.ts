@@ -238,4 +238,73 @@ describe("M4 read tool catalog and registry", () => {
       application.close();
     }
   });
+
+  it("preserves ability and spell verification status in read projections", async () => {
+    const { filename } = fixture();
+    const writable = openMigratedSqliteConnection({ filename });
+    try {
+      writable.database.$client.exec(
+        "update abilities set verification_status = 'CONFLICT' where id = 'ability-gwm'",
+      );
+      writable.database.$client.exec(
+        "update spells set verification_status = 'UNVERIFIED' where id = 'spell-jump'",
+      );
+    } finally {
+      writable.close();
+    }
+    const application = openM4CampaignApplication({ filename });
+    try {
+      await expect(
+        application.readTools.get("get_character_build")!.run({ character: "laezel" }),
+      ).resolves.toMatchObject({
+        ok: true,
+        data: {
+          abilities: expect.arrayContaining([
+            expect.objectContaining({ id: "ability-gwm", verification_status: "CONFLICT" }),
+          ]),
+          spells: expect.arrayContaining([
+            expect.objectContaining({ id: "spell-jump", verification_status: "UNVERIFIED" }),
+          ]),
+        },
+      });
+      await expect(
+        application.readTools.get("get_character_spells")!.run({ character: "laezel" }),
+      ).resolves.toMatchObject({
+        ok: true,
+        data: {
+          spells: expect.arrayContaining([
+            expect.objectContaining({ id: "spell-jump", verification_status: "UNVERIFIED" }),
+          ]),
+        },
+      });
+    } finally {
+      application.close();
+    }
+  });
+
+  it("does not recommend another character's protected story item", async () => {
+    const { filename } = fixture();
+    const writable = openMigratedSqliteConnection({ filename });
+    try {
+      writable.database.$client.exec(
+        "update item_definitions set slot = 'RING' where id = 'definition-story'",
+      );
+    } finally {
+      writable.close();
+    }
+    const application = openM4CampaignApplication({ filename });
+    try {
+      await expect(
+        application.readTools.get("find_equipment_candidates")!.run({
+          character: "laezel",
+          slot: "RING_1",
+        }),
+      ).resolves.toMatchObject({
+        ok: true,
+        data: { items: [{ inventory_item: { id: "inventory-ring" } }] },
+      });
+    } finally {
+      application.close();
+    }
+  });
 });

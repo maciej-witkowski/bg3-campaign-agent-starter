@@ -115,6 +115,7 @@ export class CampaignReadToolService implements CampaignReadToolPort {
         name_en: definition.nameEn,
         type: definition.type,
         description_pl: definition.descriptionPl,
+        verification_status: definition.verificationStatus,
         source: assignment.source,
         level_acquired: assignment.levelAcquired,
         notes: assignment.notes,
@@ -272,6 +273,8 @@ export class CampaignReadToolService implements CampaignReadToolPort {
       .items.filter(
         (item) =>
           item.inventoryItem.status !== "SOLD" &&
+          (item.inventoryItem.status !== "PERSONAL_STORY" ||
+            item.inventoryItem.ownerCharacterId === character.id) &&
           item.definition.slot !== null &&
           isEquipmentSlotCompatible(slot, item.definition.slot) &&
           normalizedEffects.every((wanted) =>
@@ -463,6 +466,7 @@ function spell(view: ReturnType<CampaignInspectionService["getSpells"]>["spells"
     level: d.level,
     school_pl: d.schoolPl,
     description_pl: d.descriptionPl,
+    verification_status: d.verificationStatus,
     source: a.source,
     known: a.known,
     prepared: a.prepared,

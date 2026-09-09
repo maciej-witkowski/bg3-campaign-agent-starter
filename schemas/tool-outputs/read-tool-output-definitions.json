@@ -83,6 +83,7 @@
         "name_en",
         "type",
         "description_pl",
+        "verification_status",
         "source",
         "level_acquired",
         "notes"
@@ -93,6 +94,7 @@
         "name_en": { "$ref": "#/$defs/nullableString" },
         "type": { "type": "string" },
         "description_pl": { "$ref": "#/$defs/nullableString" },
+        "verification_status": { "type": "string" },
         "source": { "type": "string" },
         "level_acquired": { "type": ["integer", "null"] },
         "notes": { "$ref": "#/$defs/nullableString" }
@@ -108,6 +110,7 @@
         "level",
         "school_pl",
         "description_pl",
+        "verification_status",
         "source",
         "known",
         "prepared",
@@ -121,6 +124,7 @@
         "level": { "type": "integer" },
         "school_pl": { "$ref": "#/$defs/nullableString" },
         "description_pl": { "$ref": "#/$defs/nullableString" },
+        "verification_status": { "type": "string" },
         "source": { "type": "string" },
         "known": { "type": "boolean" },
         "prepared": { "type": "boolean" },

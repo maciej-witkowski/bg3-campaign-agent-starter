@@ -1,6 +1,6 @@
 # M4 — Typed Tool Layer — Implementation Tracker
 
-Status: Completed
+Status: In progress
 
 Branch: `codex/m4-typed-tool-layer`
 
@@ -173,7 +173,7 @@ Exit evidence:
 
 ### Session 6 — CI/security/Codex review and human handoff
 
-Status: Completed
+Status: In progress
 
 Exit evidence:
 
@@ -230,6 +230,9 @@ Exit evidence:
 | 2026-09-09 | 6       | `pnpm check` after positive parity remediation                                           | Passed: formatting, lint, typecheck, 45 files / 451 tests, build, production smoke |
 | 2026-09-09 | 6       | CI Quality gates and GitGuardian on remediated PR                                        | Passed on the latest material code and documentation checkpoint |
 | 2026-09-09 | 6       | Current-material-head independent AI review (`main...d4e0a1f`)                            | No P0-P2; one tracker-only P3 corrected in `aaddcd2`    |
+| 2026-09-09 | 6       | Codex review on `aaddcd2`                                                                | Three valid P2: ability/spell verification metadata and protected story candidates |
+| 2026-09-09 | 6       | Focused read/parity regression for three P2 findings                                     | Passed: 2 files / 145 tests                             |
+| 2026-09-09 | 6       | `pnpm check` after three-P2 remediation                                                  | Passed: formatting, lint, typecheck, 45 files / 453 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -255,12 +258,12 @@ No blocking question is currently open.
 
 ## Resume point
 
-M4 delivery is complete on PR #7. All accepted remediation is pushed through material
-code head `d4e0a1f`; `aaddcd2` is a tracker-only checkpoint. The fresh independent review
-of the current material code found no P0-P2 findings, positive parity passes 137 focused
-tests, the full 451-test gate and hosted CI/security are green. External Codex was
-re-requested but returned no current-head review, so the documented independent fallback
-is the final AI review evidence. Await human approval. Do not merge and do not start M5.
+Session 6 is active on PR #7. Codex review of `aaddcd2` returned three valid P2 findings:
+ability and spell projections hid verification status, and automatic equipment
+candidates included another character's protected story item. The owner explicitly
+requested remediation of the returned findings. Contract/mapper/filter regressions pass
+145 focused tests and the full 453-test gate is green. Commit/push, sweep, CI and
+current-head review remain. Do not merge and do not start M5.
 
 ## Change log
 
@@ -306,3 +309,9 @@ is the final AI review evidence. Await human approval. Do not merge and do not s
   GitGuardian passed. External Codex did not return a current-head review after a repeat
   request, so the no-P0-P2 independent review of material head `d4e0a1f` is recorded as
   the workflow fallback. M4 is ready for human approval without merging.
+- 2026-09-09 — Delayed Codex review for `aaddcd2` returned three valid P2 findings. The
+  owner explicitly requested they be addressed; Session 6 reopened for verified
+  remediation and another complete review cycle.
+- 2026-09-09 — Preserved ability/spell verification status and excluded another
+  character's protected story items from automatic equipment candidates; focused tests
+  passed 145 and the full gate passed 453.

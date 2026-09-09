@@ -183,6 +183,9 @@ milestones must supply approved contracts and handlers.
   fail-closed construction, invalid-input-before-handler behavior, conservative
   missing/ambiguous character resolution and prove byte-identical SQLite plus an
   unchanged audit-row count.
+- Ability and spell projections preserve definition verification status. Automatic
+  equipment candidates exclude another character's protected `PERSONAL_STORY` items
+  because M4 exposes no explicit redistribution permission.
 
 ## Rejected alternatives
 
@@ -208,3 +211,6 @@ identity, input/output schemas or capability membership.
 - 2026-09-01 — Accepted after explicit repository-owner approval.
 - 2026-09-01 — Implemented the read/analysis catalog, registry, atomic query adapter,
   JSON-safe DTOs and read-only M4 composition; focused tests passed 4/4.
+- 2026-09-09 — After owner-authorized Codex review remediation, preserved ability/spell
+  verification metadata and protected character-bound story items from automatic
+  redistribution candidates.

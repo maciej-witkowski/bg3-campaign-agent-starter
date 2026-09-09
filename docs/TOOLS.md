@@ -52,7 +52,8 @@ Returns the conservatively resolved definition, effects, verification and owned
 instances. Aliases remain M7 scope.
 
 ### get_character_spells
-Supports known/prepared/source filters.
+Supports known/prepared/source filters and preserves each definition's verification
+status.
 
 ### get_illithid_state
 Returns definitions, recorded acquisitions and known prerequisite IDs. M4 does not
@@ -72,7 +73,9 @@ Pure deterministic function.
 
 ### find_equipment_candidates
 Returns compatible non-sold inventory based only on the requested slot and exact stored
-effect types. It performs no M14 ranking, role scoring or inferred tagging.
+effect types. Another character's `PERSONAL_STORY` item is excluded because this lookup
+has no explicit redistribution permission. It performs no M14 ranking, role scoring or
+inferred tagging.
 
 ### validate_campaign_state
 Returns invariant violations without mutating.
