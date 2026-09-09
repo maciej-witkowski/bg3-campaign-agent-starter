@@ -54,7 +54,10 @@ function resolveFragment(schema: JsonSchema, fragment: string): JsonSchema {
 
 function variants(schema: JsonSchema): readonly JsonSchema[] | undefined {
   const values = schema.oneOf ?? schema.anyOf;
-  return Array.isArray(values) ? (values as readonly JsonSchema[]) : undefined;
+  if (Array.isArray(values)) return values as readonly JsonSchema[];
+  if (Array.isArray(schema.type))
+    return schema.type.map((type) => ({ ...schema, type })) as readonly JsonSchema[];
+  return undefined;
 }
 
 function sampleFor(schema: JsonSchema, schemaPath: string): unknown {
@@ -106,6 +109,8 @@ function isValid(schema: JsonSchema, value: unknown, schemaPath: string): boolea
     );
   if (Array.isArray(schema.anyOf))
     return schema.anyOf.some((candidate) => isValid(candidate as JsonSchema, value, schemaPath));
+  if (Array.isArray(schema.type))
+    return schema.type.some((type) => isValid({ ...schema, type }, value, schemaPath));
   if ("const" in schema && value !== schema.const) return false;
   if (Array.isArray(schema.enum) && !schema.enum.includes(value)) return false;
 
@@ -432,6 +437,46 @@ describe("M4 normative JSON Schema and Zod contract parity", () => {
         powers: [{ ...power, acquired: "false" }],
       }).success,
     ).toBe(false);
+  });
+
+  it("covers every array-form nullable type branch and rejects values outside the union", () => {
+    const definitionsPath = "schemas/tool-outputs/read-tool-output-definitions.json";
+    const definitions = readSchema(definitionsPath);
+    const cases = [
+      {
+        fragment: "#/$defs/nullableString",
+        valid: ["wartość", null],
+        generated: ["wartość", null],
+        invalid: [42, false, {}],
+        generatedInvalid: [42, false],
+      },
+      {
+        fragment: "#/$defs/ability/properties/level_acquired",
+        valid: [1, null],
+        generated: [0, null],
+        invalid: [1.5, "1", {}],
+        generatedInvalid: [1.5, "1"],
+      },
+      {
+        fragment: "#/$defs/itemEffect/properties/numeric_value",
+        valid: [1.5, null],
+        generated: [0, null],
+        invalid: ["1.5", false, {}],
+        generatedInvalid: ["1", false],
+      },
+    ] as const;
+    for (const entry of cases) {
+      const schema = resolveFragment(definitions, entry.fragment);
+      for (const value of entry.valid) expect(isValid(schema, value, definitionsPath)).toBe(true);
+      for (const value of entry.invalid)
+        expect(isValid(schema, value, definitionsPath)).toBe(false);
+      expect(fullyPopulatedSamples(schema, definitionsPath)).toEqual(
+        expect.arrayContaining([...entry.generated]),
+      );
+      expect(deepInvalidSamples(schema, definitionsPath)).toEqual(
+        expect.arrayContaining([...entry.generatedInvalid]),
+      );
+    }
   });
 
   it("does not coerce or mutate input and applies every documented default", () => {

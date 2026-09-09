@@ -233,6 +233,9 @@ Exit evidence:
 | 2026-09-09 | 6       | Codex review on `aaddcd2`                                                                | Three valid P2: ability/spell verification metadata and protected story candidates |
 | 2026-09-09 | 6       | Focused read/parity regression for three P2 findings                                     | Passed: 2 files / 145 tests                             |
 | 2026-09-09 | 6       | `pnpm check` after three-P2 remediation                                                  | Passed: formatting, lint, typecheck, 45 files / 453 tests, build, production smoke |
+| 2026-09-09 | 6       | Owner approval for array-form type-union parity remediation                              | Explicitly accepted in the Codex task                   |
+| 2026-09-09 | 6       | Focused parity/read registry regression for array-form unions                            | Passed: 2 files / 146 tests                             |
+| 2026-09-09 | 6       | `pnpm check` after array-form union remediation                                          | Passed: formatting, lint, typecheck, 45 files / 454 tests, build, production smoke |
 
 ## Commit and PR log
 
@@ -244,7 +247,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `d4e0a1f`, `aaddcd2` / PR #7 | Remediation and final tracking pushed; ready for human approval |
+| 6       | `4a604c1` / PR #7 | Three Codex P2 fixes pushed; parity remediation in progress |
 
 ## Risks and active questions
 
@@ -258,12 +261,11 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Codex review of `aaddcd2` returned three valid P2 findings:
-ability and spell projections hid verification status, and automatic equipment
-candidates included another character's protected story item. The owner explicitly
-requested remediation of the returned findings. Contract/mapper/filter regressions pass
-145 focused tests and the full 453-test gate is green. Commit/push, sweep, CI and
-current-head review remain. Do not merge and do not start M5.
+Session 6 is active on PR #7. The three Codex P2 fixes are pushed as `4a604c1`. Its
+stabilization sweep found an additional P2 blind spot for JSON Schema array-form type
+unions; the owner explicitly accepted generalized parity-harness support and direct
+regressions. Focused tests pass 146/146 and the full 454-test gate is green. Commit/push,
+sweep, CI and current-head review remain. Do not merge and do not start M5.
 
 ## Change log
 
@@ -315,3 +317,8 @@ current-head review remain. Do not merge and do not start M5.
 - 2026-09-09 — Preserved ability/spell verification status and excluded another
   character's protected story items from automatic equipment candidates; focused tests
   passed 145 and the full gate passed 453.
+- 2026-09-09 — Pushed the three fixes as `4a604c1`. Stabilization confirmed them and
+  found an array-form type-union parity blind spot; owner explicitly accepted generalized
+  harness support and representative regressions.
+- 2026-09-09 — Implemented array-form union validation plus positive/negative branch
+  generation; focused tests passed 146 and the full gate passed 454.

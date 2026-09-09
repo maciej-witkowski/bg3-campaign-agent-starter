@@ -155,8 +155,9 @@ matching normalization remains an application-service concern.
   defaults, no coercion, no caller-input mutation and no downstream call after failed
   validation.
 - Initial focused verification passed 1 file / 64 tests. After review remediation, the
-  parity suite passes 137 tests covering minimum and fully populated values, every union
-  branch, recursive negative boundaries and all documented defaults; the full 451-test
+  parity suite passes 138 tests covering minimum and fully populated values, every union
+  representation and branch, recursive negative boundaries and all documented defaults;
+  the full 454-test
   gate passes with strict TypeScript typecheck. No runtime dependency was added.
 
 ## Consequences and trade-offs
@@ -199,3 +200,6 @@ semantic parity tests and external reference paths remain stable.
 - 2026-09-09 — After explicit owner approval of review remediation, added positive
   fully-populated samples, every union branch and assertions for all documented defaults;
   focused parity verification passed 137 tests.
+- 2026-09-09 — Added generalized support and representative regressions for JSON Schema
+  array-form type unions after explicit owner approval; focused parity verification
+  passed 138 tests.
