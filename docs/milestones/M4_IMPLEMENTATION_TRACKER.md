@@ -256,7 +256,7 @@ Exit evidence:
 | 3       | `c69c9d6` | ADR-0032 implementation    |
 | 4       | `790791e` | ADR-0033 implementation    |
 | 5       | `b2ca72b` | integration/docs/gates     |
-| 6       | `e1ed51d` / PR #7 | Latest review findings remediated locally; commit/push pending |
+| 6       | `d7f3e64` / PR #7 | Latest remediation pushed; final CI/review in progress |
 
 ## Risks and active questions
 
@@ -270,12 +270,11 @@ No blocking question is currently open.
 
 ## Resume point
 
-Session 6 is active on PR #7. Stabilization of `e1ed51d` found two valid P2 findings and
-the owner explicitly accepted remediation. Proposal registry TypeScript contracts now
-require `CreateProposalOutput`, and input-schema exceptions are contained before
-downstream work. Focused tests pass 44/44, strict typecheck passes and the full 463-test
-gate is green. Commit/push, sweep, CI and current-head review remain. Do not merge and do
-not start M5.
+Session 6 is active on PR #7. Latest remediation is pushed as `d7f3e64`. The fresh
+cumulative stabilization sweep found no P0-P2 findings; focused tests pass 44/44, strict
+typecheck passes and the full 463-test gate is green. Await terminal CI/security and
+current-head Codex review, then prepare human-approval handoff. Do not merge and do not
+start M5.
 
 ## Change log
 
@@ -346,3 +345,5 @@ not start M5.
 - 2026-09-09 — Stabilization of `e1ed51d` found broad proposal TypeScript contracts and
   uncontained input-schema evaluation. Owner accepted both P2 fixes; focused tests passed
   44, strict typecheck passed and the full gate passed 463.
+- 2026-09-09 — Committed and pushed the two-P2 remediation as `d7f3e64`; fresh
+  cumulative stabilization found no P0-P2 findings and advanced to final CI/review.
